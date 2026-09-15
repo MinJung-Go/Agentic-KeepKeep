@@ -1,0 +1,2504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Inter 是最接近 SF Pro 的开放字体（Apple DESIGN.md 的推荐替代）；
+     Noto Sans SC 对应 PingFang SC。用 .cn 镜像，国内直连可用。
+     真机上 App 走系统字体，本来就是 SF Pro，这一层只为让设计稿在非 Mac 上还原。 -->
+<link rel="preconnect" href="https://fonts.googleapis.cn">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.cn/css2?family=Inter:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Agentic-KeepKeep · UI 设计稿 v2.0</title>
+<style>
+/* ══════════════════════════════════════════════════════════
+   展示页（非 App 内样式）
+   ══════════════════════════════════════════════════════════ */
+:root{
+  --sys-orange:#FF9F0A; --sys-green:#30D158; --sys-blue:#0A84FF; --sys-purple:#BF5AF2;
+  --sys-yellow:#FFD60A; --sys-red:#FF453A; --sys-gray:#8E8E93;
+  --ink:#08080A; --paper:#F4F1EB; --accent:#FF9F0A;
+  --line:rgba(244,241,235,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--ink);color:var(--paper);
+  font-family:'Inter','SF Pro Text',-apple-system,BlinkMacSystemFont,'PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5;position:relative;overflow-x:hidden;
+}
+.bg-glow{position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(880px 500px at 10% -8%,rgba(255,159,10,.12),transparent 62%),
+             radial-gradient(720px 440px at 90% 2%,rgba(10,132,255,.09),transparent 60%);}
+header,.gallery,.implnotes{position:relative;z-index:1}
+
+header{padding:76px 40px 22px;max-width:1360px;margin:0 auto}
+.kicker{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:11.5px;letter-spacing:.32em;
+  color:var(--accent);text-transform:uppercase;display:flex;align-items:center;gap:14px}
+.kicker::before{content:'';width:36px;height:1px;background:var(--accent)}
+h1{font-size:48px;font-weight:700;margin-top:18px;line-height:1.14}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{color:rgba(244,241,235,.58);font-size:15px;max-width:800px;margin-top:18px;line-height:1.8}
+.meta-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:24px}
+.chip{font-size:11.5px;color:rgba(244,241,235,.5);border:1px solid var(--line);
+  border-radius:999px;padding:6px 14px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace}
+.chip b{color:var(--accent);font-weight:600}
+
+/* ── 设计系统条 ── */
+/* ── 分节：每条一个标题，节奏统一（原来是平铺，看着散） ── */
+.band{max-width:1360px;margin:0 auto;padding:0 40px}
+.band+.band{margin-top:68px}
+.band-head{max-width:860px;margin-bottom:26px}
+.band-head h2{font-size:25px;font-weight:700;margin-top:13px}
+.band-head h2 em{font-style:normal;color:var(--accent)}
+.band-head p{font-size:13px;color:rgba(244,241,235,.52);margin-top:12px;line-height:1.78}
+.band-head code{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:11.5px;color:var(--accent)}
+.grid{display:grid;gap:14px}
+.grid-2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+.grid-3{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.sys-card{border:1px solid var(--line);border-radius:18px;padding:18px;background:rgba(255,255,255,.018)}
+.sys-card h3{font-size:11.5px;font-weight:600;letter-spacing:.08em;color:rgba(244,241,235,.45);
+  text-transform:uppercase;margin-bottom:15px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace}
+.swatches{display:flex;flex-wrap:wrap;gap:9px}
+.sw{display:flex;align-items:center;gap:7px;font-size:11px;color:rgba(244,241,235,.58)}
+.sw i{width:18px;height:18px;border-radius:5px;display:block}
+.anat{display:flex;flex-direction:column;gap:8px;font-size:12px;color:rgba(244,241,235,.6);line-height:1.65}
+.anat b{color:var(--paper);font-weight:600}
+.anat code{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;color:var(--accent);font-size:11.5px}
+/* 图标墙：每个格子是「符号 + 用途」 */
+.iconwall{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;color:rgba(244,241,235,.85)}
+.iconwall .cell{display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-size:9px;color:rgba(244,241,235,.4);text-align:center;letter-spacing:.02em}
+.iconwall svg{width:20px;height:20px}
+
+/* 图标工艺对比 */
+.iconcompare{display:flex;flex-direction:column;gap:11px}
+.icrow{display:flex;align-items:center;gap:10px;font-size:11px;color:rgba(244,241,235,.42)}
+.icrow .lab{width:74px;flex:none;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:10px}
+.icrow .set{display:flex;gap:9px;color:rgba(244,241,235,.9)}
+.icrow .set.emoji{font-size:19px;color:inherit}
+.icrow .set svg{width:20px;height:20px}
+.icrow.bad{opacity:.72}
+.icrow .tag{font-size:9.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);
+  color:rgba(244,241,235,.4);font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;margin-left:auto}
+
+.rulers{display:flex;align-items:flex-end;gap:9px}
+.rulers div{background:linear-gradient(180deg,rgba(255,159,10,.42),rgba(255,159,10,.05));
+  border-radius:3px 3px 0 0;flex:1;text-align:center;font-size:9px;color:rgba(244,241,235,.45);
+  padding-bottom:3px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace}
+
+/* ── 跨页规范 ── */
+
+.spec-card{border:1px solid var(--line);border-radius:18px;padding:20px;background:rgba(255,255,255,.018)}
+.spec-card > h3{font-size:11.5px;font-weight:600;letter-spacing:.08em;color:rgba(244,241,235,.45);
+  text-transform:uppercase;margin-bottom:16px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px}
+.legend span{display:flex;align-items:center;gap:7px;font-size:11.5px;color:rgba(244,241,235,.62)}
+.legend i{width:15px;height:3px;border-radius:2px;display:block}
+.legend i.dot{width:9px;height:9px;border-radius:3px}
+
+/* 图表示意 */
+.chartsample{display:flex;flex-direction:column;gap:14px}
+.spark{height:56px;width:100%}
+.spark .grid{stroke:rgba(255,255,255,.07);stroke-width:1}
+.spark .line{fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.spark .areaop{opacity:.14}
+.bars{display:flex;align-items:flex-end;gap:5px;height:52px}
+.bars i{flex:1;border-radius:4px 4px 1px 1px;background:rgba(255,159,10,.85)}
+.bars i.dim{background:rgba(118,118,128,.32)}
+
+/* Markdown 排版演示 */
+.md-demo{background:#1C1C1E;border:1px solid rgba(255,255,255,.085);border-radius:20px;
+  padding:15px 16px;color:#fff;font-size:16px;line-height:1.5;}
+.md-demo p{margin:0}
+.md-demo h5{font-size:16px;font-weight:600;margin:12px 0 6px;color:#fff}
+.md-demo h5:first-child{margin-top:0}
+.md-demo ul{list-style:none;margin:6px 0 0;padding:0}
+.md-demo li{position:relative;padding-left:17px;margin-bottom:5px}
+.md-demo li::before{content:'•';position:absolute;left:4px;color:rgba(235,235,245,.5)}
+.md-demo .num{display:inline-block;min-width:17px;font-variant-numeric:tabular-nums;
+  color:rgba(235,235,245,.5);margin-left:-17px}
+.md-demo code{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:14px;
+  background:rgba(118,118,128,.28);padding:1.5px 5px;border-radius:5px}
+.md-demo strong{font-weight:600}
+.md-demo hr{border:none;border-top:.5px solid rgba(84,84,88,.5);margin:12px 0}
+.md-demo .caption{font-size:11px;color:rgba(235,235,245,.32);margin-top:12px}
+
+/* 表单控件演示 */
+.ctrl{display:flex;flex-direction:column;gap:11px}
+.ctrl-row{display:flex;align-items:center;gap:11px;font-size:14px;color:rgba(244,241,235,.75)}
+.ctrl-row .lb{width:62px;flex:none;font-size:11.5px;color:rgba(244,241,235,.4);
+  font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace}
+.tf{flex:1;border-radius:999px;padding:9px 15px;font-size:15px;color:#fff;
+  background:rgba(118,118,128,.24)}
+.tf.dark{background:#2C2C2E}
+.tf.lightmode{background:#F2F2F7;color:#000}
+.tgl{width:44px;height:26px;border-radius:13px;position:relative;flex:none}
+.tgl.on{background:#30D158}.tgl.off{background:rgba(118,118,128,.32)}
+.tgl span{position:absolute;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.22)}
+.tgl.on span{right:2px}.tgl.off span{left:2px}
+.stepper{display:flex;align-items:center;gap:0;border-radius:999px;overflow:hidden;flex:none}
+.stepper b{background:rgba(118,118,128,.24);padding:8px 14px;font-size:16px;color:#fff;font-weight:400}
+
+/* ── 状态与边界 ── */
+
+.states-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.state-cell{border:1px solid var(--line);border-radius:18px;padding:16px;background:rgba(255,255,255,.018)}
+.state-cell .cap{font-size:11px;color:rgba(244,241,235,.4);font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;
+  margin-bottom:11px;letter-spacing:.02em}
+.state-cell .why{font-size:11.5px;color:rgba(244,241,235,.45);margin-top:11px;line-height:1.65}
+/* 真机宽度（393 − 16×2）的内容区，直接用 App 内的卡片变量 */
+.stage{background:#000;border-radius:16px;padding:14px 16px;--bg:#000;--card:#1C1C1E;--card2:#2C2C2E;
+  --stroke:rgba(255,255,255,.085);--l1:#fff;--l2:rgba(235,235,245,.6);--l3:rgba(235,235,245,.32);
+  --sep:rgba(84,84,88,.5);--chip:rgba(118,118,128,.24);
+  --o:#FF9F0A;--o-soft:rgba(255,159,10,.16);--g:#30D158;--g-soft:rgba(48,209,88,.16);
+  --b:#0A84FF;--b-soft:rgba(10,132,255,.16);--gr:#8E8E93;--gr-soft:rgba(142,142,147,.2);
+  --y:#FFD60A;--y-soft:rgba(255,214,10,.15);--r:#FF453A;--r-soft:rgba(255,69,58,.16);
+  color:var(--l1);font-size:14px}
+.stage.lm{--bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--stroke:rgba(0,0,0,.055);
+  --l1:#000;--l2:rgba(60,60,67,.6);--l3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.13);
+  --chip:rgba(118,118,128,.12);--o-soft:rgba(255,149,0,.14);--g-soft:rgba(48,209,88,.14);
+  --b-soft:rgba(10,132,255,.12);--gr-soft:rgba(142,142,147,.14);--y-soft:rgba(255,204,0,.16)}
+.stage .card{margin:0}
+.stage .srow{padding:10px 0}
+
+/* ── 屏幕网格 ── */
+.gallery{max-width:1360px;margin:0 auto;padding:0 40px 30px;
+  display:flex;flex-wrap:wrap;gap:56px 40px;justify-content:center;align-items:flex-start}
+.scene{width:393px;flex:none}
+.scene-label{margin-bottom:16px}
+.scene-label .no{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;color:var(--accent);
+  font-size:11px;letter-spacing:.26em}
+.scene-label h2{font-size:21px;font-weight:700;margin-top:7px;}
+.scene-label p{font-size:12.5px;color:rgba(244,241,235,.55);margin-top:8px;line-height:1.7}
+.scene-label p code{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:11px;color:var(--accent)}
+.scene-label .hig{display:inline-block;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:10px;
+  color:rgba(244,241,235,.36);border:1px solid var(--line);border-radius:6px;
+  padding:4px 8px;margin-top:11px;letter-spacing:.02em}
+
+/* ── 手机外框 ── */
+.phone{width:393px;height:852px;border-radius:56px;padding:11px;position:relative;flex:none;
+  display:flex;
+  background:linear-gradient(160deg,#3a3a3e,#131315 42%,#26262a);
+  box-shadow:0 34px 70px -24px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.06);}
+.screen{width:100%;height:830px;border-radius:46px;overflow:hidden;position:relative;
+  background:var(--bg);display:flex;flex-direction:column}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:112px;height:29px;
+  border-radius:16px;background:#000;z-index:30}
+.statusbar{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;
+  justify-content:space-between;padding:14px 26px 0;font-size:13px;font-weight:600;color:var(--l1);z-index:25}
+.statusbar .icons{font-size:9.5px;letter-spacing:.14em;opacity:.9}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;
+  border-radius:3px;background:var(--l1);opacity:.28;z-index:26}
+
+/* ══════════════════════════════════════════════════════════
+   App 内样式 —— 全部走局部变量，换 .light 即整体换挡
+   ══════════════════════════════════════════════════════════ */
+.phone{
+  --bg:#000; --card:#1C1C1E; --card2:#2C2C2E; --stroke:rgba(255,255,255,.085);
+  --l1:#fff; --l2:rgba(235,235,245,.6); --l3:rgba(235,235,245,.32);
+  --sep:rgba(84,84,88,.5); --chip:rgba(118,118,128,.24);
+  --glass:rgba(22,22,24,.92); --glassline:rgba(255,255,255,.075);
+  --o:var(--sys-orange); --o-soft:rgba(255,159,10,.16);
+  --g:var(--sys-green);  --g-soft:rgba(48,209,88,.16);
+  --b:var(--sys-blue);   --b-soft:rgba(10,132,255,.16);
+  --gr:var(--sys-gray);  --gr-soft:rgba(142,142,147,.2);
+  --y:var(--sys-yellow); --y-soft:rgba(255,214,10,.15);
+  --r:var(--sys-red);    --r-soft:rgba(255,69,58,.16);
+}
+.phone.light{
+  --bg:#F2F2F7; --card:#fff; --card2:#F2F2F7; --stroke:rgba(0,0,0,.055);
+  --l1:#000; --l2:rgba(60,60,67,.6); --l3:rgba(60,60,67,.3);
+  --sep:rgba(60,60,67,.13); --chip:rgba(118,118,128,.12);
+  --glass:rgba(250,250,252,.94); --glassline:rgba(0,0,0,.045);
+  --o-soft:rgba(255,149,0,.14); --g-soft:rgba(48,209,88,.14); --b-soft:rgba(10,132,255,.12);
+  --gr-soft:rgba(142,142,147,.14); --y-soft:rgba(255,204,0,.16); --r-soft:rgba(255,59,48,.12);
+}
+.screen-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;
+  color:var(--l1);padding-top:54px}
+/* 可滚动：静态稿里点住拖动就能看到下半屏。隐藏滚动条，避免破坏设备外框。
+   底部留出浮层高度，最后一行不会被压住。 */
+.scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 16px 150px;
+  scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.scroll.tall{padding-bottom:150px}
+.large-title{font-size:34px;font-weight:700;padding:8px 4px 0;color:var(--l1)}
+.date-sub{color:var(--l2);font-size:14px;padding:4px 4px 16px}
+.mono{font-variant-numeric:tabular-nums}
+
+/* ── 图标：分层渲染（primary 100% / secondary 50%），等价 .hierarchical ── */
+/* Ionicons 在 512 盒内填充率高于 SF Symbols，同尺寸下视觉偏大，
+   所以整体下调 2px；duo 是空态专用的大尺寸图标。 */
+svg.ic{width:17px;height:17px;display:block;flex:none}
+svg.ic.lg{width:19px;height:19px}
+svg.ic.sm{width:13px;height:13px}
+svg.ic.duo{width:34px;height:34px}
+
+/* ── 卡片：圆角 20 · 内边距 16 · 无描边、无阴影 ── */
+/* iOS 的分组列表没有边框 —— 卡片与页面的底色差本身就是分层。
+   之前加的 1pt 描边是从 Apple 官网（网页）的 utility card 规则搬来的，
+   用在 App 里就显"web 味"。 */
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px}
+/* 列表分组标题：卡片外的小灰字 */
+.listhead{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 8px;
+  font-size:13px;font-weight:600;color:var(--l2)}
+.listhead .n{font-weight:400;color:var(--l3);font-variant-numeric:tabular-nums}
+.card-h{display:flex;align-items:center;gap:7px;margin-bottom:13px}
+.card-h .t{font-size:12px;font-weight:600;color:var(--l2);}
+.card-h .r{margin-left:auto;font-size:11px;color:var(--l3);display:flex;align-items:center;gap:5px}
+
+/* ── 图标容器：36×36 · 圆角 12 · 语义色实底 + 白符号 ── */
+.ico{width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.ico.sm{width:30px;height:30px;border-radius:8px}
+/* 实色底 + 白符号 —— Apple 设置页的做法。淡色底配同色符号是"AI 生成界面"
+   最典型的套路：语义色被刷成一块淡底再用同色写字，层次和对比都没了。 */
+.ico.train{background:var(--o);color:#fff}
+.ico.meal{background:var(--g);color:#fff}
+.ico.body{background:var(--b);color:#fff}
+.ico.note{background:var(--gr);color:#fff}
+.ico.ai{background:var(--o);color:#fff}
+.ico.warn{background:var(--y);color:#3A2E00}
+.ico.dim{background:var(--gr);color:#fff}
+
+/* ── 徽标：11pt 600 · 圆角 8 ── */
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:8px;white-space:nowrap;
+  background:var(--chip);color:var(--l2)}
+.badge.grey{background:var(--chip);color:var(--l2)}
+.badge.green{background:var(--g);color:#fff}
+.badge.blue{background:var(--b);color:#fff}
+/* 黄色是亮色 —— 实底上必须配深字，白字读不出来（对应 App 里的 BadgeTone.bright） */
+.badge.yellow{background:var(--y);color:#3A2E00;font-weight:600}
+.badge.red{background:var(--r);color:#fff}
+
+/* ── 进度环 ── */
+.rings{display:flex;gap:6px}
+.ringcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ringwrap{position:relative;width:64px;height:64px}
+svg.ring{width:64px;height:64px;transform:rotate(-90deg)}
+svg.ring circle{fill:none;stroke-width:5;stroke-linecap:round}
+svg.ring .track{stroke:var(--chip)}
+svg.ring .val{stroke:var(--o)}
+svg.ring .val.g{stroke:var(--g)}
+svg.ring .val.b{stroke:var(--b)}
+.ringtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:15px;font-weight:700;
+  font-variant-numeric:tabular-nums;color:var(--l1)}
+.ringtxt small{font-size:9.5px;font-weight:600;color:var(--l3);margin-top:-2px}
+.ringcol .cap{font-size:11.5px;color:var(--l2);font-weight:400}
+
+/* ── 健康指标 ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:var(--card2);border-radius:12px;padding:11px 12px}
+.stat .top{display:flex;align-items:center;gap:6px;color:var(--l2);font-size:11.5px}
+.stat .top svg.ic{width:15px;height:15px}
+.stat .v{font-size:21px;font-weight:700;margin-top:7px;color:var(--l1);
+  font-variant-numeric:tabular-nums}
+.stat .v small{font-size:12px;font-weight:400;color:var(--l2);margin-left:2px;letter-spacing:0}
+.stat .delta{font-size:11px;margin-top:3px;color:var(--l2);}
+.stat .delta.warn{color:var(--y)}
+.stat .delta.ok{color:var(--g)}
+
+/* ── 课程卡 ── */
+.plan-card{position:relative;overflow:hidden}
+.plan-card::before{content:'';position:absolute;left:0;top:17px;bottom:17px;width:3px;
+  border-radius:0 3px 3px 0;background:var(--o)}
+.plan-top{display:flex;align-items:center;gap:11px;padding-left:8px}
+.plan-name{font-size:17px;font-weight:600;}
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden;margin:13px 0 8px 8px}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--o)}
+.barrow{display:flex;align-items:center;justify-content:space-between;margin-left:8px;
+  font-size:11.5px;color:var(--l2)}
+
+/* ── 按钮：实底 · pill · 按下 scale(0.96) ── */
+.btn-primary{border-radius:999px;padding:13px 20px;font-size:17px;font-weight:600;text-align:center;color:#fff;background:var(--o)}
+.phone.light .btn-primary{color:#fff}
+.btn-primary.full{display:block;width:100%}
+.btn-secondary{border-radius:999px;padding:12px 20px;font-size:15px;font-weight:600;text-align:center;color:var(--o);background:var(--o-soft)}
+.btn-plain{color:var(--o);font-size:15px;font-weight:400}
+
+/* ── 时间轴记录 ── */
+.tl-item{display:flex;gap:12px;padding:11px 0;align-items:flex-start;position:relative}
+.tl-item+.tl-item::before{content:'';position:absolute;left:48px;right:0;top:0;height:.5px;
+  background:var(--sep)}
+.tl-main{flex:1;min-width:0;padding-top:1px}
+.tl-title{font-size:16px;font-weight:600;display:flex;align-items:center;gap:6px}
+.tl-sub{font-size:13px;color:var(--l2);margin-top:2px;}
+.tl-time{font-size:12px;color:var(--l3);font-variant-numeric:tabular-nums;padding-top:3px;flex:none}
+.lockbadge{display:inline-flex;align-items:center;gap:3px;color:var(--l3);font-size:11px}
+
+/* ── 分段筛选 ── */
+.seg{display:flex;gap:3px;background:var(--chip);border-radius:11px;padding:3px;margin:0 4px 14px}
+.seg div{flex:1;text-align:center;font-size:13px;font-weight:600;
+  padding:6px 0;border-radius:8px;color:var(--l2)}
+.seg div.on{background:var(--card);color:var(--l1)}
+
+/* ── 警示条 ── */
+.warnbar{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;color:var(--l1);font-size:13.5px}
+.warnbar svg.ic{color:var(--y)}
+
+/* ── 导航层：通栏实底 + 顶部 0.5pt 分隔线（不用浮动玻璃胶囊，见 design-system §7） ── */
+/* 通栏实底，不是浮动胶囊。浮动玻璃依赖 backdrop-filter，
+   一旦模糊不生效，背后的内容就从缝隙里透出来（实测踩到）；
+   经典 iOS 的 Tab 栏本来就是通栏实底 + 顶部 0.5pt 分隔线。 */
+.floatbar{position:absolute;left:0;right:0;bottom:0;z-index:20;background:var(--bg);
+  border-top:.5px solid var(--sep)}
+.inputbar{display:flex;align-items:center;gap:9px;background:var(--chip);
+  border-radius:999px;margin:9px 16px 10px;padding:8px 8px 8px 16px}
+.inputbar .ph{flex:1;color:var(--l3);font-size:15px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inputbar .tools{display:flex;gap:13px;color:var(--l2);align-items:center}
+.send{width:33px;height:33px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  flex:none;color:#fff;background:var(--o)}
+.send.stop{background:var(--r)}
+.send.off{background:var(--l3)}
+.tabbar{display:flex;padding:7px 0 22px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--gr);
+  font-size:9.5px;font-weight:600;letter-spacing:0}
+.tab svg.ic{width:23px;height:23px}
+.tab.active{color:var(--o)}
+
+/* ── 对话 ── */
+.chat{display:flex;flex-direction:column;gap:11px;padding:14px 0}
+.bubble{max-width:82%;padding:11px 15px;border-radius:20px;font-size:16px;line-height:1.45;}
+.bubble.me{align-self:flex-end;background:var(--o);color:#fff;border-bottom-right-radius:7px}
+.bubble.ai{align-self:flex-start;background:var(--card);border:1px solid var(--stroke);
+  border-bottom-left-radius:7px;color:var(--l1)}
+.bubble b{font-weight:600}
+.thumb{width:158px;height:100px;border-radius:12px;margin-top:9px;display:block;
+  background:linear-gradient(150deg,#5c4130,#2b2a2e);position:relative;overflow:hidden}
+.thumb::after{content:'照片';position:absolute;bottom:7px;left:10px;font-size:10px;
+  color:rgba(255,255,255,.55)}
+
+/* 思考区 */
+/* 折叠态不占块 —— 就是一行说明，像"查看详情"。之前给它套了个 90% 宽、
+   48px 高的空盒子，里面只放一行小字，又重又空。展开/流式才需要容器。 */
+.think{align-self:flex-start;max-width:88%}
+.think.stream{background:var(--card2);border-radius:14px;padding:11px 13px}
+.think-h{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;
+  color:var(--l3);width:fit-content}
+.think.stream .think-h{color:var(--o);font-weight:600;width:auto}
+.think-h .sec{color:var(--l3);font-weight:400;font-variant-numeric:tabular-nums}
+.think-h .chev{color:var(--l3);margin-left:1px}
+.think-b{font-size:12px;line-height:1.75;color:var(--l2);margin-top:9px}
+
+.dots span{display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--o);
+  margin-left:3px;animation:blink 1.25s infinite}
+.dots span:nth-child(2){animation-delay:.18s}.dots span:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,75%,100%{opacity:.22}35%{opacity:1}}
+.caret{display:inline-block;width:2px;height:15px;background:var(--o);vertical-align:-2px;
+  animation:blink 1s steps(2,end) infinite;margin-left:1px}
+
+/* 教练计划卡 */
+.plan-draft{max-width:94%;align-self:flex-start;background:var(--card);
+  border:1px solid rgba(255,159,10,.3);border-radius:20px;padding:16px}
+.plan-draft .h{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;
+  color:var(--o);margin-bottom:12px}
+.day-row{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-top:.5px solid var(--sep)}
+.day-row:first-of-type{border-top:none;padding-top:2px}
+.day-row .d{font-size:11.5px;font-weight:600;color:var(--l2);width:48px;flex:none;padding-top:2px}
+.day-row .n{font-size:15px;font-weight:600;}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.pill{font-size:11px;padding:3.5px 8px;border-radius:8px;background:var(--chip);color:var(--l2)}
+
+/* ── 课程表 ── */
+.ringwrap.sm{width:56px;height:56px}
+svg.ring.sm{width:56px;height:56px}
+.ringtxt.sm{font-size:13px}
+.pday{display:flex;align-items:center;gap:12px;padding:12px 0;position:relative;padding-left:13px}
+.pday+.pday{border-top:.5px solid var(--sep)}
+.pday::before{content:'';position:absolute;left:0;top:13px;bottom:13px;width:3px;border-radius:3px;
+  background:var(--chip)}
+.pday.today::before{background:var(--o)}
+.pday.done::before{background:var(--g)}
+.pday.skip::before{background:var(--gr)}
+.check{width:23px;height:23px;border-radius:50%;border:1.8px solid var(--l3);flex:none;
+  display:flex;align-items:center;justify-content:center}
+.check.on{background:var(--g);border-color:var(--g);color:#fff}
+.check.on svg.ic{width:11px;height:11px}
+.pday .txt{flex:1;min-width:0}
+.pday .d{font-size:11.5px;color:var(--l2)}
+.pday .n{font-size:16px;font-weight:600;margin-top:1px}
+.pday .ex{font-size:11.5px;color:var(--l3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap}
+.pday.dim .n{color:var(--l2);font-weight:400}
+
+/* ── 洞察 ── */
+.hero{}
+.kpis{display:flex;gap:8px;margin-bottom:14px}
+.kpi{flex:1;background:var(--card2);border-radius:12px;padding:10px}
+.kpi .k{font-size:10.5px;color:var(--l2)}
+.kpi .v{font-size:18px;font-weight:700;margin-top:4px;
+  font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:11px;font-weight:400;color:var(--l2);letter-spacing:0}
+.quote{font-family:'New York','Songti SC',Georgia,serif;font-size:17px;line-height:1.62;
+  letter-spacing:.1px;color:var(--l1)}
+.minichart{display:flex;align-items:flex-end;gap:6px;height:64px;margin-top:16px}
+.minichart i{flex:1;border-radius:4px 4px 1px 1px;background:var(--o)}
+.minichart i.dim{background:var(--chip)}
+.toolrow{display:flex;align-items:center;gap:12px;padding:11px 0}
+.toolrow+.toolrow{border-top:.5px solid var(--sep)}
+.toolrow .t{font-size:16px;font-weight:600;}
+.toolrow .s{font-size:12.5px;color:var(--l2);margin-top:2px;}
+.toolrow .chev{margin-left:auto;color:var(--l3)}
+
+/* ── 设置 ── */
+.srow{display:flex;align-items:center;gap:12px;padding:11px 14px;font-size:16px;
+  color:var(--l1)}
+.srow+.srow{border-top:.5px solid var(--sep)}
+.srow .val{margin-left:auto;color:var(--l2);font-size:15px;display:flex;align-items:center;gap:6px}
+.glabel{font-size:12px;font-weight:600;color:var(--l2);padding:0 18px 7px;margin-top:20px;}
+.keyfield{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:13.5px;color:var(--l2);
+  letter-spacing:.04em}
+.usagebar{display:flex;height:7px;border-radius:4px;overflow:hidden;margin:11px 0 6px;background:var(--chip)}
+.usagebar i{display:block;height:100%}
+.usagebar i.a{background:var(--o);width:62%}
+.usagebar i.b{background:var(--b);width:38%}
+.switch{width:44px;height:26px;border-radius:13px;position:relative;flex:none}
+.switch.on{background:var(--g)}.switch.off{background:var(--chip)}
+.switch span{position:absolute;top:2px;width:22px;height:22px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on span{right:2px}.switch.off span{left:2px}
+
+/* ── 备注 ── */
+.implnotes{max-width:1360px;margin:0 auto;padding:76px 40px 90px}
+.implnote-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:13px;margin-top:22px}
+.implnote{border-left:2px solid var(--accent);padding:2px 0 2px 16px}
+.implnote h4{font-size:13.5px;font-weight:600;margin-bottom:6px;}
+.implnote p{font-size:12.5px;color:rgba(244,241,235,.55);line-height:1.72}
+.implnote code{font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;font-size:11.5px;color:var(--accent)}
+footer{border-top:1px solid var(--line);padding:38px 40px 56px;text-align:center;
+  color:rgba(244,241,235,.36);font-size:11.5px;font-family:ui-monospace,'SF Mono','Cascadia Mono',Consolas,monospace;
+  letter-spacing:.06em;line-height:2}
+footer a{color:rgba(244,241,235,.55)}
+@media (max-width:520px){
+  header,.gallery,.implnotes{padding-left:20px;padding-right:20px}
+  h1{font-size:31px}
+  .phone{width:340px;height:738px}
+  .scene{width:340px}
+  .scroll{padding-bottom:104px}
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<!-- ════════════ 图标精灵 ════════════
+     分层渲染：primary = fill 100%，secondary = opacity .5（等价 SF Symbols .hierarchical）
+     禁止渐变与投影；实心用于 Tab / 图标块，轮廓用于与文字并排处
+════════════════════════════════════ -->
+<svg style="display:none" aria-hidden="true">
+  <!-- ══════════════════════════════════════════════════════════
+       图标：Ionicons（MIT）—— 经典 iOS 实心字形，就是 iconfont 上
+       那套 ios-* 的来源。App 内对应 SF Symbols 的同名符号。
+       填充率比 SF 高，所以显示尺寸比 SF 小 1–2px。
+       ══════════════════════════════════════════════════════════ -->
+
+<symbol id="i-dumbbell" viewBox="0 0 512 512"><g fill="currentColor"><path d="M467,176a29.94,29.94,0,0,0-25.32,12.5,2,2,0,0,1-3.64-1.14V150.71c0-20.75-16.34-38.21-37.08-38.7A38,38,0,0,0,362,150v82a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V150.71c0-20.75-16.34-38.21-37.08-38.7A38,38,0,0,0,74,150v37.38a2,2,0,0,1-3.64,1.14A29.94,29.94,0,0,0,45,176c-16.3.51-29,14.31-29,30.62v98.72c0,16.31,12.74,30.11,29,30.62a29.94,29.94,0,0,0,25.32-12.5A2,2,0,0,1,74,324.62v36.67C74,382,90.34,399.5,111.08,400A38,38,0,0,0,150,362V280a2,2,0,0,1,2-2H360a2,2,0,0,1,2,2v81.29c0,20.75,16.34,38.21,37.08,38.7A38,38,0,0,0,438,362V324.62a2,2,0,0,1,3.64-1.14A29.94,29.94,0,0,0,467,336c16.3-.51,29-14.31,29-30.62V206.64C496,190.33,483.26,176.53,467,176Z"/></g></symbol>
+  <symbol id="i-fork" viewBox="0 0 512 512"><g fill="currentColor"><path d="M357.57,223.94a79.48,79.48,0,0,0,56.58-23.44l77-76.95c6.09-6.09,6.65-16,.85-22.39a16,16,0,0,0-23.17-.56L400.2,169.18a12.29,12.29,0,0,1-17.37,0c-4.79-4.78-4.53-12.86.25-17.64l68.33-68.33a16,16,0,0,0-.56-23.16A15.62,15.62,0,0,0,440.27,56a16.71,16.71,0,0,0-11.81,4.9l-68.27,68.26a12.29,12.29,0,0,1-17.37,0c-4.78-4.78-4.53-12.86.25-17.64L411.4,43.21a16,16,0,0,0-.56-23.16A15.62,15.62,0,0,0,400.26,16a16.73,16.73,0,0,0-11.81,4.9L311.5,97.85a79.49,79.49,0,0,0-23.44,56.59v8.23A16,16,0,0,1,283.37,174l-35.61,35.62a4,4,0,0,1-5.66,0L68.82,36.33a16,16,0,0,0-22.58-.06C31.09,51.28,23,72.47,23,97.54c-.1,41.4,21.66,89,56.79,124.08l85.45,85.45A64.79,64.79,0,0,0,211,326a64,64,0,0,0,16.21-2.08,16.24,16.24,0,0,1,4.07-.53,15.93,15.93,0,0,1,10.83,4.25l11.39,10.52a16.12,16.12,0,0,1,4.6,11.23v5.54a47.73,47.73,0,0,0,13.77,33.65l90.05,91.57.09.1a53.29,53.29,0,0,0,75.36-75.37L302.39,269.9a4,4,0,0,1,0-5.66L338,228.63a16,16,0,0,1,11.32-4.69Z"/><path d="M211,358a97.32,97.32,0,0,1-68.36-28.25l-13.86-13.86a8,8,0,0,0-11.3,0l-85,84.56c-15.15,15.15-20.56,37.45-13.06,59.29a30.63,30.63,0,0,0,1.49,3.6C31,484,50.58,496,72,496a55.68,55.68,0,0,0,39.64-16.44L225,365.66a4.69,4.69,0,0,0,1.32-3.72l0-.26a4.63,4.63,0,0,0-5.15-4.27A97.09,97.09,0,0,1,211,358Z"/></g></symbol>
+  <symbol id="i-weight" viewBox="0 0 512 512"><g fill="currentColor"><path d="M368,32H144A112.12,112.12,0,0,0,32,144V368A112.12,112.12,0,0,0,144,480H368A112.12,112.12,0,0,0,480,368V144A112.12,112.12,0,0,0,368,32Zm36.21,178-33.32,39.21A41.76,41.76,0,0,1,339,264.05a42.32,42.32,0,0,1-22.29-6.38c-14.22-8.78-36.3-19.25-60.69-19.25s-46.47,10.47-60.69,19.25a41.86,41.86,0,0,1-54.2-8.46L107.79,210a50.48,50.48,0,0,1,4.49-70.27C140.12,114.38,187.65,84.16,256,84.16s115.88,30.22,143.72,55.57A50.48,50.48,0,0,1,404.21,210Z"/></g></symbol>
+  <symbol id="i-note" viewBox="0 0 512 512"><g fill="currentColor"><path d="M428,224H288a48,48,0,0,1-48-48V36a4,4,0,0,0-4-4H144A64,64,0,0,0,80,96V416a64,64,0,0,0,64,64H368a64,64,0,0,0,64-64V228A4,4,0,0,0,428,224ZM336,384H176a16,16,0,0,1,0-32H336a16,16,0,0,1,0,32Zm0-80H176a16,16,0,0,1,0-32H336a16,16,0,0,1,0,32Z"/><path d="M419.22,188.59,275.41,44.78A2,2,0,0,0,272,46.19V176a16,16,0,0,0,16,16H417.81A2,2,0,0,0,419.22,188.59Z"/></g></symbol>
+  <symbol id="i-run" viewBox="0 0 512 512"><g fill="currentColor"><path d="M312.55,479.9l-56.42-114-44.62-57A72.37,72.37,0,0,1,201.45,272V143.64H217a40,40,0,0,1,40,40V365.85" style="stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M127.38,291.78V217.71s37-74.07,74.07-74.07" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M368.09,291.78a18.49,18.49,0,0,1-10.26-3.11L297.7,250A21.18,21.18,0,0,1,288,232.21v-23.7a5.65,5.65,0,0,1,8.69-4.77l81.65,54.11a18.52,18.52,0,0,1-10.29,33.93Z"/><path d="M171.91,493.47a18.5,18.5,0,0,1-14.83-7.41c-6.14-8.18-4-17.18,3.7-25.92l59.95-74.66a7.41,7.41,0,0,1,10.76,2.06c1.56,2.54,3.38,5.65,5.19,9.09,5.24,9.95,6,16.11-1.68,25.7-8,10-52,67.44-52,67.44C180.38,492.75,175.77,493.47,171.91,493.47Z"/><circle cx="257" cy="69.56" r="37.04" style="stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:16px"/></g></symbol>
+  <symbol id="i-moon" viewBox="0 0 512 512"><g fill="currentColor"><path d="M264,480A232,232,0,0,1,32,248C32,154,86,69.72,169.61,33.33a16,16,0,0,1,21.06,21.06C181.07,76.43,176,104.66,176,136c0,110.28,89.72,200,200,200,31.34,0,59.57-5.07,81.61-14.67a16,16,0,0,1,21.06,21.06C442.28,426,358,480,264,480Z"/></g></symbol>
+  <symbol id="i-pulse" viewBox="0 0 512 512"><g fill="currentColor"><path d="M432,272a48.09,48.09,0,0,0-45.25,32H347.53l-28.35-85.06a16,16,0,0,0-30.56.66L244.11,375.36l-52.33-314a16,16,0,0,0-31.3-1.25L99.51,304H48a16,16,0,0,0,0,32h64a16,16,0,0,0,15.52-12.12l45.34-181.37,51.36,308.12A16,16,0,0,0,239.1,464c.3,0,.6,0,.91,0a16,16,0,0,0,15.37-11.6l49.8-174.28,15.64,46.94A16,16,0,0,0,336,336h50.75A48,48,0,1,0,432,272Z"/></g></symbol>
+  <symbol id="i-walk" viewBox="0 0 512 512"><g fill="currentColor"><path d="M133.83,361.27c-22.61,0-41-8.17-54.79-24.39S56.2,296.59,50.93,261.57c-7.76-51.61-.06-95.11,21.68-122.48,12.8-16.12,29.6-25.44,48.58-26.94,16.25-1.3,40.54,5.29,64,44,14.69,24.24,25.86,56.44,30.65,88.34h0c5.79,38.51,1.48,66.86-13.18,86.65-11.64,15.72-29.54,25.46-53.21,29A106.46,106.46,0,0,1,133.83,361.27Z"/><path d="M173,496c-13.21,0-26.6-4.23-38.66-12.36a79.79,79.79,0,0,1-33.52-50.6c-2.85-14.66-1.14-26.31,5.22-35.64,10.33-15.15,28.87-18.56,48.49-22.18,2.07-.38,4.17-.76,6.3-1.17,4.52-.86,9.14-2,13.62-3.11,16.78-4.14,34.14-8.43,48.47,1.75,9.59,6.8,15,18.36,16.62,35.32h0c1.84,19.57-2.36,39.1-11.83,55-10.19,17.11-25.47,28.42-43,31.86A61,61,0,0,1,173,496Z"/><path d="M378.17,265.27a106.69,106.69,0,0,1-15.6-1.2c-23.66-3.5-41.56-13.25-53.2-29-14.66-19.79-19-48.13-13.18-86.65,4.79-31.93,15.93-64.1,30.55-88.25,23.34-38.57,47.66-45.26,64-44.08,18.92,1.38,35.69,10.57,48.51,26.6,21.89,27.37,29.65,71,21.86,122.84-5.27,35-14.2,58.95-28.11,75.31S400.78,265.27,378.17,265.27Z"/><path d="M339,400a61,61,0,0,1-11.68-1.13c-17.56-3.44-32.84-14.75-43-31.86-9.47-15.9-13.67-35.43-11.83-55h0c1.6-17,7-28.52,16.62-35.33,14.33-10.17,31.69-5.89,48.47-1.74,4.48,1.1,9.1,2.24,13.62,3.11l6.29,1.17c19.63,3.61,38.17,7,48.5,22.17,6.36,9.33,8.07,21,5.22,35.64a79.78,79.78,0,0,1-33.52,50.61C365.56,395.78,352.17,400,339,400Z"/></g></symbol>
+  <symbol id="i-heart" viewBox="0 0 512 512"><g fill="currentColor"><path d="M256,448a32,32,0,0,1-18-5.57c-78.59-53.35-112.62-89.93-131.39-112.8-40-48.75-59.15-98.8-58.61-153C48.63,114.52,98.46,64,159.08,64c44.08,0,74.61,24.83,92.39,45.51a6,6,0,0,0,9.06,0C278.31,88.81,308.84,64,352.92,64,413.54,64,463.37,114.52,464,176.64c.54,54.21-18.63,104.26-58.61,153-18.77,22.87-52.8,59.45-131.39,112.8A32,32,0,0,1,256,448Z"/></g></symbol>
+  <symbol id="i-brain" viewBox="0 0 512 512"><g fill="currentColor"><path d="M288,464H224a16,16,0,0,0,0,32h64a16,16,0,0,0,0-32Z"/><path d="M304,416H208a16,16,0,0,0,0,32h96a16,16,0,0,0,0-32Z"/><path d="M369.42,62.69C339.35,32.58,299.07,16,256,16A159.62,159.62,0,0,0,96,176c0,46.62,17.87,90.23,49,119.64l4.36,4.09C167.37,316.57,192,339.64,192,360v24a16,16,0,0,0,16,16h24a8,8,0,0,0,8-8V274.82a8,8,0,0,0-5.13-7.47A130.73,130.73,0,0,1,208.71,253,16,16,0,1,1,227.29,227c7.4,5.24,21.65,13,28.71,13s21.31-7.78,28.73-13A16,16,0,0,1,303.29,253a130.73,130.73,0,0,1-26.16,14.32,8,8,0,0,0-5.13,7.47V392a8,8,0,0,0,8,8h24a16,16,0,0,0,16-16V360c0-19.88,24.36-42.93,42.15-59.77l4.91-4.66C399.08,265,416,223.61,416,176A159.16,159.16,0,0,0,369.42,62.69Z"/></g></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 512 512"><g fill="currentColor"><path d="M208,512a24.84,24.84,0,0,1-23.34-16l-39.84-103.6a16.06,16.06,0,0,0-9.19-9.19L32,343.34a25,25,0,0,1,0-46.68l103.6-39.84a16.06,16.06,0,0,0,9.19-9.19L184.66,144a25,25,0,0,1,46.68,0l39.84,103.6a16.06,16.06,0,0,0,9.19,9.19l103,39.63A25.49,25.49,0,0,1,400,320.52a24.82,24.82,0,0,1-16,22.82l-103.6,39.84a16.06,16.06,0,0,0-9.19,9.19L231.34,496A24.84,24.84,0,0,1,208,512Zm66.85-254.84h0Z"/><path d="M88,176a14.67,14.67,0,0,1-13.69-9.4L57.45,122.76a7.28,7.28,0,0,0-4.21-4.21L9.4,101.69a14.67,14.67,0,0,1,0-27.38L53.24,57.45a7.31,7.31,0,0,0,4.21-4.21L74.16,9.79A15,15,0,0,1,86.23.11,14.67,14.67,0,0,1,101.69,9.4l16.86,43.84a7.31,7.31,0,0,0,4.21,4.21L166.6,74.31a14.67,14.67,0,0,1,0,27.38l-43.84,16.86a7.28,7.28,0,0,0-4.21,4.21L101.69,166.6A14.67,14.67,0,0,1,88,176Z"/><path d="M400,256a16,16,0,0,1-14.93-10.26l-22.84-59.37a8,8,0,0,0-4.6-4.6l-59.37-22.84a16,16,0,0,1,0-29.86l59.37-22.84a8,8,0,0,0,4.6-4.6L384.9,42.68a16.45,16.45,0,0,1,13.17-10.57,16,16,0,0,1,16.86,10.15l22.84,59.37a8,8,0,0,0,4.6,4.6l59.37,22.84a16,16,0,0,1,0,29.86l-59.37,22.84a8,8,0,0,0-4.6,4.6l-22.84,59.37A16,16,0,0,1,400,256Z"/></g></symbol>
+  <symbol id="i-wand" viewBox="0 0 512 512"><g fill="currentColor"><path d="M96,208H48c-8.8,0-16-7.2-16-16s7.2-16,16-16h48c8.8,0,16,7.2,16,16S104.8,208,96,208z"/>
+<path d="M124.1,140.1c-4.2,0-8.3-1.7-11.3-4.7l-33.9-33.9c-6.2-6.2-6.2-16.4,0-22.6s16.4-6.2,22.6,0l33.9,33.9
+	c6.3,6.2,6.3,16.4,0,22.6C132.4,138.4,128.4,140.1,124.1,140.1z"/>
+<path d="M192,112c-8.8,0-16-7.2-16-16V48c0-8.8,7.2-16,16-16s16,7.2,16,16v48C208,104.8,200.8,112,192,112z"/>
+<path d="M259.9,140.1c-8.8,0-16-7.2-16-16c0-4.2,1.7-8.3,4.7-11.3l33.9-33.9c6.2-6.2,16.4-6.2,22.6,0c6.2,6.2,6.2,16.4,0,22.6
+	l-33.9,33.9C268.2,138.4,264.1,140.1,259.9,140.1z"/>
+<path d="M90.2,309.8c-8.8,0-16-7.2-16-16c0-4.2,1.7-8.3,4.7-11.3l33.9-33.9c6.2-6.2,16.4-6.2,22.6,0s6.2,16.4,0,22.6l-33.9,33.9
+	C98.5,308.1,94.4,309.8,90.2,309.8z"/>
+<path d="M234.2,167c-18.4-18.7-48.5-19-67.2-0.7s-19,48.5-0.7,67.2c0.2,0.2,0.5,0.5,0.7,0.7l39.5,39.5c3.1,3.1,8.2,3.1,11.3,0
+	l55.9-55.9c3.1-3.1,3.1-8.2,0-11.3L234.2,167z"/>
+<path d="M457,389.8L307.6,240.4c-3.1-3.1-8.2-3.1-11.3,0l-55.9,55.9c-3.1,3.1-3.1,8.2,0,11.3L389.8,457c18.4,18.7,48.5,19,67.2,0.7
+	c18.7-18.4,19-48.5,0.7-67.2C457.5,390.3,457.3,390,457,389.8L457,389.8z"/></g></symbol>
+  <symbol id="i-house" viewBox="0 0 512 512"><g fill="currentColor"><path d="M261.56,101.28a8,8,0,0,0-11.06,0L66.4,277.15a8,8,0,0,0-2.47,5.79L63.9,448a32,32,0,0,0,32,32H192a16,16,0,0,0,16-16V328a8,8,0,0,1,8-8h80a8,8,0,0,1,8,8l0,136a16,16,0,0,0,16,16h96.06a32,32,0,0,0,32-32l0-165.06a8,8,0,0,0-2.47-5.79Z"/><path d="M490.91,244.15l-74.8-71.56,0-108.59a16,16,0,0,0-16-16h-48a16,16,0,0,0-16,16l0,32L278.19,40.62C272.77,35.14,264.71,32,256,32h0c-8.68,0-16.72,3.14-22.14,8.63L21.16,244.13c-6.22,6-7,15.87-1.34,22.37A16,16,0,0,0,43,267.56L250.5,69.28a8,8,0,0,1,11.06,0L469.08,267.56a16,16,0,0,0,22.59-.44C497.81,260.76,497.3,250.26,490.91,244.15Z"/></g></symbol>
+  <symbol id="i-list" viewBox="0 0 512 512"><g fill="currentColor"><line x1="160" y1="144" x2="448" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="160" y1="256" x2="448" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="160" y1="368" x2="448" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><circle cx="80" cy="144" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="80" cy="256" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="80" cy="368" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-cal" viewBox="0 0 512 512"><g fill="currentColor"><path d="M480,128a64,64,0,0,0-64-64H400V48.45c0-8.61-6.62-16-15.23-16.43A16,16,0,0,0,368,48V64H144V48.45c0-8.61-6.62-16-15.23-16.43A16,16,0,0,0,112,48V64H96a64,64,0,0,0-64,64v12a4,4,0,0,0,4,4H476a4,4,0,0,0,4-4Z"/><path d="M32,416a64,64,0,0,0,64,64H416a64,64,0,0,0,64-64V179a3,3,0,0,0-3-3H35a3,3,0,0,0-3,3ZM376,208a24,24,0,1,1-24,24A24,24,0,0,1,376,208Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,376,288Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,296,208Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,296,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,296,368Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,216,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,216,368Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,136,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,136,368Z"/></g></symbol>
+  <symbol id="i-chart" viewBox="0 0 512 512"><g fill="currentColor"><path d="M104,496H72a24,24,0,0,1-24-24V328a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,104,496Z"/><path d="M328,496H296a24,24,0,0,1-24-24V232a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,328,496Z"/><path d="M440,496H408a24,24,0,0,1-24-24V120a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,440,496Z"/><path d="M216,496H184a24,24,0,0,1-24-24V40a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,216,496Z"/></g></symbol>
+  <symbol id="i-settings" viewBox="0 0 512 512"><g fill="currentColor"><circle cx="256" cy="256" r="48"/><path d="M470.39,300l-.47-.38-31.56-24.75a16.11,16.11,0,0,1-6.1-13.33l0-11.56a16,16,0,0,1,6.11-13.22L469.92,212l.47-.38a26.68,26.68,0,0,0,5.9-34.06l-42.71-73.9a1.59,1.59,0,0,1-.13-.22A26.86,26.86,0,0,0,401,92.14l-.35.13L363.55,107.2a15.94,15.94,0,0,1-14.47-1.29q-4.92-3.1-10-5.86a15.94,15.94,0,0,1-8.19-11.82L325.3,48.64l-.12-.72A27.22,27.22,0,0,0,298.76,26H213.24a26.92,26.92,0,0,0-26.45,22.39l-.09.56-5.57,39.67A16,16,0,0,1,173,100.44c-3.42,1.84-6.76,3.79-10,5.82a15.92,15.92,0,0,1-14.43,1.27l-37.13-15-.35-.14a26.87,26.87,0,0,0-32.48,11.34l-.13.22L35.71,177.9A26.71,26.71,0,0,0,41.61,212l.47.38,31.56,24.75a16.11,16.11,0,0,1,6.1,13.33l0,11.56a16,16,0,0,1-6.11,13.22L42.08,300l-.47.38a26.68,26.68,0,0,0-5.9,34.06l42.71,73.9a1.59,1.59,0,0,1,.13.22A26.86,26.86,0,0,0,111,419.86l.35-.13,37.07-14.93a15.94,15.94,0,0,1,14.47,1.29q4.92,3.11,10,5.86a15.94,15.94,0,0,1,8.19,11.82l5.56,39.59.12.72A27.22,27.22,0,0,0,213.24,486h85.52a26.92,26.92,0,0,0,26.45-22.39l.09-.56,5.57-39.67a16,16,0,0,1,8.18-11.82c3.42-1.84,6.76-3.79,10-5.82a15.92,15.92,0,0,1,14.43-1.27l37.13,14.95.35.14a26.85,26.85,0,0,0,32.48-11.34,2.53,2.53,0,0,1,.13-.22l42.71-73.89A26.7,26.7,0,0,0,470.39,300ZM335.91,259.76a80,80,0,1,1-83.66-83.67A80.21,80.21,0,0,1,335.91,259.76Z"/></g></symbol>
+  <symbol id="i-lock" viewBox="0 0 512 512"><g fill="currentColor"><path d="M368,192H352V112a96,96,0,1,0-192,0v80H144a64.07,64.07,0,0,0-64,64V432a64.07,64.07,0,0,0,64,64H368a64.07,64.07,0,0,0,64-64V256A64.07,64.07,0,0,0,368,192Zm-48,0H192V112a64,64,0,1,1,128,0Z"/></g></symbol>
+  <symbol id="i-trash" viewBox="0 0 512 512"><g fill="currentColor"><path d="M296,64H216a7.91,7.91,0,0,0-8,8V96h96V72A7.91,7.91,0,0,0,296,64Z" style="fill:none"/><path d="M432,96H336V72a40,40,0,0,0-40-40H216a40,40,0,0,0-40,40V96H80a16,16,0,0,0,0,32H97L116,432.92c1.42,26.85,22,47.08,48,47.08H348c26.13,0,46.3-19.78,48-47L415,128h17a16,16,0,0,0,0-32ZM192.57,416H192a16,16,0,0,1-16-15.43l-8-224a16,16,0,1,1,32-1.14l8,224A16,16,0,0,1,192.57,416ZM272,400a16,16,0,0,1-32,0V176a16,16,0,0,1,32,0ZM304,96H208V72a7.91,7.91,0,0,1,8-8h80a7.91,7.91,0,0,1,8,8Zm32,304.57A16,16,0,0,1,320,416h-.58A16,16,0,0,1,304,399.43l8-224a16,16,0,1,1,32,1.14Z"/></g></symbol>
+  <symbol id="i-pencil" viewBox="0 0 512 512"><g fill="currentColor"><path d="M459.94,53.25a16.06,16.06,0,0,0-23.22-.56L424.35,65a8,8,0,0,0,0,11.31l11.34,11.32a8,8,0,0,0,11.34,0l12.06-12C465.19,69.54,465.76,59.62,459.94,53.25Z"/><path d="M399.34,90,218.82,270.2a9,9,0,0,0-2.31,3.93L208.16,299a3.91,3.91,0,0,0,4.86,4.86l24.85-8.35a9,9,0,0,0,3.93-2.31L422,112.66A9,9,0,0,0,422,100L412.05,90A9,9,0,0,0,399.34,90Z"/><path d="M386.34,193.66,264.45,315.79A41.08,41.08,0,0,1,247.58,326l-25.9,8.67a35.92,35.92,0,0,1-44.33-44.33l8.67-25.9a41.08,41.08,0,0,1,10.19-16.87L318.34,125.66A8,8,0,0,0,312.69,112H104a56,56,0,0,0-56,56V408a56,56,0,0,0,56,56H344a56,56,0,0,0,56-56V199.31A8,8,0,0,0,386.34,193.66Z"/></g></symbol>
+  <symbol id="i-refresh" viewBox="0 0 512 512"><g fill="currentColor"><path d="M320,146s24.36-12-64-12A160,160,0,1,0,416,294" style="fill:none;stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"/><polyline points="256 58 336 138 256 218" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="416 128 192 384 96 288" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-chev" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></g></symbol>
+  <symbol id="i-plus" viewBox="0 0 512 512"><g fill="currentColor"><line x1="256" y1="112" x2="256" y2="400" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="400" y1="256" x2="112" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-xmark" viewBox="0 0 512 512"><g fill="currentColor"><path d="M289.94,256l95-95A24,24,0,0,0,351,127l-95,95-95-95A24,24,0,0,0,127,161l95,95-95,95A24,24,0,1,0,161,385l95-95,95,95A24,24,0,0,0,385,351Z"/></g></symbol>
+  <symbol id="i-drag" viewBox="0 0 512 512"><g fill="currentColor"><line x1="102" y1="256" x2="410" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:44px"/><line x1="102" y1="176" x2="410" y2="176" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:44px"/><line x1="102" y1="336" x2="410" y2="336" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:44px"/></g></symbol>
+  <symbol id="i-cam" viewBox="0 0 512 512"><g fill="currentColor"><circle cx="256" cy="272" r="64"/><path d="M432,144H373c-3,0-6.72-1.94-9.62-5L337.44,98.06a15.52,15.52,0,0,0-1.37-1.85C327.11,85.76,315,80,302,80H210c-13,0-25.11,5.76-34.07,16.21a15.52,15.52,0,0,0-1.37,1.85l-25.94,41c-2.22,2.42-5.34,5-8.62,5v-8a16,16,0,0,0-16-16H100a16,16,0,0,0-16,16v8H80a48.05,48.05,0,0,0-48,48V384a48.05,48.05,0,0,0,48,48H432a48.05,48.05,0,0,0,48-48V192A48.05,48.05,0,0,0,432,144ZM256,368a96,96,0,1,1,96-96A96.11,96.11,0,0,1,256,368Z"/></g></symbol>
+  <symbol id="i-mic" viewBox="0 0 512 512"><g fill="currentColor"><line x1="192" y1="448" x2="320" y2="448" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M384,208v32c0,70.4-57.6,128-128,128h0c-70.4,0-128-57.6-128-128V208" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="256" y1="368" x2="256" y2="448" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M256,320a78.83,78.83,0,0,1-56.55-24.1A80.89,80.89,0,0,1,176,239V128a79.69,79.69,0,0,1,80-80c44.86,0,80,35.14,80,80V239C336,283.66,300.11,320,256,320Z"/></g></symbol>
+  <symbol id="i-up" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="112 244 256 100 400 244" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="256" y1="120" x2="256" y2="412" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></g></symbol>
+  <symbol id="i-stop" viewBox="0 0 512 512"><g fill="currentColor"><path d="M392,432H120a40,40,0,0,1-40-40V120a40,40,0,0,1,40-40H392a40,40,0,0,1,40,40V392A40,40,0,0,1,392,432Z"/></g></symbol>
+  <symbol id="i-shield" viewBox="0 0 512 512"><g fill="currentColor"><path d="M479.07,111.36a16,16,0,0,0-13.15-14.74c-86.5-15.52-122.61-26.74-203.33-63.2a16,16,0,0,0-13.18,0C168.69,69.88,132.58,81.1,46.08,96.62a16,16,0,0,0-13.15,14.74c-3.85,61.11,4.36,118.05,24.43,169.24A349.47,349.47,0,0,0,129,393.11c53.47,56.73,110.24,81.37,121.07,85.73a16,16,0,0,0,12,0c10.83-4.36,67.6-29,121.07-85.73A349.47,349.47,0,0,0,454.64,280.6C474.71,229.41,482.92,172.47,479.07,111.36Zm-131,75.11-110.8,128A16,16,0,0,1,225.86,320h-.66a16,16,0,0,1-11.2-4.57l-49.2-48.2a16,16,0,1,1,22.4-22.86l37,36.29L323.9,165.53a16,16,0,0,1,24.2,20.94Z"/></g></symbol>
+  <symbol id="i-key" viewBox="0 0 512 512"><g fill="currentColor"><path d="M218.1,167.17c0,13,0,25.6,4.1,37.4-43.1,50.6-156.9,184.3-167.5,194.5a20.17,20.17,0,0,0-6.7,15c0,8.5,5.2,16.7,9.6,21.3,6.6,6.9,34.8,33,40,28,15.4-15,18.5-19,24.8-25.2,9.5-9.3-1-28.3,2.3-36s6.8-9.2,12.5-10.4,15.8,2.9,23.7,3c8.3.1,12.8-3.4,19-9.2,5-4.6,8.6-8.9,8.7-15.6.2-9-12.8-20.9-3.1-30.4s23.7,6.2,34,5,22.8-15.5,24.1-21.6-11.7-21.8-9.7-30.7c.7-3,6.8-10,11.4-11s25,6.9,29.6,5.9c5.6-1.2,12.1-7.1,17.4-10.4,15.5,6.7,29.6,9.4,47.7,9.4,68.5,0,124-53.4,124-119.2S408.5,48,340,48,218.1,101.37,218.1,167.17ZM400,144a32,32,0,1,1-32-32A32,32,0,0,1,400,144Z"/></g></symbol>
+  <symbol id="i-wifioff" viewBox="0 0 512 512"><g fill="currentColor"><path d="M448,464a15.92,15.92,0,0,1-11.31-4.69l-384-384A16,16,0,0,1,75.31,52.69l384,384A16,16,0,0,1,448,464Z"/><path d="M38.72,196.78C13.39,219.88,0,251.42,0,288c0,36,14.38,68.88,40.49,92.59C65.64,403.43,99.56,416,136,416H328.8a8,8,0,0,0,5.66-13.66L100.88,168.76a8,8,0,0,0-8-2C72,173.15,53.4,183.38,38.72,196.78Z"/><path d="M476.59,391.23C499.76,372.78,512,345.39,512,312c0-57.57-42-90.58-87.56-100.75a16,16,0,0,1-12.12-12.39c-7.68-36.68-24.45-68.15-49.18-92A153.57,153.57,0,0,0,256,64c-31.12,0-60.12,9-84.62,26.1a8,8,0,0,0-1.14,12.26L461.68,393.8a8,8,0,0,0,10.2.93Q474.31,393.05,476.59,391.23Z"/></g></symbol>
+  <symbol id="i-doc" viewBox="0 0 512 512"><g fill="currentColor"><path d="M428,224H288a48,48,0,0,1-48-48V36a4,4,0,0,0-4-4H144A64,64,0,0,0,80,96V416a64,64,0,0,0,64,64H368a64,64,0,0,0,64-64V228A4,4,0,0,0,428,224Z"/><path d="M419.22,188.59,275.41,44.78A2,2,0,0,0,272,46.19V176a16,16,0,0,0,16,16H417.81A2,2,0,0,0,419.22,188.59Z"/></g></symbol>
+  <symbol id="i-export" viewBox="0 0 512 512"><g fill="currentColor"><path d="M376,176H272V321a16,16,0,0,1-32,0V176H136a56.06,56.06,0,0,0-56,56V424a56.06,56.06,0,0,0,56,56H376a56.06,56.06,0,0,0,56-56V232A56.06,56.06,0,0,0,376,176Z"/><path d="M272,86.63l52.69,52.68a16,16,0,0,0,22.62-22.62l-80-80a16,16,0,0,0-22.62,0l-80,80a16,16,0,0,0,22.62,22.62L240,86.63V176h32Z"/></g></symbol>
+  <symbol id="i-bolt" viewBox="0 0 512 512"><g fill="currentColor"><path d="M194.82,496a18.36,18.36,0,0,1-18.1-21.53l0-.11L204.83,320H96a16,16,0,0,1-12.44-26.06L302.73,23a18.45,18.45,0,0,1,32.8,13.71c0,.3-.08.59-.13.89L307.19,192H416a16,16,0,0,1,12.44,26.06L209.24,489A18.45,18.45,0,0,1,194.82,496Z"/></g></symbol>
+  <symbol id="i-warn" viewBox="0 0 512 512"><g fill="currentColor"><path d="M449.07,399.08,278.64,82.58c-12.08-22.44-44.26-22.44-56.35,0L51.87,399.08A32,32,0,0,0,80,446.25H420.89A32,32,0,0,0,449.07,399.08Zm-198.6-1.83a20,20,0,1,1,20-20A20,20,0,0,1,250.47,397.25ZM272.19,196.1l-5.74,122a16,16,0,0,1-32,0l-5.74-121.95v0a21.73,21.73,0,0,1,21.5-22.69h.21a21.74,21.74,0,0,1,21.73,22.7Z"/></g></symbol>
+  <symbol id="i-clock" viewBox="0 0 512 512"><g fill="currentColor"><path d="M256,48C141.13,48,48,141.13,48,256s93.13,208,208,208,208-93.13,208-208S370.87,48,256,48Zm96,240H256a16,16,0,0,1-16-16V128a16,16,0,0,1,32,0V256h80a16,16,0,0,1,0,32Z"/></g></symbol>
+  <symbol id="i-trend" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="352 144 464 144 464 256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M48,368,169.37,246.63a32,32,0,0,1,45.26,0l50.74,50.74a32,32,0,0,0,45.26,0L448,160" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-eye" viewBox="0 0 512 512"><g fill="currentColor"><circle cx="256" cy="256" r="64"/><path d="M490.84,238.6c-26.46-40.92-60.79-75.68-99.27-100.53C349,110.55,302,96,255.66,96c-42.52,0-84.33,12.15-124.27,36.11C90.66,156.54,53.76,192.23,21.71,238.18a31.92,31.92,0,0,0-.64,35.54c26.41,41.33,60.4,76.14,98.28,100.65C162,402,207.9,416,255.66,416c46.71,0,93.81-14.43,136.2-41.72,38.46-24.77,72.72-59.66,99.08-100.92A32.2,32.2,0,0,0,490.84,238.6ZM256,352a96,96,0,1,1,96-96A96.11,96.11,0,0,1,256,352Z"/></g></symbol>
+  <symbol id="i-flame" viewBox="0 0 512 512"><g fill="currentColor"><path d="M394.23,197.56a300.43,300.43,0,0,0-53.37-90C301.2,61.65,249.05,32,208,32a16,16,0,0,0-15.48,20c13.87,53-14.88,97.07-45.31,143.72C122,234.36,96,274.27,96,320c0,88.22,71.78,160,160,160s160-71.78,160-160C416,276.7,408.68,235.51,394.23,197.56ZM288.33,418.69C278,429.69,265.05,432,256,432s-22-2.31-32.33-13.31S208,390.24,208,368c0-25.14,8.82-44.28,17.34-62.78,4.95-10.74,10-21.67,13-33.37a8,8,0,0,1,12.49-4.51A126.48,126.48,0,0,1,275,292c18.17,24,29,52.42,29,76C304,390.24,298.58,407.77,288.33,418.69Z"/></g></symbol>
+  <symbol id="i-target" viewBox="0 0 512 512"><g fill="currentColor"><line x1="256" y1="96" x2="256" y2="56" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="256" y1="456" x2="256" y2="416" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><path d="M256,112A144,144,0,1,0,400,256,144,144,0,0,0,256,112Z" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="416" y1="256" x2="456" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="56" y1="256" x2="96" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></g></symbol>
+  <symbol id="i-duo-dumbbell" viewBox="0 0 512 512"><g fill="currentColor"><line x1="48" y1="256" x2="464" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="384" y="128" width="32" height="256" rx="16" ry="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="96" y="128" width="32" height="256" rx="16" ry="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="32" y="192" width="16" height="128" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="464" y="192" width="16" height="128" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-duo-chart" viewBox="0 0 512 512"><g fill="currentColor"><rect x="64" y="320" width="48" height="160" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="288" y="224" width="48" height="256" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="400" y="112" width="48" height="368" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><rect x="176" y="32" width="48" height="448" rx="8" ry="8" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-duo-cal" viewBox="0 0 512 512"><g fill="currentColor"><rect stroke="#000" stroke-linejoin="round" stroke-width="32" x="48" y="80" width="416" height="384" rx="48"/><circle cx="296" cy="232" r="24"/><circle cx="376" cy="232" r="24"/><circle cx="296" cy="312" r="24"/><circle cx="376" cy="312" r="24"/><circle cx="136" cy="312" r="24"/><circle cx="216" cy="312" r="24"/><circle cx="136" cy="392" r="24"/><circle cx="216" cy="392" r="24"/><circle cx="296" cy="392" r="24"/><line stroke="#000" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="128" y1="48" x2="128" y2="80"/><line stroke="#000" stroke-linejoin="round" stroke-width="32" stroke-linecap="round" x1="384" y1="48" x2="384" y2="80"/><line stroke="#000" stroke-linejoin="round" stroke-width="32" x1="464" y1="160" x2="48" y2="160"/></g></symbol>
+  <symbol id="i-duo-chat" viewBox="0 0 512 512"><g fill="currentColor"><path d="M431,320.6c-1-3.6,1.2-8.6,3.3-12.2a33.68,33.68,0,0,1,2.1-3.1A162,162,0,0,0,464,215c.3-92.2-77.5-167-173.7-167C206.4,48,136.4,105.1,120,180.9a160.7,160.7,0,0,0-3.7,34.2c0,92.3,74.8,169.1,171,169.1,15.3,0,35.9-4.6,47.2-7.7s22.5-7.2,25.4-8.3a26.44,26.44,0,0,1,9.3-1.7,26,26,0,0,1,10.1,2L436,388.6a13.52,13.52,0,0,0,3.9,1,8,8,0,0,0,8-8,12.85,12.85,0,0,0-.5-2.7Z" style="fill:none;stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"/><path d="M66.46,232a146.23,146.23,0,0,0,6.39,152.67c2.31,3.49,3.61,6.19,3.21,8s-11.93,61.87-11.93,61.87a8,8,0,0,0,2.71,7.68A8.17,8.17,0,0,0,72,464a7.26,7.26,0,0,0,2.91-.6l56.21-22a15.7,15.7,0,0,1,12,.2c18.94,7.38,39.88,12,60.83,12A159.21,159.21,0,0,0,284,432.11" style="fill:none;stroke:#000;stroke-linecap:round;stroke-miterlimit:10;stroke-width:32px"/></g></symbol>
+  <symbol id="i-duo-tray" viewBox="0 0 512 512"><g fill="currentColor"><path d="M384,80H128c-26,0-43,14-48,40L48,272V384a48.14,48.14,0,0,0,48,48H416a48.14,48.14,0,0,0,48-48V272L432,120C427,93,409,80,384,80Z" style="fill:none;stroke:#000;stroke-linejoin:round;stroke-width:32px"/><line x1="48" y1="272" x2="192" y2="272" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="320" y1="272" x2="464" y2="272" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><path d="M192,272a64,64,0,0,0,128,0" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-duo-note" viewBox="0 0 512 512"><g fill="currentColor"><path d="M416,221.25V416a48,48,0,0,1-48,48H144a48,48,0,0,1-48-48V96a48,48,0,0,1,48-48h98.75a32,32,0,0,1,22.62,9.37L406.63,198.63A32,32,0,0,1,416,221.25Z" style="fill:none;stroke:#000;stroke-linejoin:round;stroke-width:32px"/><path d="M256,56V176a32,32,0,0,0,32,32H408" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="176" y1="288" x2="336" y2="288" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="176" y1="368" x2="336" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+
+  <!-- ══════ 旧工艺对照（已弃用）══════
+       手绘 1.7px 均匀描边、无分层 —— 通用线框图标的写法。
+       只用于设计系统那行的工艺对比，App 内不使用。 -->
+  <symbol id="o-dumbbell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round"
+    d="m6.5 6.5 11 11M21 21l-1.5-1.5M3 3l1.5 1.5M18 22l4-4M2 6l4-4M3 10l7-7M14 21l7-7"/></symbol>
+  <symbol id="o-fork" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round"
+    d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3Zm0 0v7"/></symbol>
+  <symbol id="o-weight" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="5.5" r="2.6"/><path d="M7 8.5h10l2.6 12H4.4L7 8.5Z"/></g></symbol>
+  <symbol id="o-note" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15.5 3h-10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V8.5L15.5 3Z"/>
+    <path d="M15 3v6h6"/></g></symbol>
+  <symbol id="o-moon" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></symbol>
+  <symbol id="o-heart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.7"
+    stroke-linecap="round" stroke-linejoin="round"
+    d="M19 14c1.5-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></symbol>
+
+</svg>
+
+<header>
+  <div class="kicker">UI Design · v2.0 · Apple HIG + Liquid Glass</div>
+  <h1>Agentic-<em>KeepKeep</em><br>界面重做稿</h1>
+  <p class="sub">这一版按 Apple 的设计纪律重做，参考 <b>awesome-design-md</b> 的 apple 条目与 iOS 26 的 Liquid Glass：一个强调色、一套圆角阶梯、一处阴影规则，排版承担层次而不是颜色堆叠；图标从 Emoji 换成 SF Symbols 的分层渲染（实心 + 50% 次级层），导航层改为毛玻璃浮层。全部 token 见 <a style="color:var(--accent)" href="design-system.md">design-system.md</a>。</p>
+  <div class="meta-row">
+    <div class="chip">交互 <b>手机屏内可滚动</b></div>
+    <div class="chip">覆盖 <b>17 屏 · 8 类状态 · 3 组跨页规范</b></div>
+    <div class="chip">Device <b>iPhone 15 Pro · 393×852</b></div>
+    <div class="chip">Accent <b>systemOrange（唯一）</b></div>
+    <div class="chip">Radius <b>8 · 12 · 20 · pill</b></div>
+    <div class="chip">Type <b>34/17/15/13 · 400/600/700</b></div>
+    <div class="chip">Icons <b>分层渲染 · 零 Emoji</b></div>
+    <div class="chip">Modes <b>Dark + Light</b></div>
+  </div>
+</header>
+
+<!-- ════════════ 设计系统 ════════════ -->
+<section class="band">
+  <div class="band-head">
+    <div class="kicker">Icon System</div>
+    <h2>图标</h2>
+    <p>这一版被否掉两次，问题都不在"换哪套"，而在<b>谁画的</b>。手绘近似（均匀描边、无光学层次）和系统图标放一起会立刻显廉价。
+       现在用 <b>Ionicons</b>（MIT）—— 就是 iconfont 上那套 <code>ios-*</code> 实心字形的来源；App 内对应系统自带的 <b>SF Symbols</b>。</p>
+  </div>
+  <div class="grid grid-2">
+<div class="sys-card">
+    <h3>图标工艺：三代对比</h3>
+    <div class="iconcompare">
+      <div class="icrow bad">
+        <span class="lab">v1.1</span>
+        <span class="set emoji">🏋️ 🍜 ⚖️ 📝 😴 ❤️</span>
+        <span class="tag">Emoji</span>
+      </div>
+      <div class="icrow bad">
+        <span class="lab">v2.0 初稿</span>
+        <span class="set">
+          <svg class="ic"><use href="#o-dumbbell"/></svg>
+          <svg class="ic"><use href="#o-fork"/></svg>
+          <svg class="ic"><use href="#o-weight"/></svg>
+          <svg class="ic"><use href="#o-note"/></svg>
+          <svg class="ic"><use href="#o-moon"/></svg>
+          <svg class="ic"><use href="#o-heart"/></svg>
+        </span>
+        <span class="tag">单层线稿</span>
+      </div>
+      <div class="icrow">
+        <span class="lab">v2.0 定稿</span>
+        <span class="set">
+          <svg class="ic"><use href="#i-dumbbell"/></svg>
+          <svg class="ic"><use href="#i-fork"/></svg>
+          <svg class="ic"><use href="#i-weight"/></svg>
+          <svg class="ic"><use href="#i-note"/></svg>
+          <svg class="ic"><use href="#i-moon"/></svg>
+          <svg class="ic"><use href="#i-heart"/></svg>
+        </span>
+        <span class="tag">分层实心</span>
+      </div>
+    </div>
+    <div class="anat" style="margin-top:15px">
+      三行的差别是<b>工艺</b>不是题材：中间那行是通用线框图标 —— 1.7px 均匀描边、没有光学层次，
+      对象与线条混为一谈（哑铃是两根交叉的杆、餐叉是四根等粗的线）。定稿改为
+      <b>实心几何形 + 次级层 50% 透明</b>，对应 SF Symbols 的
+      <code>.symbolRenderingMode(.hierarchical)</code>：配重片实心、杠铃杆半透明；
+      左脑实心、右脑半透明；正文行从纸面挖空而不是叠上去。
+    </div>
+  </div>
+<div class="sys-card">
+    <h3>图标表（App 内用同名的 SF Symbols）</h3>
+    <div class="iconwall">
+      <div class="cell"><svg class="ic"><use href="#i-dumbbell"/></svg>训练</div>
+      <div class="cell"><svg class="ic"><use href="#i-fork"/></svg>饮食</div>
+      <div class="cell"><svg class="ic"><use href="#i-weight"/></svg>身体</div>
+      <div class="cell"><svg class="ic"><use href="#i-note"/></svg>笔记</div>
+      <div class="cell"><svg class="ic"><use href="#i-run"/></svg>运动</div>
+      <div class="cell"><svg class="ic"><use href="#i-brain"/></svg>思考</div>
+      <div class="cell"><svg class="ic"><use href="#i-moon"/></svg>睡眠</div>
+      <div class="cell"><svg class="ic"><use href="#i-pulse"/></svg>HRV</div>
+      <div class="cell"><svg class="ic"><use href="#i-walk"/></svg>步数</div>
+      <div class="cell"><svg class="ic"><use href="#i-heart"/></svg>心率</div>
+      <div class="cell"><svg class="ic"><use href="#i-flame"/></svg>热量</div>
+      <div class="cell"><svg class="ic"><use href="#i-target"/></svg>目标</div>
+    </div>
+    <div class="anat" style="margin-top:15px">
+      同一概念永远同一个符号：训练在今日 / 记录 / 详情 / 课程表都是 <code>dumbbell.fill</code>。
+      实心变体给 Tab 与图标块，轮廓变体给与文字并排的位置。
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="band-head">
+    <div class="kicker">Design Tokens</div>
+    <h2>颜色 · 层次 · 排版 · 间距</h2>
+    <p>一套 token，全 App 复用。改视觉先改这里，不要逐屏调。</p>
+  </div>
+  <div class="grid grid-3">
+<div class="sys-card">
+    <h3>语义色板（内容分类）</h3>
+    <div class="swatches">
+      <span class="sw"><i style="background:#FF9F0A"></i>训练 orange</span>
+      <span class="sw"><i style="background:#30D158"></i>饮食 green</span>
+      <span class="sw"><i style="background:#0A84FF"></i>身体 blue</span>
+      <span class="sw"><i style="background:#8E8E93"></i>笔记 gray</span>
+      <span class="sw"><i style="background:#FFD60A"></i>警示 yellow</span>
+      <span class="sw"><i style="background:#FF453A"></i>危险 red</span>
+    </div>
+    <div class="anat" style="margin-top:14px">
+      <div><b>强调色只有一个</b> · systemOrange，且只标记"可以点"</div>
+      <div>语义色只标记"这是什么"，<b>不参与交互</b></div>
+      <div>每色只有一个实值 —— <b>要么实色底 + 白符号，要么中性底 + 彩色图标</b>，没有"淡底同色字"这一档</div>
+      <div>强调色不做大面积填充 —— 一屏只应有一个实底主按钮</div>
+    </div>
+  </div>
+<div class="sys-card">
+    <h3>层次规则</h3>
+    <div class="anat">
+      <div><b>卡面</b> 深色 <code>#1C1C1E</code> · 浅色 <code>#FFFFFF</code></div>
+      <div><b>描边</b> 1pt hairline（深色 8.5% 白 / 浅色 5.5% 黑）</div>
+      <div><b>不用阴影</b> 层次靠表面色 + 描边建立</div>
+      <div><b>导航层</b> Tab 栏与输入条用毛玻璃浮层，距边 <code>16</code>，圆角 pill</div>
+      <div><b>圆角</b> 8 紧凑 · 12 内嵌 · 20 卡片 · pill 动作，<b>不出现中间值</b></div>
+      <div><b>按下态</b> <code>scale(0.96)</code> + 轻触觉，全系统一致</div>
+    </div>
+  </div>
+<div class="sys-card">
+    <h3>排版 / 间距</h3>
+    <div class="rulers" style="height:70px">
+      <div style="height:14px">4</div><div style="height:28px">8</div><div style="height:42px">12</div>
+      <div style="height:56px">16</div><div style="height:70px">24</div>
+    </div>
+    <div class="anat" style="margin-top:14px">
+      <div>大标题 <b>34 / 700</b> 字距 <code>-0.4</code>（"Apple tight"）</div>
+      <div>正文 <b>17 / 400</b> —— 不是 16，差一像素决定"阅读"还是"扫视"</div>
+      <div>字重阶梯 <b>400 / 600 / 700</b>，<b>不用 500</b></div>
+      <div>数字全部等宽 + 变化过渡，不跳动</div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ════════════ 跨页规范 ════════════ -->
+<section class="band">
+  <div class="band-head">
+    <div class="kicker">Cross-screen Rules</div>
+    <h2>跨页规范</h2>
+    <p>三块之前没定义、实现时必然各写各的规则。图表、AI 回复的排版、表单控件 —— 先定死再动手。</p>
+  </div>
+  <div class="grid grid-3">
+  <div class="spec-card">
+    <h3>图表配色与形态</h3>
+    <div class="legend">
+      <span><i style="background:#FF9F0A"></i>训练容量</span>
+      <span><i style="background:#0A84FF"></i>体重</span>
+      <span><i style="background:#BF5AF2"></i>睡眠</span>
+      <span><i style="background:#8E8E93"></i>目标 / 基线</span>
+    </div>
+    <div class="chartsample">
+      <div>
+        <svg class="spark" viewBox="0 0 300 56" preserveAspectRatio="none">
+          <line class="grid" x1="0" y1="14" x2="300" y2="14"/>
+          <line class="grid" x1="0" y1="34" x2="300" y2="34"/>
+          <line class="grid" x1="0" y1="54" x2="300" y2="54"/>
+          <path class="areaop" fill="#0A84FF" d="M0 44 L50 40 L100 42 L150 34 L200 28 L250 24 L300 20 L300 56 L0 56 Z"/>
+          <path class="line" stroke="#0A84FF" d="M0 44 L50 40 L100 42 L150 34 L200 28 L250 24 L300 20"/>
+          <path class="line" stroke="#FF9F0A" stroke-dasharray="6 5" stroke-width="1.6"
+                d="M0 30 L300 30"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:9.5px;color:rgba(244,241,235,.32);margin-top:5px">
+          <span>8月14日</span><span>8月28日</span><span>9月13日</span>
+        </div>
+      </div>
+      <div class="bars">
+        <i class="dim" style="height:38%"></i><i class="dim" style="height:52%"></i>
+        <i style="height:74%"></i><i style="height:88%"></i>
+        <i class="dim" style="height:60%"></i><i class="dim" style="height:44%"></i>
+        <i class="dim" style="height:36%"></i>
+      </div>
+    </div>
+    <div class="anat" style="margin-top:16px">
+      <div><b>最多 3 个色相</b>。多序列用同色相深浅区分，不用彩虹配色</div>
+      <div>折线 2.2pt 圆角端点，面积填充同色 <code>14%</code></div>
+      <div>目标线用灰色虚线 <code>6 5</code>，不用彩色</div>
+      <div>柱状图只在<b>强调的那一根</b>用实色，其余用 <code>chip</code> 灰</div>
+      <div>坐标轴文字 9.5pt <code>tertiaryLabel</code>，不加网格竖线</div>
+    </div>
+  </div>
+
+  <div class="spec-card">
+    <h3>Markdown 在气泡里的排版</h3>
+    <div class="md-demo">
+      <h5>这周的问题在恢复，不在训练量</h5>
+      <p>你近 7 天练了 <strong>4 次</strong>、总容量 12,480 kg，比上周高 8%。但：</p>
+      <ul>
+        <li>日均睡眠 <strong>6.2 小时</strong>，低于 7 小时的恢复门槛</li>
+        <li>HRV 从 46 降到 <strong>42 ms</strong></li>
+        <li>深蹲 1RM 连续三周停在 <code>122.5 kg</code></li>
+      </ul>
+      <hr>
+      <p>下周安排：</p>
+      <ul>
+        <li><span class="num">1.</span>下肢日减载 20%，组数不变</li>
+        <li><span class="num">2.</span>睡眠先补到 7 小时以上，再谈加量</li>
+      </ul>
+      <div class="caption">正文 17pt · 行高 1.5 · 列表符号 17% 缩进</div>
+    </div>
+    <div class="anat" style="margin-top:16px">
+      <div><b>标题</b>不渲染 <code>#</code>，直接做 17pt/600 加粗行（气泡里不需要六级标题）</div>
+      <div><b>列表</b> <code>- </code> / <code>1. </code> 转真项目符号与序号，悬挂缩进 <code>17pt</code></div>
+      <div><b>行内代码</b> 等宽 + <code>chip</code> 底，用于重量、组次这类数值</div>
+      <div><b>分割线</b> 0.5pt 分隔线，用于「问题 / 方案」分段</div>
+      <div>当前 <code>MarkdownText</code> 把 <code>#</code> 和 <code>- </code> 降级成了纯文本，实现时按本表补齐</div>
+    </div>
+  </div>
+
+  <div class="spec-card">
+    <h3>表单控件（深色 / 浅色）</h3>
+    <div class="ctrl">
+      <div class="ctrl-row">
+        <span class="lb">输入框</span>
+        <div class="tf">说点什么…</div>
+      </div>
+      <div class="ctrl-row">
+        <span class="lb">胶囊</span>
+        <div style="display:flex;gap:7px;flex:1">
+          <div class="tf dark" style="text-align:center;flex:1">1.5 碗</div>
+          <div class="tf dark" style="text-align:center;flex:1">780</div>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <span class="lb">分段</span>
+        <div class="seg" style="margin:0;flex:1">
+          <div class="on">午餐</div><div>早餐</div><div>晚餐</div>
+        </div>
+      </div>
+      <div class="ctrl-row">
+        <span class="lb">开关</span>
+        <div class="tgl on"><span></span></div>
+        <div class="tgl off"><span></span></div>
+        <span style="font-size:12px;color:rgba(244,241,235,.4)">关：不发 thinking 参数</span>
+      </div>
+      <div class="ctrl-row">
+        <span class="lb">步进</span>
+        <div class="stepper"><b>−</b><b style="background:rgba(118,118,128,.16)">4 组</b><b>＋</b></div>
+      </div>
+      <div class="ctrl-row">
+        <span class="lb">浅色</span>
+        <div class="tf lightmode">同一个输入框</div>
+      </div>
+    </div>
+    <div class="anat" style="margin-top:16px">
+      <div>输入类控件一律<b>胶囊</b>（和主按钮同一套形状语法）</div>
+      <div>字段行用 <code>card2</code> 底 + 圆角 <code>12</code>，不用描边</div>
+      <div>标签 12.5pt <code>secondaryLabel</code>，值 15–16pt <code>label</code></div>
+      <div>触控区 ≥ <code>44pt</code>；分段控件滑动指示器用 <code>.snappy</code></div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<!-- ════════════ 状态与边界 ════════════ -->
+<section class="band">
+  <div class="band-head">
+  <div class="kicker" style="margin-bottom:8px">States &amp; Degradation</div>
+  <h2 style="font-size:23px;font-weight:700;margin-top:12px">
+    状态与边界 —— 这些路径比正常路径更该被设计</h2>
+  <p style="font-size:13px;color:rgba(244,241,235,.55);margin-top:10px;max-width:820px;line-height:1.75">
+    两轮真机反馈里出问题的地方，全部落在下面这几张卡上：没配 Key、解析失败、健康数据授权失败、免费侧载签名拿不到 entitlement。
+    它们必须是<b>说清原因 + 给出下一步</b>的引导，而不是一句原始报错。以下按真机内容区宽度（361pt）绘制。</p>
+  </div>
+
+  <div class="states-grid">
+
+    <div class="state-cell">
+      <div class="cap">STATE 01 · 未配置 API Key</div>
+      <div class="stage">
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico warn"><svg class="ic lg"><use href="#i-key"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">还没配置 AI</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:4px;line-height:1.55">
+                去「设置 → AI 模型」填入 API Key 就能用一句话记录；也可以直接手动记。</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:13px">
+            <div class="btn-secondary" style="flex:1;font-size:14px;padding:10px">去设置</div>
+            <div class="btn-secondary" style="flex:1;font-size:14px;padding:10px;color:var(--l2);background:var(--chip)">手动记录</div>
+          </div>
+        </div>
+      </div>
+      <div class="why">不阻断记录 —— 手动录入通道必须同时给到，否则用户在这一步就流失了。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 02 · 解析失败 → 待归类</div>
+      <div class="stage">
+        <div class="warnbar" style="margin-bottom:11px">
+          <svg class="ic"><use href="#i-warn"/></svg>
+          没能理解这句话，已原样保存
+        </div>
+        <div class="card">
+          <div style="font-size:12px;color:var(--l3);margin-bottom:9px">原文</div>
+          <div style="font-size:15px;line-height:1.5">「今天练背，忘了记重量」</div>
+          <div style="display:flex;gap:7px;margin-top:14px;flex-wrap:wrap">
+            <span class="badge grey" style="padding:6px 11px">补成训练</span>
+            <span class="badge grey" style="padding:6px 11px">补成饮食</span>
+            <span class="badge grey" style="padding:6px 11px">补成指标</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:12px">
+            联网后可在记录详情里重新解析</div>
+        </div>
+      </div>
+      <div class="why">「不丢用户数据」的承诺必须被看见 —— 原文完好 + 三种补救路径 + 重新解析的入口。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 03 · 调用失败 / 中断</div>
+      <div class="stage">
+        <div class="bubble ai" style="max-width:100%;margin-bottom:11px">
+          你近 7 天练了 <b>4 次</b>、总容量 12,480 kg，训练量其实够了；但日均睡眠
+          <b>6.2 小时</b>、HRV 从 46 降到 <b>42 ms</b></div>
+        <div class="card" style="border-color:rgba(255,69,58,.3)">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico" style="background:var(--r);color:#fff">
+              <svg class="ic lg"><use href="#i-wifioff"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">回复中断</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:4px;line-height:1.55">
+                网络请求失败 · 已收到的内容已保留，可以继续追问</div>
+            </div>
+          </div>
+          <div class="btn-secondary" style="margin-top:13px;font-size:14px;padding:10px">重试</div>
+        </div>
+      </div>
+      <div class="why">中断时保留半截回复，并明确告诉用户「没丢」—— 比清空重来体验好得多。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 04 · HealthKit 未授权</div>
+      <div class="stage">
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico body"><svg class="ic lg"><use href="#i-heart"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">还没接入健康数据</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:4px;line-height:1.55">
+                只读读取睡眠、HRV、静息心率与步数，仅保存在本机。</div>
+            </div>
+          </div>
+          <div class="btn-secondary" style="margin-top:13px;font-size:14px;padding:10px">授权并同步</div>
+        </div>
+      </div>
+      <div class="why">说清读什么、存在哪，再给按钮 —— 授权弹窗前的这一步决定了用户点不点「允许」。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 05 · 签名不支持（免费侧载）</div>
+      <div class="stage">
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico warn"><svg class="ic lg"><use href="#i-shield"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">当前安装无法接入健康数据</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:5px;line-height:1.6">
+                原因：签名里没有 HealthKit 权限（免费 Apple ID 侧载时会剥离）。
+                <b style="color:var(--l1)">记录与分析功能不受影响</b>，也可以手动补录。</div>
+            </div>
+          </div>
+          <div class="btn-secondary" style="margin-top:13px;font-size:14px;padding:10px;color:var(--l2);background:var(--chip)">
+            了解签名与权限</div>
+        </div>
+      </div>
+      <div class="why">真机反馈第 1 轮的原始报错就出在这 —— 要说清是签名限制、不是 App 坏了，并给出替代路径。</div>
+    </div>
+
+    <div class="state-cell" style="grid-column:1/-1">
+      <div class="cap">STATE 06 · 各页空态（大尺寸用 duotone，双层比单色实心更耐看）</div>
+      <div class="states-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+        <div class="stage" style="text-align:center;padding:22px 14px">
+          <svg class="ic duo"><use href="#i-duo-dumbbell"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--l2);margin-top:11px">今天还没有记录</div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:5px;line-height:1.55">
+            说一句「深蹲100kg 5×5」试试</div>
+        </div>
+        <div class="stage" style="text-align:center;padding:22px 14px">
+          <svg class="ic duo"><use href="#i-duo-tray"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--l2);margin-top:11px">还没有记录</div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:5px;line-height:1.55">
+            到「今天」页开始记录第一条</div>
+        </div>
+        <div class="stage" style="text-align:center;padding:22px 14px">
+          <svg class="ic duo"><use href="#i-duo-cal"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--l2);margin-top:11px">还没有课程表</div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:5px;line-height:1.55">
+            让教练按你的器械排一份</div>
+        </div>
+        <div class="stage" style="text-align:center;padding:22px 14px">
+          <svg class="ic duo"><use href="#i-duo-chat"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--l2);margin-top:11px">和教练聊聊目标</div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:5px;line-height:1.55">
+            「我想增肌，每周练 4 天」</div>
+        </div>
+        <div class="stage" style="text-align:center;padding:22px 14px">
+          <svg class="ic duo"><use href="#i-duo-chart"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--l2);margin-top:11px">还没有分析报告</div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:5px;line-height:1.55">
+            记录满 7 天后自动生成</div>
+        </div>
+      </div>
+      <div class="why">空态要给一个<b>能照抄的例子</b>，不是「暂无数据」—— 文案本身承担了功能发现的作用。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 07 · 浅色对照（同几张卡）</div>
+      <div class="stage lm">
+        <div class="card" style="margin-bottom:10px">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico body"><svg class="ic lg"><use href="#i-heart"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">还没接入健康数据</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:4px;line-height:1.55">
+                只读读取睡眠、HRV、静息心率与步数，仅保存在本机。</div>
+            </div>
+          </div>
+          <div class="btn-secondary" style="margin-top:13px;font-size:14px;padding:10px">授权并同步</div>
+        </div>
+        <div class="warnbar" style="margin:0">
+          <svg class="ic"><use href="#i-warn"/></svg>没能理解这句话，已原样保存
+        </div>
+      </div>
+      <div class="why">同一个组件换一组变量 —— 浅色下靠描边建立边界，层次关系不重做。</div>
+    </div>
+
+    <div class="state-cell">
+      <div class="cap">STATE 08 · 待归类笔记（记录页横幅）</div>
+      <div class="stage">
+        <div class="warnbar" style="margin-bottom:10px">
+          <svg class="ic"><use href="#i-warn"/></svg>
+          有 1 条笔记待归类 · 点开可重新解析
+        </div>
+        <div class="card" style="padding:0 14px">
+          <div class="tl-item" style="border-top:none">
+            <div class="ico note"><svg class="ic lg"><use href="#i-note"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">「今天练背，忘了记重量」<span class="badge yellow">待归类</span></div>
+              <div class="tl-sub">联网后可重新解析</div>
+            </div>
+            <div class="tl-time">21:30</div>
+          </div>
+        </div>
+      </div>
+      <div class="why">待归类是「需要你处理」的状态，所以在记录页顶部聚合提示，而不是埋在列表里。</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="band" style="margin-top:68px">
+  <div class="band-head">
+    <div class="kicker">Screens</div>
+    <h2>17 屏 · 覆盖 App 全部界面</h2>
+    <p>按实现顺序排列：主流程 01–09，次级界面 10–17。每屏标注了对应的 HIG 约束，实现时照着做即可。</p>
+  </div>
+</section>
+
+<div class="gallery">
+
+<!-- ════════ 01 今日（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 01 · DARK</div>
+    <h2>今日</h2>
+    <p>「今日概览」三环是页面的视觉焦点 —— 训练、饮食、身体今天记了没。健康指标改实心符号 + 等宽数字。课程卡带状态色条、进度条与主按钮。记录流改时间轴。输入条是可直接输入的胶囊，位于 Tab 栏之上。</p>
+    <span class="hig">通栏实底导航层 · Card 20 · 触控 ≥44pt</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll tall">
+        <div class="large-title">今天</div>
+        <div class="date-sub">下午好 · 9月13日 星期六</div>
+
+        <div class="listhead"><span>今日概览</span><span class="n">3 / 3</span></div>
+        <div class="card">
+          <div class="rings">
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="0"/></svg>
+                <div class="ringtxt">1<small>/1</small></div>
+              </div>
+              <span class="cap">训练</span>
+            </div>
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val g" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="55.5"/></svg>
+                <div class="ringtxt">2<small>/3</small></div>
+              </div>
+              <span class="cap">饮食</span>
+            </div>
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val b" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="0"/></svg>
+                <div class="ringtxt">1<small>/1</small></div>
+              </div>
+              <span class="cap">身体</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>身体状态</span>
+          <span class="n">HealthKit · 只读</span></div>
+        <div class="card">
+          <div class="stat-grid">
+            <div class="stat">
+              <div class="top"><svg class="ic"><use href="#i-moon"/></svg>睡眠</div>
+              <div class="v">6.5<small>小时</small></div>
+              <div class="delta warn">偏低 · 目标 7.5h</div>
+            </div>
+            <div class="stat">
+              <div class="top"><svg class="ic"><use href="#i-pulse"/></svg>HRV</div>
+              <div class="v">42<small>ms</small></div>
+              <div class="delta">较 7 日均值 -8%</div>
+            </div>
+            <div class="stat">
+              <div class="top"><svg class="ic"><use href="#i-walk"/></svg>活动量</div>
+              <div class="v">3,240<small>步</small></div>
+              <div class="delta">今天</div>
+            </div>
+            <div class="stat">
+              <div class="top"><svg class="ic"><use href="#i-heart"/></svg>静息心率</div>
+              <div class="v">58<small>bpm</small></div>
+              <div class="delta ok">正常</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>今日课程</span><span class="n">第 2 / 4 周</span></div>
+        <div class="card plan-card">
+          <div class="plan-top">
+            <div class="ico train"><svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div style="flex:1">
+              <div class="plan-name">胸 + 三头</div>
+              <div style="font-size:12px;color:var(--l2);margin-top:3px">第 2 / 4 周</div>
+            </div>
+          </div>
+          <div class="bar"><i style="width:60%"></i></div>
+          <div class="barrow"><span>已完成 3 / 5 个动作</span><span style="display:flex;align-items:center;gap:4px"><svg class="ic sm"><use href="#i-clock"/></svg>约 50 分钟</span></div>
+          <div class="btn-primary full" style="margin-top:14px">继续训练</div>
+        </div>
+
+        <div class="listhead"><span>今日已记录</span><span class="n">2 条</span></div>
+        <div class="card">
+          <div class="tl-item">
+            <div class="ico train"><svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">深蹲 100kg · 5×5</div>
+              <div class="tl-sub">RPE 8 · 有点累</div>
+            </div>
+            <div class="tl-time">09:30</div>
+          </div>
+          <div class="tl-item">
+            <div class="ico meal"><svg class="ic lg"><use href="#i-fork"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">牛肉面 <span class="badge">AI 估算</span></div>
+              <div class="tl-sub">~650 kcal · 蛋白 30g</div>
+            </div>
+            <div class="tl-time">12:40</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="floatbar">
+        <div class="inputbar">
+          <span class="ph">说点什么，比如「深蹲100kg 5×5」…</span>
+          <span class="tools">
+            <svg class="ic"><use href="#i-mic"/></svg><svg class="ic"><use href="#i-cam"/></svg>
+          </span>
+          <div class="send"><svg class="ic"><use href="#i-up"/></svg></div>
+        </div>
+        <div class="tabbar">
+          <div class="tab active"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 02 记录（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 02 · DARK</div>
+    <h2>记录</h2>
+    <p>与今日页同一套卡片语法，不再用 insetGrouped 默认外观。筛选改滑动胶囊。每行给出结构化摘要 —— 不用点进去才知道练了什么。Watch 同步的记录带只读锁标。</p>
+    <span class="hig">Segmented · 0.5pt 分隔线 · 左滑删除</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll">
+        <div class="large-title">记录</div>
+        <div class="date-sub">近 90 天 · 共 128 条</div>
+
+        <div class="seg"><div class="on">全部</div><div>训练</div><div>饮食</div><div>其他</div></div>
+
+        <div class="listhead"><span>今天</span><span class="n">3 条 · 9月13日</span></div>
+        <div class="card">
+          <div class="tl-item">
+            <div class="ico train"><svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">胸 + 三头</div>
+              <div class="tl-sub">卧推 80kg 5×8 · 飞鸟 12kg 3×12</div>
+            </div>
+            <div class="tl-time">12:30</div>
+          </div>
+          <div class="tl-item">
+            <div class="ico meal"><svg class="ic lg"><use href="#i-fork"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">牛肉面 <span class="badge">AI 估算</span></div>
+              <div class="tl-sub">午餐 · ~650 kcal · 蛋白 30g</div>
+            </div>
+            <div class="tl-time">12:40</div>
+          </div>
+          <div class="tl-item">
+            <div class="ico body"><svg class="ic lg"><use href="#i-weight"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">体重 74.5 kg</div>
+              <div class="tl-sub">较上次 -0.3 kg</div>
+            </div>
+            <div class="tl-time">07:15</div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>昨天</span><span class="n">2 条 · 9月12日</span></div>
+        <div class="card">
+          <div class="tl-item">
+            <div class="ico note"><svg class="ic lg"><use href="#i-run"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">户外跑步 5.2 km
+                <span class="lockbadge"><svg class="ic sm"><use href="#i-lock"/></svg>只读</span></div>
+              <div class="tl-sub">Apple Watch · 28 分 · 402 kcal</div>
+            </div>
+            <div class="tl-time">18:02</div>
+          </div>
+          <div class="tl-item">
+            <div class="ico note"><svg class="ic lg"><use href="#i-note"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">「今天练背，忘了记重量」</div>
+              <div class="tl-sub">待归类 · 联网后可重新解析</div>
+            </div>
+            <div class="tl-time">21:30</div>
+          </div>
+        </div>
+      </div>
+      <div class="floatbar">
+        <div class="tabbar">
+          <div class="tab"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab active"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 03 记录弹窗（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 03 · DARK</div>
+    <h2>记录 · 对话流确认</h2>
+    <p>照片是附件不是触发器：选中后只显示缩略图，可以补一句「大概一碗半」再发送。确认卡片字段行点按即改，合计做成高亮行；保存后折叠成一行回执，而不是整块消失。</p>
+    <span class="hig">Sheet · detents(.large) · 一屏一个主按钮</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll" style="opacity:.3">
+        <div class="large-title">今天</div>
+        <div class="date-sub">下午好 · 9月13日 星期六</div>
+        <div class="card" style="height:118px"></div>
+        <div class="card" style="height:196px"></div>
+      </div>
+      <div style="position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:18"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;top:92px;z-index:19;background:var(--bg);
+           border-radius:20px 20px 0 0;display:flex;flex-direction:column">
+        <div style="width:38px;height:5px;border-radius:3px;background:var(--l3);margin:9px auto 3px"></div>
+        <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+          <span style="font-size:17px;font-weight:600">记录</span>
+          <span style="margin-left:auto;font-size:15px;color:var(--o)">清空</span>
+        </div>
+        <div style="flex:1;overflow:hidden;padding:0 16px">
+          <div class="chat">
+            <div class="bubble me">中午吃了牛肉面，大概一碗半，还加了个卤蛋
+              <span class="thumb"></span>
+            </div>
+
+            <div style="font-size:12px;color:var(--l3);display:flex;align-items:center;gap:6px;margin-top:2px">
+              <svg class="ic sm" style="color:var(--o)"><use href="#i-sparkle"/></svg>
+              识别完成 · 每个字段都能改
+            </div>
+
+            <div class="card" style="margin-bottom:0">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+                <div class="ico meal"><svg class="ic lg"><use href="#i-fork"/></svg></div>
+                <span style="font-size:16px;font-weight:600;flex:1">饮食记录</span>
+                <svg class="ic" style="color:var(--l3)"><use href="#i-trash"/></svg>
+              </div>
+              <div class="seg" style="margin:0 0 12px"><div class="on">午餐</div><div>早餐</div><div>晚餐</div><div>加餐</div></div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);
+                   border-radius:12px;margin-bottom:7px">
+                <span style="font-size:12.5px;color:var(--l2);width:40px;flex:none">食物</span>
+                <span style="font-size:16px;font-weight:600">牛肉面</span>
+                <svg class="ic sm" style="margin-left:auto;color:var(--l3)"><use href="#i-chev"/></svg>
+              </div>
+              <div style="display:flex;gap:7px;margin-bottom:7px">
+                <div style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;
+                     background:var(--card2);border-radius:12px">
+                  <span style="font-size:12.5px;color:var(--l2);width:28px;flex:none">分量</span>
+                  <span style="font-size:15px;font-weight:600">1.5 碗</span>
+                </div>
+                <div style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;
+                     background:var(--card2);border-radius:12px">
+                  <span style="font-size:12.5px;color:var(--l2);width:28px;flex:none">热量</span>
+                  <span style="font-size:15px;font-weight:600">780</span>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);
+                   border-radius:12px">
+                <span style="font-size:12.5px;color:var(--l2);width:40px;flex:none">蛋白</span>
+                <span style="font-size:15px;font-weight:600">42 g</span>
+                <span style="margin-left:auto;font-size:11.5px;color:var(--l3)">卤蛋已计入</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:11px 12px;
+                   background:var(--card2);border-radius:12px">
+                <svg class="ic sm" style="color:var(--o)"><use href="#i-bolt"/></svg>
+                <span style="font-size:13.5px;font-weight:600">
+                  合计 ~780 kcal · 蛋白 42g</span>
+              </div>
+              <div class="btn-primary full" style="margin-top:14px">保存这 1 条</div>
+              <div style="text-align:center;font-size:11px;color:var(--l3);margin-top:10px">
+                热量为 AI 估算值，可手动修正</div>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:8px;color:var(--l3);font-size:13px">
+              <span class="dots"><span></span><span></span><span></span></span>正在理解…
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 16px 26px">
+          <div class="inputbar">
+            <span class="ph">再说一句，比如「再加一组」…</span>
+            <span class="tools">
+              <svg class="ic"><use href="#i-mic"/></svg><svg class="ic"><use href="#i-cam"/></svg>
+            </span>
+            <div class="send"><svg class="ic"><use href="#i-up"/></svg></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 04 教练 · 思考中（深色）★ ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 04 · DARK ★ 本轮重点</div>
+    <h2>AI 教练 · 流式与思考区</h2>
+    <p>思考区从来没出现过 —— 根因不在显示层：<code>UsageRecordingClient</code> 没实现 <code>stream()</code>，落到协议默认实现走了非流式请求，思考内容在链路里就被丢了，正文也是一次性蹦出来的。修复后思考区边生成边增长，带秒数与流光边缘。</p>
+    <span class="hig">.hierarchical 图标 · 生成中可中断 · 内容不丢</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <span style="font-size:17px;font-weight:600">AI 教练</span>
+        <span style="margin-left:auto;font-size:15px;color:var(--l2)">完成</span>
+      </div>
+      <div style="flex:1;overflow:hidden;padding:0 16px">
+        <div class="chat">
+          <div class="bubble me">我这周练了 4 天，但一直没力气，要不要减量？</div>
+
+          <div class="think stream">
+            <div class="think-h">
+              <svg class="ic sm"><use href="#i-brain"/></svg>
+              思考中 <span class="sec">· 8s</span>
+              <span class="dots"><span></span><span></span><span></span></span>
+            </div>
+            <div class="think-b">
+              用户近 7 天训练 4 次，总容量 12,480 kg，比上周期高 8%，但日均睡眠只有 6.2 小时、HRV 从 46 降到 42 ms，深蹲估算 1RM 连续三周停在 122.5 kg。<br><br>
+              这不是训练量不足，更像恢复不足 —— 睡眠缺口叠加 HRV 下行，先看恢复，不要加量。按渐进超负荷，停滞三周应该安排一次减载周
+            </div>
+          </div>
+
+          <div class="bubble ai" style="max-width:89%">你近 7 天练了 <b>4 次</b>、总容量 12,480 kg，
+            训练量其实够了；但日均睡眠 <b>6.2 小时</b>、HRV 从 46 降到 <b>42 ms</b>，
+            深蹲 1RM 也连着三周停在 122.5 kg —— 这是恢复跟不上的信号，不是练得不够。<span class="caret"></span></div>
+
+          <div style="display:flex;align-items:center;gap:7px;color:var(--r);font-size:13.5px;
+               font-weight:600;padding:3px 2px">
+            <svg class="ic sm"><use href="#i-stop"/></svg>停止生成
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 26px">
+        <div class="inputbar">
+          <span class="ph" style="opacity:.55">生成中…</span>
+          <div class="send" style="opacity:.3"><svg class="ic"><use href="#i-up"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 05 教练 · 计划卡（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 05 · DARK</div>
+    <h2>AI 教练 · 计划与思考回看</h2>
+    <p>去掉 <code>⚡ function_call → create_plan</code> —— 用户不需要知道工具名。思考区结束后折叠成一行可展开。计划卡只放用户要决策的东西：几天、练什么、加不加入。</p>
+    <span class="hig">动作胶囊 · 次级按钮 ghost 化 · 折叠保留思考</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <span style="font-size:17px;font-weight:600">AI 教练</span>
+        <span style="margin-left:auto;font-size:15px;color:var(--l2)">完成</span>
+      </div>
+      <div style="flex:1;overflow:hidden;padding:0 16px">
+        <div class="chat">
+          <div class="bubble me">我想增肌，每周能练 4 天，家里只有一对哑铃</div>
+
+          <div class="think">
+            <div class="think-h">
+              <svg class="ic sm"><use href="#i-brain"/></svg>
+              思考过程 <span class="sec">· 12s</span>
+              <svg class="ic sm chev"><use href="#i-chev"/></svg>
+            </div>
+          </div>
+
+          <div class="bubble ai">只有一对哑铃、每周 4 天，我按上下肢分化排 4 周：上肢日推拉交替，下肢日以高次数深蹲与罗马尼亚硬拉为主，重量靠节奏和组数堆。<b>第 4 周安排减载</b>。</div>
+
+          <div class="plan-draft">
+            <div class="h"><svg class="ic sm"><use href="#i-sparkle"/></svg>教练为你排了这份计划</div>
+            <div style="font-size:17px;font-weight:700;">4 周哑铃增肌计划</div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <span class="badge">增肌</span><span class="badge grey">4 周 · 16 个训练日</span>
+            </div>
+            <div style="margin-top:12px">
+              <div class="day-row">
+                <span class="d">今天</span>
+                <div style="flex:1">
+                  <div class="n">上肢推</div>
+                  <div class="pills"><span class="pill">哑铃卧推 4×10</span><span class="pill">肩上推 3×12</span><span class="pill">窄距俯卧撑 3×力竭</span></div>
+                </div>
+              </div>
+              <div class="day-row">
+                <span class="d">明天</span>
+                <div style="flex:1">
+                  <div class="n">下肢</div>
+                  <div class="pills"><span class="pill">高脚杯深蹲 4×12</span><span class="pill">罗马尼亚硬拉 3×10</span></div>
+                </div>
+              </div>
+              <div class="day-row">
+                <span class="d">+2 天</span>
+                <div style="flex:1">
+                  <div class="n">上肢拉</div>
+                  <div class="pills"><span class="pill">单臂划船 4×10</span><span class="pill">哑铃弯举 3×12</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:9px;margin-top:15px">
+              <div class="btn-secondary" style="flex:0 0 104px;color:var(--l2);background:var(--chip)">换个方案</div>
+              <div class="btn-primary" style="flex:1;padding:12px 20px;font-size:16px">加入课程表</div>
+            </div>
+          </div>
+
+          <div style="font-size:12px;color:var(--l3);display:flex;align-items:center;gap:5px;margin-top:4px">
+            <svg class="ic sm"><use href="#i-chev"/></svg>已参考你的近期数据 · 点开查看
+          </div>
+        </div>
+      </div>
+      <div style="padding:0 16px 26px">
+        <div class="inputbar">
+          <span class="ph">继续和教练聊…</span>
+          <div class="send"><svg class="ic"><use href="#i-up"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 06 课程表（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 06 · DARK</div>
+    <h2>课程表</h2>
+    <p>计划头卡给出完成度环与周进度；训练日用左侧色条 + 勾选圆点表达状态，今天置顶高亮。教练入口收成一张全宽卡 —— 不再需要去列表末尾找。</p>
+    <span class="hig">进度环 · 状态色 · 400/600 字重区分完成态</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll">
+        <div class="large-title">课程表</div>
+        <div class="date-sub">4 周哑铃增肌计划</div>
+
+        <div class="card plan-card">
+          <div class="plan-top">
+            <div class="ringwrap sm">
+              <svg class="ring sm" viewBox="0 0 56 56"><circle class="track" cx="28" cy="28" r="23"/><circle class="val" cx="28" cy="28" r="23" stroke-dasharray="144.5" stroke-dashoffset="72.3"/></svg>
+              <div class="ringtxt sm">50<span style="font-size:9px;font-weight:600;color:var(--l3)">%</span></div>
+            </div>
+            <div style="flex:1;padding-left:5px">
+              <div style="font-size:17px;font-weight:700;">4 周哑铃增肌计划</div>
+              <div style="display:flex;gap:6px;margin-top:7px">
+                <span class="badge">增肌</span><span class="badge grey">已完成 6 / 12</span>
+              </div>
+              <div style="font-size:13px;color:var(--l2);margin-top:7px">第 2 周 · 共 4 周</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>训练日</span><span class="n">按时间排序</span></div>
+        <div class="card">
+          <div class="pday today">
+            <span class="check"></span>
+            <div class="txt">
+              <div class="d" style="color:var(--o)">今天 · 9月13日</div>
+              <div class="n">胸 + 三头</div>
+              <div class="ex">卧推 · 飞鸟 · 窄距俯卧撑</div>
+            </div>
+            <span class="badge">待做</span>
+          </div>
+          <div class="pday">
+            <span class="check"></span>
+            <div class="txt">
+              <div class="d">明天 · 9月14日</div>
+              <div class="n">背 + 二头</div>
+              <div class="ex">单臂划船 · 弯举</div>
+            </div>
+            <span class="badge grey">待做</span>
+          </div>
+          <div class="pday done dim">
+            <span class="check on"><svg class="ic"><use href="#i-check"/></svg></span>
+            <div class="txt">
+              <div class="d">9月12日</div>
+              <div class="n">腿</div>
+              <div class="ex">高脚杯深蹲 · 罗马尼亚硬拉</div>
+            </div>
+            <span class="badge green">已完成</span>
+          </div>
+          <div class="pday skip dim">
+            <span class="check" style="border-color:var(--gr)"><svg class="ic sm" style="color:var(--gr)"><use href="#i-xmark"/></svg></span>
+            <div class="txt">
+              <div class="d">9月11日</div>
+              <div class="n">上肢拉</div>
+              <div class="ex" style="color:var(--y)">教练建议：HRV 偏低顺延一天</div>
+            </div>
+            <span class="badge grey">已跳过</span>
+          </div>
+        </div>
+
+        <div class="card" style="padding:14px 16px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="ico ai" style="width:42px;height:42px"><svg class="ic lg"><use href="#i-wand"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:16px;font-weight:600;">让教练调整计划</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:3px">按完成情况与恢复状态调整</div>
+            </div>
+            <svg class="ic" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="floatbar">
+        <div class="tabbar">
+          <div class="tab"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab active"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 07 洞察（深色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 07 · DARK</div>
+    <h2>洞察</h2>
+    <p>报告卡升级：KPI 行扫一眼就知道这周发生了什么，正文用衬线（编辑场景），「AI 依据」保留透明性。柱状图只高亮本周，不与语义色抢注意力。</p>
+    <span class="hig">New York 衬线 · KPI 行 · 一屏一个强调元素</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll">
+        <div class="large-title">洞察</div>
+        <div class="date-sub">9月7日 – 9月13日 · 本周</div>
+
+        <div class="card hero">
+          <div class="card-h"><span class="t" style="color:var(--o)">本周报告</span><span class="r">AI 生成</span></div>
+          <div class="kpis">
+            <div class="kpi"><div class="k">训练</div><div class="v">4<small> 次</small></div></div>
+            <div class="kpi"><div class="k">总容量</div><div class="v" style="color:var(--g)">↑8<small>%</small></div></div>
+            <div class="kpi"><div class="k">睡眠</div><div class="v">6.2<small> h</small></div></div>
+          </div>
+          <div class="quote">「深蹲已停滞三周，但训练量并不低 —— 问题在恢复。这周把下肢日减载 20%，先把睡眠补到 7 小时以上。」</div>
+          <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+            <span class="badge">平台期</span><span class="badge blue">恢复不足</span><span class="badge green">渐进超负荷</span>
+          </div>
+          <div class="minichart">
+            <i class="dim" style="height:38%"></i><i class="dim" style="height:52%"></i><i style="height:74%"></i>
+            <i style="height:88%"></i><i class="dim" style="height:60%"></i><i class="dim" style="height:44%"></i>
+            <i class="dim" style="height:36%"></i>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--l3);margin-top:8px">
+            <span>周一</span><span>周三</span><span>周五</span><span>周日</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">分析工具</span></div>
+          <div class="toolrow">
+            <div class="ico body"><svg class="ic lg"><use href="#i-trend"/></svg></div>
+            <div><div class="t">趋势图表</div><div class="s">体重 · 估算 1RM · 每周容量 · 睡眠</div></div>
+            <svg class="ic" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+          <div class="toolrow">
+            <div class="ico meal"><svg class="ic lg"><use href="#i-fork"/></svg></div>
+            <div><div class="t">饮食分析</div><div class="s">日均热量 · 宏营养素 · 蛋白质缺口</div></div>
+            <svg class="ic" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+
+        <div class="listhead"><span>历史报告</span><span class="n">3 份</span></div>
+        <div class="card">
+          <div class="toolrow">
+            <div class="ico ai"><svg class="ic lg"><use href="#i-note"/></svg></div>
+            <div><div class="t">8月31日 – 9月6日</div><div class="s">渐进超负荷执行得不错，蛋白摄入偏低</div></div>
+            <svg class="ic" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="floatbar">
+        <div class="tabbar">
+          <div class="tab"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab active"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 08 今日（浅色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 08 · LIGHT</div>
+    <h2>今日（浅色模式）</h2>
+    <p>同一套语义色换挡：白卡 + 描边，不用阴影；毛玻璃浮层换成浅色材质。深浅色只换一组 CSS 变量 —— 这也是实现时的做法（全部走语义色，不写死 RGB）。</p>
+    <span class="hig">语义色 · Dynamic Type · 对比度 ≥4.5:1</span>
+  </div>
+  <div class="phone light"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll tall">
+        <div class="large-title">今天</div>
+        <div class="date-sub">下午好 · 9月13日 星期六</div>
+
+        <div class="listhead"><span>今日概览</span><span class="n">3 / 3</span></div>
+        <div class="card">
+          <div class="rings">
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="0"/></svg>
+                <div class="ringtxt">1<small>/1</small></div>
+              </div>
+              <span class="cap">训练</span>
+            </div>
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val g" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="55.5"/></svg>
+                <div class="ringtxt">2<small>/3</small></div>
+              </div>
+              <span class="cap">饮食</span>
+            </div>
+            <div class="ringcol">
+              <div class="ringwrap">
+                <svg class="ring" viewBox="0 0 64 64"><circle class="track" cx="32" cy="32" r="26.5"/><circle class="val b" cx="32" cy="32" r="26.5" stroke-dasharray="166.5" stroke-dashoffset="0"/></svg>
+                <div class="ringtxt">1<small>/1</small></div>
+              </div>
+              <span class="cap">身体</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card plan-card">
+          <div class="plan-top">
+            <div class="ico train"><svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div style="flex:1">
+              <div class="card-h" style="margin:0"><span class="t">今日课程</span><span class="r">第 2 / 4 周</span></div>
+              <div class="plan-name" style="margin-top:3px">胸 + 三头</div>
+            </div>
+          </div>
+          <div class="bar"><i style="width:60%"></i></div>
+          <div class="barrow"><span>已完成 3 / 5 个动作</span><span>约 50 分钟</span></div>
+          <div class="btn-primary full" style="margin-top:14px">继续训练</div>
+        </div>
+
+        <div class="listhead"><span>今日已记录</span><span class="n">2 条</span></div>
+        <div class="card">
+          <div class="tl-item">
+            <div class="ico train"><svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">深蹲 100kg · 5×5</div>
+              <div class="tl-sub">RPE 8 · 有点累</div>
+            </div>
+            <div class="tl-time">09:30</div>
+          </div>
+          <div class="tl-item">
+            <div class="ico meal"><svg class="ic lg"><use href="#i-fork"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title">牛肉面 <span class="badge">AI 估算</span></div>
+              <div class="tl-sub">~650 kcal · 蛋白 30g</div>
+            </div>
+            <div class="tl-time">12:40</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="floatbar">
+        <div class="inputbar">
+          <span class="ph">说点什么，比如「深蹲100kg 5×5」…</span>
+          <span class="tools">
+            <svg class="ic"><use href="#i-mic"/></svg><svg class="ic"><use href="#i-cam"/></svg>
+          </span>
+          <div class="send"><svg class="ic"><use href="#i-up"/></svg></div>
+        </div>
+        <div class="tabbar">
+          <div class="tab active"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 09 设置（浅色） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 09 · LIGHT</div>
+    <h2>设置</h2>
+    <p>保留 Form 语法（iOS 用户预期如此），但分组标题改中文短语、行加语义色图标、Key 显示「已保存」与显隐切换、连接测试结果就地变彩色胶囊、用量改占比条。</p>
+    <span class="hig">Inset Grouped Form · 状态就地反馈</span>
+  </div>
+  <div class="phone light"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll">
+        <div class="large-title">设置</div>
+        <div class="date-sub">BYOK · 数据只在你和设备之间</div>
+
+        <div class="glabel">AI 模型</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow">
+            <div class="ico ai sm"><svg class="ic sm"><use href="#i-sparkle"/></svg></div>
+            <span>服务商</span>
+            <span class="val">智谱 GLM <svg class="ic sm"><use href="#i-chev"/></svg></span>
+          </div>
+          <div class="srow">
+            <div class="ico note sm"><svg class="ic sm"><use href="#i-bolt"/></svg></div>
+            <span>模型</span>
+            <span class="val keyfield" style="font-size:12.5px">glm-5.3-flash</span>
+          </div>
+          <div class="srow">
+            <div class="ico train sm"><svg class="ic sm"><use href="#i-lock"/></svg></div>
+            <span>API Key</span>
+            <span class="val keyfield">••••••••3f7a <svg class="ic sm"><use href="#i-eye"/></svg></span>
+          </div>
+          <div class="srow" style="align-items:flex-start;padding-top:12px;padding-bottom:12px">
+            <div class="ico body sm"><svg class="ic sm"><use href="#i-brain"/></svg></div>
+            <div style="flex:1">
+              <div>显示思考过程</div>
+              <div style="font-size:11.5px;color:var(--l2);margin-top:3px;line-height:1.5">
+                支持 GLM / Kimi / Claude；不支持的模型请关闭，否则可能报错</div>
+            </div>
+            <div class="switch on"><span></span></div>
+          </div>
+          <div class="srow">
+            <div class="ico meal sm"><svg class="ic sm"><use href="#i-pulse"/></svg></div>
+            <span>连接测试</span>
+            <span class="val"><span class="badge green">连接正常</span></span>
+          </div>
+        </div>
+
+        <div class="glabel">数据</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow">
+            <div class="ico meal sm"><svg class="ic sm"><use href="#i-heart"/></svg></div>
+            <span>HealthKit</span>
+            <span class="val"><span class="badge green">已授权</span> <svg class="ic sm"><use href="#i-chev"/></svg></span>
+          </div>
+          <div class="srow">
+            <div class="ico body sm"><svg class="ic sm"><use href="#i-export"/></svg></div>
+            <span>导出我的数据</span><span class="val">JSON</span>
+          </div>
+        </div>
+
+        <div class="glabel">累计用量</div>
+        <div class="card">
+          <div style="display:flex;align-items:baseline;gap:7px">
+            <span class="mono" style="font-size:26px;font-weight:700;">184,320</span>
+            <span style="font-size:12.5px;color:var(--l2)">tokens · 共 57 次调用</span>
+          </div>
+          <div class="usagebar"><i class="a"></i><i class="b"></i></div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--l2)">
+            <span>输入 114,300</span><span>输出 70,020</span>
+          </div>
+        </div>
+
+        <div class="glabel">关于</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow"><span>版本</span><span class="val mono">0.3.0</span></div>
+          <div class="srow"><span>架构与隐私说明</span>
+            <span class="val"><svg class="ic sm"><use href="#i-chev"/></svg></span></div>
+        </div>
+      </div>
+      <div class="floatbar">
+        <div class="tabbar">
+          <div class="tab"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab active"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 10 记录详情（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 10 · DARK</div>
+    <h2>记录详情 · 训练</h2>
+    <p>点开一条记录看到的页面。动作逐条列出（重量 / 组次 / RPE），来源与解析方式写清楚，底部给「重新解析」—— AI 解析错了要能重来，而不是只能删掉重记。</p>
+    <span class="hig">可编辑字段用输入框而非纯文本 · 破坏性操作置底</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <svg class="ic sm" style="color:var(--o)"><use href="#i-chev"/></svg>
+        <span style="font-size:17px;font-weight:600;margin-left:6px">记录详情</span>
+        <span style="margin-left:auto;display:flex;align-items:center;gap:5px;font-size:15px;color:var(--o)"><svg class="ic sm"><use href="#i-pencil"/></svg>编辑</span>
+      </div>
+      <div class="scroll">
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="ico train" style="width:42px;height:42px">
+              <svg class="ic lg"><use href="#i-dumbbell"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:18px;font-weight:700;">胸 + 三头</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:3px">今天 12:30 · 力量训练</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:12px">
+            <span class="badge grey">AI 解析</span>
+            <span class="badge grey">RPE 8</span>
+          </div>
+        </div>
+
+        <div class="listhead"><span>动作</span><span class="n">3 个</span></div>
+        <div class="card">
+          <div class="tl-item" style="border-top:none">
+            <div class="tl-main">
+              <div class="tl-title">杠铃卧推</div>
+              <div class="tl-sub">80 kg · 5 组 × 8 次</div>
+            </div>
+            <span class="badge grey">RPE 8</span>
+          </div>
+          <div class="tl-item">
+            <div class="tl-main">
+              <div class="tl-title">哑铃飞鸟</div>
+              <div class="tl-sub">12 kg · 3 组 × 12 次</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-main">
+              <div class="tl-title">窄距俯卧撑</div>
+              <div class="tl-sub">自重 · 3 组 × 力竭</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">备注</span></div>
+          <div style="font-size:15px;line-height:1.55;color:var(--l1)">今天状态一般，最后一组有点勉强</div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow">
+            <div class="ico note sm"><svg class="ic sm"><use href="#i-refresh"/></svg></div>
+            <span>重新解析这句话</span>
+            <span class="val"><svg class="ic sm"><use href="#i-chev"/></svg></span>
+          </div>
+          <div class="srow">
+            <div class="ico note sm"><svg class="ic sm" style="color:var(--r)"><use href="#i-trash"/></svg></div>
+            <span style="color:var(--r)">删除这条记录</span>
+          </div>
+        </div>
+
+        <div style="font-size:11.5px;color:var(--l3);line-height:1.7;padding:2px 4px 0">
+          原始输入：「中午练了胸，卧推80做组，5组每组8个」<br>
+          解析由 AI 完成，字段可在这里直接改正。
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 11 课程表 · 单日（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 11 · DARK</div>
+    <h2>课程表 · 单个训练日</h2>
+    <p>教练排的计划也要能手改。动作行右侧是拖拽手柄（长按排序），删减用左侧的减号；状态用分段控件而不是下拉菜单 —— 三个选项一眼可点。</p>
+    <span class="hig">拖拽排序 · 分段控件 · 底部主按钮常驻</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <svg class="ic sm" style="color:var(--o)"><use href="#i-chev"/></svg>
+        <span style="font-size:17px;font-weight:600;margin-left:6px">今天 · 9月13日</span>
+        <span style="margin-left:auto;font-size:15px;color:var(--o)">保存</span>
+      </div>
+      <div class="scroll">
+        <div class="card" style="margin-top:14px">
+          <div class="card-h"><span class="t">训练日</span></div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card2);border-radius:12px">
+            <span style="font-size:12.5px;color:var(--l2);width:34px;flex:none">主题</span>
+            <span style="font-size:16px;font-weight:600;">胸 + 三头</span>
+          </div>
+          <div style="margin-top:11px">
+            <div class="seg" style="margin:0"><div>待做</div><div class="on">已完成</div><div>已跳过</div></div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>动作</span><span class="n">长按右侧手柄排序</span></div>
+        <div class="card">
+          <div class="tl-item" style="border-top:none">
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-xmark"/></svg>
+            <div class="tl-main">
+              <div class="tl-title">杠铃卧推</div>
+              <div class="tl-sub">5 组 × 8 次 · 目标 80 kg</div>
+            </div>
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-drag"/></svg>
+          </div>
+          <div class="tl-item">
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-xmark"/></svg>
+            <div class="tl-main">
+              <div class="tl-title">哑铃飞鸟</div>
+              <div class="tl-sub">3 组 × 12 次 · 目标 12.5 kg</div>
+            </div>
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-drag"/></svg>
+          </div>
+          <div class="tl-item">
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-xmark"/></svg>
+            <div class="tl-main">
+              <div class="tl-title">窄距俯卧撑</div>
+              <div class="tl-sub">3 组 × 力竭</div>
+            </div>
+            <svg class="ic sm" style="color:var(--l3);margin-top:9px"><use href="#i-drag"/></svg>
+          </div>
+          <div class="btn-secondary" style="margin-top:14px;font-size:14px;padding:11px;color:var(--l2);
+             background:var(--chip);display:flex;align-items:center;justify-content:center;gap:6px">
+            <svg class="ic sm"><use href="#i-plus"/></svg>添加动作</div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">备注</span></div>
+          <div style="font-size:14px;color:var(--l2);line-height:1.55">
+            教练建议：HRV 偏低，最后一组可减 10% 重量</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 26px">
+        <div class="btn-primary">标记为已完成</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 12 报告详情（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 12 · DARK</div>
+    <h2>分析报告详情</h2>
+    <p>引文用衬线（编辑场景，与正文拉开气质差别），正文用系统字体保证可读性。底部「AI 依据」可展开 —— 让用户能核对结论是从哪几个数字来的，这是这类产品最需要的透明度。</p>
+    <span class="hig">New York 衬线仅用于引文 · AI 依据默认折叠</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <svg class="ic sm" style="color:var(--o)"><use href="#i-chev"/></svg>
+        <span style="font-size:17px;font-weight:600;margin-left:6px">分析报告</span>
+      </div>
+      <div class="scroll">
+        <div class="card hero" style="margin-top:14px">
+          <div class="card-h"><span class="t" style="color:var(--o)">9月7日 – 9月13日</span>
+            <span class="r">AI 生成</span></div>
+          <div class="quote">「深蹲已停滞三周，但训练量并不低 —— 问题在恢复。这周把下肢日减载 20%，先把睡眠补到 7 小时以上。」</div>
+          <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+            <span class="badge">平台期</span><span class="badge blue">恢复不足</span><span class="badge green">渐进超负荷</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">详细分析</span></div>
+          <div style="font-size:15px;line-height:1.62;color:var(--l1)">
+            <div style="font-weight:600;margin-bottom:7px">训练量不是问题</div>
+            本周 4 次训练、总容量 12,480 kg，比上周高 8%，渐进超负荷执行得不错。三个主项里卧推和硬拉都在涨。
+            <div style="font-weight:600;margin:14px 0 7px">恢复是瓶颈</div>
+            日均睡眠 6.2 小时，HRV 从 46 降到 42 ms，两项都在下行。深蹲 1RM 连续三周停在 122.5 kg，
+            属于典型的「训练刺激够、恢复跟不上」。
+            <div style="font-weight:600;margin:14px 0 7px">下周建议</div>
+            下肢日减载 20%（组数不变、降重量），睡眠补到 7 小时以上再谈加量。
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow">
+            <div class="ico ai sm"><svg class="ic sm"><use href="#i-doc"/></svg></div>
+            <div style="flex:1">
+              <div>AI 依据</div>
+              <div style="font-size:11.5px;color:var(--l2);margin-top:2px">这份报告参考了哪些数字</div>
+            </div>
+            <svg class="ic sm" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+
+        <div style="font-size:11.5px;color:var(--l3);line-height:1.7;padding:4px 4px 0">
+          报告由 AI 基于本地聚合数据生成，仅供参考，不构成医疗建议。
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 13 趋势图表（浅） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 13 · LIGHT</div>
+    <h2>趋势图表</h2>
+    <p>Swift Charts 的落地方案：一张图最多三个色相，多序列用同色相深浅；目标线用灰色虚线；只有被强调的那根柱子用实色，其余用中性灰 —— 这样一眼就知道该看哪里。</p>
+    <span class="hig">折线 2.2pt · 面积 14% · 轴文字 9.5pt tertiary</span>
+  </div>
+  <div class="phone light"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div class="scroll">
+        <div class="large-title">趋势</div>
+        <div class="date-sub">近 90 天</div>
+
+        <div class="seg"><div class="on">体重</div><div>力量</div><div>容量</div><div>睡眠</div></div>
+
+        <div class="listhead"><span>体重</span><span class="n">74.5 kg · −0.8</span></div>
+        <div class="card">
+          <svg class="spark" viewBox="0 0 320 64" preserveAspectRatio="none" style="height:64px">
+            <line x1="0" y1="16" x2="320" y2="16" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+            <line x1="0" y1="40" x2="320" y2="40" stroke="rgba(0,0,0,.06)" stroke-width="1"/>
+            <path fill="#0A84FF" opacity=".14"
+                  d="M0 30 L53 26 L106 32 L160 24 L213 20 L266 26 L320 22 L320 64 L0 64 Z"/>
+            <path fill="none" stroke="#0A84FF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M0 30 L53 26 L106 32 L160 24 L213 20 L266 26 L320 22"/>
+            <path fill="none" stroke="#8E8E93" stroke-width="1.6" stroke-dasharray="6 5" d="M0 12 L320 12"/>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--l3);margin-top:6px">
+            <span>6月15日</span><span>7月29日</span><span>9月13日</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:11px;font-size:11.5px;color:var(--l2)">
+            <i style="width:14px;height:2px;background:#8E8E93;display:block;border-radius:2px"></i>目标 74.0 kg
+          </div>
+        </div>
+
+        <div class="listhead"><span>估算 1RM</span><span class="n">同色相深浅区分动作</span></div>
+        <div class="card">
+          <svg class="spark" viewBox="0 0 320 64" preserveAspectRatio="none" style="height:64px">
+            <path fill="none" stroke="#FF9F0A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M0 40 L64 34 L128 30 L192 26 L256 22 L320 18"/>
+            <path fill="none" stroke="#FF9F0A" opacity=".6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M0 46 L64 44 L128 40 L192 38 L256 34 L320 30"/>
+            <path fill="none" stroke="#FF9F0A" opacity=".32" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                  d="M0 54 L64 52 L128 50 L192 48 L256 46 L320 42"/>
+          </svg>
+          <div style="display:flex;gap:14px;margin-top:11px;font-size:11.5px;color:var(--l2)">
+            <span style="display:flex;align-items:center;gap:5px">
+              <i style="width:14px;height:2px;background:#FF9F0A;display:block"></i>深蹲 122.5</span>
+            <span style="display:flex;align-items:center;gap:5px">
+              <i style="width:14px;height:2px;background:rgba(255,159,10,.6);display:block"></i>卧推 95</span>
+            <span style="display:flex;align-items:center;gap:5px">
+              <i style="width:14px;height:2px;background:rgba(255,159,10,.32);display:block"></i>硬拉 140</span>
+          </div>
+        </div>
+
+        <div class="listhead"><span>每周训练容量</span><span class="n">12,480 kg</span></div>
+        <div class="card">
+          <div class="bars" style="margin-top:8px">
+            <i class="dim" style="height:42%"></i><i class="dim" style="height:56%"></i>
+            <i class="dim" style="height:48%"></i><i style="height:88%"></i>
+            <i class="dim" style="height:62%"></i><i class="dim" style="height:70%"></i>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--l3);margin-top:7px">
+            <span>8周前</span><span>本周</span>
+          </div>
+        </div>
+      </div>
+      <div class="floatbar">
+        <div class="tabbar">
+          <div class="tab"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+          <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+          <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+          <div class="tab active"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+          <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 14 饮食分析（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 14 · DARK</div>
+    <h2>饮食分析</h2>
+    <p>热量与宏营养素用「当前值 / 目标」的形式给出缺口，而不是只报数字。蛋白质目标按体重 × 1.6g/kg 算 —— 把算法写在界面上，用户才知道这个缺口是怎么来的。</p>
+    <span class="hig">进度条用语义色 · 缺口用警示色而非红色</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <svg class="ic sm" style="color:var(--o)"><use href="#i-chev"/></svg>
+        <span style="font-size:17px;font-weight:600;margin-left:6px">饮食分析</span>
+      </div>
+      <div class="scroll">
+        <div class="card" style="margin-top:14px">
+          <div class="card-h"><span class="t">近 7 天日均</span><span class="r mono">已记 6 天</span></div>
+          <div style="display:flex;align-items:baseline;gap:7px">
+            <span class="mono" style="font-size:34px;font-weight:700;">1,840</span>
+            <span style="font-size:13px;color:var(--l2)">kcal / 目标 2,100</span>
+          </div>
+          <div class="bar" style="margin:14px 0 0"><i style="width:88%"></i></div>
+          <div class="barrow" style="margin-left:0;margin-top:8px">
+            <span>差 260 kcal</span><span>增肌期略偏低</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">宏营养素</span></div>
+          <div class="tl-item" style="border-top:none;padding-top:2px">
+            <div class="ico meal sm"><svg class="ic sm"><use href="#i-fork"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title" style="font-size:15px">蛋白质 <span class="badge yellow">缺口</span></div>
+              <div class="bar" style="margin:7px 0 5px;height:5px"><i style="width:72%;background:var(--g)"></i></div>
+              <div class="tl-sub">118 g / 目标 119 g · 体重 74.5 × 1.6</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="ico note sm"><svg class="ic sm"><use href="#i-flame"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title" style="font-size:15px">碳水</div>
+              <div class="bar" style="margin:7px 0 5px;height:5px"><i style="width:94%;background:var(--b)"></i></div>
+              <div class="tl-sub">236 g / 目标 250 g</div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="ico note sm"><svg class="ic sm"><use href="#i-flame"/></svg></div>
+            <div class="tl-main">
+              <div class="tl-title" style="font-size:15px">脂肪</div>
+              <div class="bar" style="margin:7px 0 5px;height:5px"><i style="width:64%;background:var(--o)"></i></div>
+              <div class="tl-sub">58 g / 目标 70 g</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="listhead"><span>每日热量</span><span class="n">目标线 2,100</span></div>
+        <div class="card">
+          <div class="bars" style="margin-top:8px">
+            <i style="height:78%"></i><i class="dim" style="height:52%"></i>
+            <i style="height:92%"></i><i class="dim" style="height:44%"></i>
+            <i style="height:86%"></i><i style="height:70%"></i><i class="dim" style="height:38%"></i>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9.5px;color:var(--l3);margin-top:7px">
+            <span>周一</span><span>周日</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--l3);margin-top:11px">
+            灰色 = 未记录或记录不完整的日子</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 15 引导页（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 15 · DARK</div>
+    <h2>首次启动引导</h2>
+    <p>三页：欢迎 → 健康数据 → API Key。每页一个语义色符号 + 三条要点，底部主按钮 + 跳过。第二页的授权按钮是<b>次级样式</b> —— 主按钮始终留给「继续」，避免用户被两个等权重的行动卡住。</p>
+    <span class="hig">主按钮唯一 · 权限请求前先说明用途</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 32px">
+        <svg class="ic" style="width:52px;height:52px;color:var(--o)"><use href="#i-dumbbell"/></svg>
+        <div style="font-size:22px;font-weight:700;margin-top:22px;text-align:center">
+          说一句话，就记好了</div>
+        <div style="margin-top:28px;width:100%;display:flex;flex-direction:column;gap:13px">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg class="ic sm" style="color:var(--o);margin-top:2px"><use href="#i-check"/></svg>
+            <span style="font-size:14.5px;color:var(--l2);line-height:1.5">「深蹲100kg 5×5」→ 自动记成训练</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg class="ic sm" style="color:var(--o);margin-top:2px"><use href="#i-check"/></svg>
+            <span style="font-size:14.5px;color:var(--l2);line-height:1.5">「中午吃了牛肉面」→ 自动估算热量</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <svg class="ic sm" style="color:var(--o);margin-top:2px"><use href="#i-check"/></svg>
+            <span style="font-size:14.5px;color:var(--l2);line-height:1.5">AI 负责解析、归档、每周出分析报告</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;gap:7px;padding-bottom:20px">
+        <i style="width:7px;height:7px;border-radius:50%;background:var(--o);display:block"></i>
+        <i style="width:7px;height:7px;border-radius:50%;background:var(--chip);display:block"></i>
+        <i style="width:7px;height:7px;border-radius:50%;background:var(--chip);display:block"></i>
+      </div>
+      <div style="padding:0 24px 34px;display:flex;flex-direction:column;gap:8px">
+        <div class="btn-primary">继续</div>
+        <div style="text-align:center;font-size:13px;color:var(--l2);padding:7px">跳过</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 16 桌面小组件（深） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 16 · DARK</div>
+    <h2>桌面小组件</h2>
+    <p>中号显示今日课程 + 记录数，小号只显示课程。颜色跟随系统 tinted 模式（iOS 18+），所以部件里只用<b>单色 + 透明度</b>，不能依赖彩色 —— 这和图标用 <code>.hierarchical</code> 是同一个理由。</p>
+    <span class="hig">依赖 App Group · 免费侧载下显示空态</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div style="position:absolute;inset:0;padding:74px 20px 0;
+         background:linear-gradient(170deg,#1b2430,#0a0d12 55%,#141018)">
+      <div style="display:flex;flex-direction:column;gap:14px">
+
+        <div style="display:flex;gap:14px">
+          <div style="flex:1;background:rgba(28,28,30,.72);backdrop-filter:blur(24px);
+               border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:14px;color:#fff;
+               display:flex;flex-direction:column;justify-content:space-between;height:150px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg class="ic sm" style="color:var(--o)"><use href="#i-dumbbell"/></svg>
+              <span style="font-size:11px;color:rgba(235,235,245,.6)">今日课程</span>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:700">胸 + 三头</div>
+              <div style="font-size:11.5px;color:rgba(235,235,245,.6);margin-top:4px">5 个动作 · 约 50 分钟</div>
+              <div style="height:5px;border-radius:3px;background:rgba(118,118,128,.32);margin-top:11px;overflow:hidden">
+                <i style="display:block;height:100%;width:60%;background:var(--o);border-radius:3px"></i>
+              </div>
+              <div style="font-size:11px;color:rgba(235,235,245,.6);margin-top:6px">已完成 3 / 5</div>
+            </div>
+          </div>
+          <div style="width:150px;background:rgba(28,28,30,.72);backdrop-filter:blur(24px);
+               border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:14px;color:#fff;
+               display:flex;flex-direction:column;justify-content:space-between;height:150px">
+            <svg class="ic sm" style="color:var(--o)"><use href="#i-dumbbell"/></svg>
+            <div>
+              <div style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums">3/5</div>
+              <div style="font-size:11px;color:rgba(235,235,245,.6);margin-top:3px">胸 + 三头</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:rgba(28,28,30,.72);backdrop-filter:blur(24px);
+             border:1px solid rgba(255,255,255,.09);border-radius:22px;padding:16px;color:#fff">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:13px">
+            <svg class="ic sm" style="color:var(--o)"><use href="#i-dumbbell"/></svg>
+            <span style="font-size:11.5px;color:rgba(235,235,245,.6)">今日已记录</span>
+            <span style="margin-left:auto;font-size:11.5px;color:rgba(235,235,245,.6);font-variant-numeric:tabular-nums">2 条</span>
+          </div>
+          <div style="display:flex;gap:11px;align-items:center;margin-bottom:9px">
+            <div class="ico train sm"><svg class="ic sm"><use href="#i-dumbbell"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600">深蹲 100kg · 5×5</div>
+              <div style="font-size:11px;color:rgba(235,235,245,.6);margin-top:1px">09:30</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:11px;align-items:center">
+            <div class="ico meal sm"><svg class="ic sm"><use href="#i-fork"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600">牛肉面</div>
+              <div style="font-size:11px;color:rgba(235,235,245,.6);margin-top:1px">~650 kcal · 12:40</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:6px;opacity:.35">
+          <div style="aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.16)"></div>
+          <div style="aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.16)"></div>
+          <div style="aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.16)"></div>
+          <div style="aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.16)"></div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ════════ 17 隐私与架构（浅） ════════ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 17 · LIGHT</div>
+    <h2>架构与隐私说明</h2>
+    <p>本地优先是这类 App 的核心卖点，但「数据不会上传」很容易被当成空话。这里逐条说清：什么存在本机、什么会离开设备、发出去的具体是什么。第五条给的是导出入口 —— 承诺可验证比承诺本身重要。</p>
+    <span class="hig">要点用带图标的行，不用纯文本段落</span>
+  </div>
+  <div class="phone light"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▮▮▮ 5G ▮</span></div>
+    <div class="screen-body">
+      <div style="display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep)">
+        <svg class="ic sm" style="color:var(--o)"><use href="#i-chev"/></svg>
+        <span style="font-size:17px;font-weight:600;margin-left:6px">架构与隐私</span>
+      </div>
+      <div class="scroll">
+        <div class="card" style="margin-top:14px">
+          <div style="display:flex;align-items:flex-start;gap:11px">
+            <div class="ico body"><svg class="ic lg"><use href="#i-shield"/></svg></div>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">数据都存在这台手机上</div>
+              <div style="font-size:12.5px;color:var(--l2);margin-top:4px;line-height:1.55">
+                训练、饮食、身体指标与笔记全部保存在本机数据库。没有服务器，不做云端同步。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><span class="t">什么会离开设备</span></div>
+          <div style="font-size:14.5px;line-height:1.6;color:var(--l1)">
+            只发给你自己配置的 AI 服务，两样东西：
+          </div>
+          <div style="margin-top:13px;display:flex;flex-direction:column;gap:11px">
+            <div style="display:flex;gap:11px;align-items:flex-start">
+              <span class="badge grey" style="flex:none;margin-top:1px">1</span>
+              <div style="font-size:14px;line-height:1.55;color:var(--l2)">
+                你输入的那句话 —— 用于解析成结构化记录</div>
+            </div>
+            <div style="display:flex;gap:11px;align-items:flex-start">
+              <span class="badge grey" style="flex:none;margin-top:1px">2</span>
+              <div style="font-size:14px;line-height:1.55;color:var(--l2)">
+                聚合后的统计摘要，例如「近 7 天训练 4 次、日均睡眠 6.2 小时」</div>
+            </div>
+          </div>
+          <div style="font-size:12.5px;color:var(--l2);margin-top:13px;padding-top:13px;
+               border-top:.5px solid var(--sep);line-height:1.6">
+            逐条原始记录<b style="color:var(--l1)">不会</b>被发送。你在教练对话里可以随时展开「已参考你的近期数据」核对发出去的内容。
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <div class="srow">
+            <div class="ico train sm"><svg class="ic sm"><use href="#i-key"/></svg></div>
+            <div style="flex:1">
+              <div>API Key</div>
+              <div style="font-size:11.5px;color:var(--l2);margin-top:2px">存在系统钥匙串，不写入配置或日志</div>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="ico meal sm"><svg class="ic sm"><use href="#i-heart"/></svg></div>
+            <div style="flex:1">
+              <div>HealthKit</div>
+              <div style="font-size:11.5px;color:var(--l2);margin-top:2px">只读，不回写健康 App</div>
+            </div>
+          </div>
+          <div class="srow">
+            <div class="ico body sm"><svg class="ic sm"><use href="#i-export"/></svg></div>
+            <div style="flex:1">
+              <div>导出全部数据</div>
+              <div style="font-size:11.5px;color:var(--l2);margin-top:2px">随时导成 JSON 自己留存</div>
+            </div>
+            <svg class="ic sm" style="color:var(--l3)"><use href="#i-chev"/></svg>
+          </div>
+        </div>
+
+        <div style="font-size:11.5px;color:var(--l3);line-height:1.7;padding:4px 4px 0">
+          Agentic-KeepKeep 是 MIT 许可的开源项目，以上说法都可以在源码里核对。
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+</div><!-- /gallery -->
+
+<section class="implnotes">
+  <div class="kicker" style="margin-bottom:6px">Implementation Notes</div>
+  <h2 style="font-size:23px;font-weight:700;margin-top:12px">这一版改了什么</h2>
+  <div class="implnote-grid">
+    <div class="implnote">
+      <h4>图标：换成专业图标集</h4>
+      <p>v1.1 用 Emoji，v2.0 初稿是我手绘的 1.7px 均匀描边线稿 —— 两者都不像系统图标。定稿改用 <b>Ionicons</b>（MIT）的真实路径，就是 iconfont 上那套 <code>ios-*</code> 实心字形的来源：容器与 Tab 用实心字形，空态用 outline 变体。App 内对应 <b>SF Symbols</b> 的同名符号 —— 手绘近似永远比不过专业图标。</p>
+    </div>
+    <div class="implnote">
+      <h4>排版承担层次</h4>
+      <p>参考 Apple 官网的纪律：大标题 34/700 带 <code>-0.4</code> 负字距，正文 17/400（不是 16），字重阶梯只有 <b>400 / 600 / 700</b> —— <b>不用 500</b>。主次靠字号与字重拉开，不靠颜色堆叠。</p>
+    </div>
+    <div class="implnote">
+      <h4>一个强调色</h4>
+      <p>systemOrange 只标记「可以点」，语义色只标记「这是什么」，两者分工不混。强调色<b>不做大面积填充</b>，一屏只应有一个实底主按钮 —— 这是 v1.1 里橙色铺满按钮、徽标、图标、图表的地方。</p>
+    </div>
+    <div class="implnote">
+      <h4>层次与圆角</h4>
+      <p>卡片统一圆角 <b>20</b> + 1pt 描边，层次靠表面色与描边建立，<b>不使用阴影</b>（Apple 的规则是全系统一处阴影、且只给图像）。圆角只有 8 / 12 / 20 / pill 四档，不出现中间值。</p>
+    </div>
+    <div class="implnote">
+      <h4>导航层：Liquid Glass</h4>
+      <p>iOS 26 起导航层是浮动的玻璃材质：Tab 栏与输入条改为<b>距边 16pt 的胶囊浮层</b>，内容从下面滚过。玻璃只用于导航层，<b>绝不用于内容卡片</b> —— 这也是 Apple 的明确规则。</p>
+    </div>
+    <div class="implnote">
+      <h4>手感</h4>
+      <p>数字统一等宽 + <code>contentTransition(.numericText())</code>；按钮按下 <code>scale(0.96)</code> + 轻触觉（全系统一致）；列表插入删除 <code>.snappy</code>；流式渲染按 60ms 合并刷新，避免每个 chunk 重建 AttributedString 掉帧。</p>
+    </div>
+  </div>
+
+  <div class="kicker" style="margin:44px 0 6px">Coverage</div>
+  <h2 style="font-size:23px;font-weight:700;margin-top:12px">这版补上了什么</h2>
+  <div class="implnote-grid">
+    <div class="implnote">
+      <h4>7 个之前没画的界面</h4>
+      <p>记录详情、课程表·单日、报告详情、趋势图表、饮食分析、首次引导、桌面小组件，外加架构与隐私说明 —— 现在 <b>17 屏覆盖了 App 的全部界面</b>，实现时不需要再自行发挥。</p>
+    </div>
+    <div class="implnote">
+      <h4>8 类状态与降级路径</h4>
+      <p>没配 Key、解析失败落待归类、调用中断、HealthKit 未授权、<b>免费侧载签名不支持</b>、空态、浅色对照、待归类横幅。两轮真机反馈翻车的全在这几张卡上，所以按真机宽度单独画了。</p>
+    </div>
+    <div class="implnote">
+      <h4>3 组跨页规范</h4>
+      <p><b>图表</b>（最多三个色相、多序列同色相深浅、目标线灰虚线）、<b>Markdown 排版</b>（AI 回复里的标题/列表/代码在气泡里怎么排）、<b>表单控件</b>（输入框一律胶囊、字段行用 card2 底）。这三块不定，实现时必然各写各的。</p>
+    </div>
+    <div class="implnote">
+      <h4>颜色分组：强调 vs 语义</h4>
+      <p>补齐了「强调色只标记可以点、语义色只标记这是什么」的分工。图表同理 —— 训练容量用橙、体重用蓝、睡眠用紫、目标线用灰，语义不混用。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Agentic-KeepKeep · UI Design v2.0 · 2026-09-13<br>
+  17 屏 · 8 类状态 · 3 组跨页规范 · 48 个图标符号<br>
+  <a href="design-system.md">设计系统（DESIGN.md）</a> ·
+  <a href="requirements.md">本轮需求</a> ·
+  <a href="checklist.md">实施清单</a> ·
+  <a href="../01-foundation/design.html">v1.1 设计稿</a> ·
+  <a href="../../README.md">README</a><br>
+  本页为 HTML 高保真稿（非真机截图）；实现以本稿与 design-system.md 为准。<br>
+  图标：<a href="https://ionicons.com">Ionicons</a>（MIT）—— App 内使用系统自带的 SF Symbols，两者同名同义。<br>
+  字体：<a href="https://fonts.google.com/specimen/Inter">Inter</a> + Noto Sans SC（设计稿用，App 内是 SF Pro）。
+</footer>
+
+</body>
+</html>

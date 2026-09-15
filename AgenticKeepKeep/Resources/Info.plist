@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>zh_CN</string>
+	<key>CFBundleDisplayName</key>
+	<string>Moveliq</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+	</dict>
+	<key>UIDesignRequiresCompatibility</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Moveliq 读取你的健康数据（睡眠、心率、步数、运动记录），用于生成个性化的训练分析。所有数据仅保存在本机，不会上传到任何服务器。</string>
+	<key>NSCameraUsageDescription</key>
+	<string>用于拍摄食物照片以估算热量。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>用于从相册选择食物照片以估算热量。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>用于将语音转写为训练与饮食记录。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>用于将语音转写为记录文本，识别在本机完成。</string>
+</dict>
+</plist>

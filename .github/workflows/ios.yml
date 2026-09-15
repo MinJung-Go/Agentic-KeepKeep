@@ -1,0 +1,111 @@
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      build_ipa:
+        description: "构建供侧载重签名的 IPA"
+        type: boolean
+        default: false
+
+jobs:
+  test:
+    name: 构建 + 单元测试
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      - name: 检查已移除第三方动作资源
+        run: python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep
+
+      - name: 生成 Xcode 工程
+        run: xcodegen generate
+
+      # 日志落盘：失败时 GitHub 有时不保留 job 日志（BlobNotFound），
+      # 拿到 artifact 才看得到编译错误。别为了"干净"去掉 tee。
+      - name: 构建
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project AgenticKeepKeep.xcodeproj \
+            -scheme AgenticKeepKeep \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee build.log
+
+      - name: 校验侧载权限嵌入流程
+        run: python3 scripts/prepare_sideload_signing.py build/DerivedData/Build/Products/Debug-iphonesimulator/KeepKeep.app
+
+      - name: 单元测试
+        run: |
+          set -o pipefail
+          UDID=$(xcrun simctl list devices available --json | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; devs=[x for rt in d.values() for x in rt if x['name'].startswith('iPhone')]; print(devs[0]['udid'])")
+          echo "使用模拟器: $UDID"
+          xcodebuild test \
+            -project AgenticKeepKeep.xcodeproj \
+            -scheme AgenticKeepKeep \
+            -destination "platform=iOS Simulator,id=$UDID" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee -a build.log
+
+      - name: 留存构建日志
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ipa:
+    name: 出 IPA（需侧载重签名）
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.build_ipa)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 XcodeGen
+        run: brew install xcodegen
+
+      - name: 检查已移除第三方动作资源
+        run: python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep
+
+      - name: 生成 Xcode 工程
+        run: xcodegen generate
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project AgenticKeepKeep.xcodeproj \
+            -scheme AgenticKeepKeep \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/KeepKeep.xcarchive \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+
+      - name: 检查归档不含第三方动作资源
+        run: python3 scripts/verify_no_exercise_dataset.py build/KeepKeep.xcarchive/Products/Applications/KeepKeep.app
+
+      # Ad-hoc 签名仅携带能力声明，不包含设备安装所需的证书或描述文件。
+      - name: 嵌入并校验侧载权限声明
+        run: python3 scripts/prepare_sideload_signing.py build/KeepKeep.xcarchive/Products/Applications/KeepKeep.app
+
+      - name: 打包待重签名 IPA
+        run: |
+          mkdir -p build/ipa/Payload
+          cp -R build/KeepKeep.xcarchive/Products/Applications/KeepKeep.app build/ipa/Payload/
+          cd build/ipa
+          zip -qry KeepKeep-unsigned.ipa Payload
+          ls -lh KeepKeep-unsigned.ipa
+
+      - name: 上传 IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeepKeep-unsigned-ipa
+          path: build/ipa/KeepKeep-unsigned.ipa

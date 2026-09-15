@@ -1,0 +1,99 @@
+name: AgenticKeepKeep
+options:
+  minimumXcodeGenVersion: "2.38.0"
+  deploymentTarget:
+    iOS: "17.0"
+  bundleIdPrefix: com.minjung
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    SWIFT_STRICT_CONCURRENCY: minimal
+
+targets:
+  AgenticKeepKeep:
+    type: application
+    platform: iOS
+    sources:
+      - path: AgenticKeepKeep
+        excludes:
+          - "Resources/Info.plist"
+          - "Resources/ExerciseMedia"
+          - "Resources/ExerciseCatalog.json"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep
+        PRODUCT_NAME: KeepKeep
+        PRODUCT_MODULE_NAME: AgenticKeepKeep
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "0.4.6"
+        CURRENT_PROJECT_VERSION: "10"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: AgenticKeepKeep/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_ENTITLEMENTS: AgenticKeepKeep/Resources/KeepKeep.entitlements
+    dependencies:
+      - sdk: HealthKit.framework
+      - target: KeepKeepWidget
+
+  KeepKeepWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: AgenticKeepKeepWidget
+        excludes:
+          - "Info.plist"
+      # 与主 App 共享的数据模型与主题（小组件读同一份 SwiftData）
+      # 注意：Models.swift 里 ExerciseSet 引用了 SetLog，所以 WorkoutSessionModels.swift
+      # 也必须一起编进来，否则小组件 target 编译不过。
+      - path: AgenticKeepKeep/Core/Data/Models.swift
+      - path: AgenticKeepKeep/Core/Data/WorkoutSessionModels.swift
+      - path: AgenticKeepKeep/Core/Data/AppModelContainer.swift
+      - path: AgenticKeepKeep/Core/Design/Theme.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep.widget
+        PRODUCT_NAME: KeepKeepWidget
+        PRODUCT_MODULE_NAME: KeepKeepWidget
+        TARGETED_DEVICE_FAMILY: "1"
+        MARKETING_VERSION: "0.4.6"
+        CURRENT_PROJECT_VERSION: "10"
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: AgenticKeepKeepWidget/Info.plist
+        CODE_SIGN_ENTITLEMENTS: AgenticKeepKeepWidget/KeepKeepWidget.entitlements
+        SKIP_INSTALL: YES
+
+  AgenticKeepKeepTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: AgenticKeepKeepTests
+    dependencies:
+      - target: AgenticKeepKeep
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep.tests
+        # 主 target 的 PRODUCT_NAME 是 KeepKeep，测试宿主需显式指定
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/KeepKeep.app/KeepKeep"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+
+schemes:
+  AgenticKeepKeep:
+    build:
+      targets:
+        AgenticKeepKeep: all
+        AgenticKeepKeepTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      gatherCoverageData: true
+      targets:
+        - AgenticKeepKeepTests
+    archive:
+      config: Release

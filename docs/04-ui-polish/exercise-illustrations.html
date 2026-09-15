@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>Agentic-KeepKeep · 动作示意图设计稿 v2</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#08080A;color:#F4F1EB;font-family:'Inter','PingFang SC','Noto Sans SC',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;line-height:1.5}
+.kicker{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;letter-spacing:.3em;color:#FF9F0A;
+  text-transform:uppercase;display:flex;align-items:center;gap:14px}
+.kicker::before{content:'';width:36px;height:1px;background:#FF9F0A}
+header{max-width:1180px;margin:0 auto;padding:72px 40px 26px}
+h1{font-size:44px;font-weight:700;margin-top:18px;line-height:1.16}
+h1 em{font-style:normal;color:#FF9F0A}
+.sub{color:rgba(244,241,235,.58);font-size:15px;max-width:840px;margin-top:18px;line-height:1.8}
+.sub b{color:#F4F1EB}
+.chips{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.chip{font-size:11.5px;color:rgba(244,241,235,.5);border:1px solid rgba(244,241,235,.1);
+  border-radius:999px;padding:6px 14px;font-family:ui-monospace,Consolas,monospace}
+.chip b{color:#FF9F0A}
+.warn{border-left:3px solid #FF9F0A;padding:14px 18px;background:rgba(255,159,10,.06);
+  border-radius:0 12px 12px 0;margin-top:24px;font-size:13px;line-height:1.8;
+  color:rgba(244,241,235,.72)}
+.warn b{color:#F4F1EB}
+.band{max-width:1180px;margin:0 auto;padding:0 40px}
+.band+.band{margin-top:58px}
+.bh{margin-bottom:24px;max-width:880px}
+.bh h2{font-size:24px;font-weight:700;margin-top:12px}
+.bh p{font-size:13px;color:rgba(244,241,235,.52);margin-top:11px;line-height:1.8}
+.bh b{color:#F4F1EB}
+.bh code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#FF9F0A}
+.grid{display:grid;gap:14px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+.card{border:1px solid rgba(244,241,235,.1);border-radius:18px;padding:20px;background:rgba(255,255,255,.018)}
+.card>h3{font-size:11.5px;font-weight:600;letter-spacing:.08em;color:rgba(244,241,235,.45);
+  text-transform:uppercase;margin-bottom:16px;font-family:ui-monospace,Consolas,monospace}
+.anat{display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:rgba(244,241,235,.6);line-height:1.7}
+.anat b{color:#F4F1EB}
+.anat code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#FF9F0A}
+/* 演示网格 */
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.cat{background:rgba(255,255,255,.018);border:1px solid rgba(244,241,235,.1);border-radius:18px;padding:14px}
+.cat .fig{background:#fff;border-radius:14px;aspect-ratio:1;overflow:hidden;display:flex}
+.cat .fig img{width:100%;height:100%;display:block}
+.cat h4{font-size:15px;font-weight:600;margin-top:12px}
+.cat .m1{font-size:12px;color:#FF9F0A;margin-top:5px}
+.cat .m2{font-size:11.5px;color:rgba(244,241,235,.45);margin-top:2px}
+/* 尺寸档位 */
+.sizes{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap}
+.size{text-align:center}
+.size .p{background:#fff;border-radius:14px;overflow:hidden;display:flex;margin-bottom:7px}
+.size .p img{width:100%;height:100%;display:block}
+.size span{font-size:10px;color:rgba(244,241,235,.4);font-family:ui-monospace,Consolas,monospace}
+.size.bad span{color:#FF453A}
+/* 手机 */
+.gallery{max-width:1220px;margin:0 auto;padding:20px 40px 0;display:flex;flex-wrap:wrap;
+  gap:52px 38px;justify-content:center;align-items:flex-start}
+.scene{width:393px;flex:none}
+.scene-label{margin-bottom:16px}
+.scene-label .no{font-family:ui-monospace,Consolas,monospace;color:#FF9F0A;font-size:11px;letter-spacing:.26em}
+.scene-label h2{font-size:21px;font-weight:700;margin-top:7px}
+.scene-label p{font-size:12.5px;color:rgba(244,241,235,.55);margin-top:8px;line-height:1.72}
+.scene-label b{color:#F4F1EB}
+.phone{width:393px;height:852px;border-radius:56px;padding:11px;position:relative;flex:none;display:flex;
+  background:linear-gradient(160deg,#3a3a3e,#131315 42%,#26262a);
+  box-shadow:0 34px 70px -24px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.06);
+  --bg:#000;--card:#1C1C1E;--card2:#2C2C2E;--l1:#fff;--l2:rgba(235,235,245,.6);
+  --l3:rgba(235,235,245,.32);--sep:rgba(84,84,88,.5);--chip:rgba(118,118,128,.24);
+  --o:#FF9F0A;--g:#30D158;--gr:#8E8E93}
+.phone.light{--bg:#F2F2F7;--card:#fff;--card2:#F2F2F7;--l1:#000;--l2:rgba(60,60,67,.6);
+  --l3:rgba(60,60,67,.3);--sep:rgba(60,60,67,.13);--chip:rgba(118,118,128,.12)}
+.screen{width:100%;height:830px;border-radius:46px;overflow:hidden;position:relative;background:var(--bg);
+  display:flex;flex-direction:column;color:var(--l1)}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:112px;height:29px;
+  border-radius:16px;background:#000;z-index:30}
+.statusbar{position:absolute;top:0;left:0;right:0;height:54px;display:flex;align-items:center;
+  justify-content:space-between;padding:14px 26px 0;font-size:13px;font-weight:600;color:var(--l1);z-index:25}
+.statusbar .icons{font-size:9.5px;letter-spacing:.14em;opacity:.9}
+.home-indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;
+  border-radius:3px;background:var(--l1);opacity:.28;z-index:26}
+.screen-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding-top:54px}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:0 16px 44px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.nav{display:flex;align-items:center;padding:7px 16px 11px;border-bottom:.5px solid var(--sep);flex:none}
+.nav .t{font-size:17px;font-weight:600}
+.nav .r{margin-left:auto;font-size:15px;color:var(--o)}
+.listhead{display:flex;align-items:baseline;justify-content:space-between;padding:0 4px 8px;
+  font-size:13px;font-weight:600;color:var(--l2)}
+.listhead .n{font-weight:400;color:var(--l3);font-variant-numeric:tabular-nums}
+.card2{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px}
+.figbox{background:#fff;border-radius:16px;overflow:hidden;display:flex}
+.figbox img{width:100%;height:100%;display:block}
+.figbox.big{aspect-ratio:1;max-height:280px}
+.ttl{font-size:16px;font-weight:600}
+.sub2{font-size:13px;color:var(--l2);margin-top:2px}
+.credit{font-size:10.5px;color:var(--l3);margin-top:8px;text-align:center}
+.btn{border-radius:999px;padding:13px;font-size:17px;font-weight:600;text-align:center;color:#fff;background:var(--o)}
+.check{width:24px;height:24px;border-radius:50%;border:1.8px solid var(--l3);flex:none;
+  display:flex;align-items:center;justify-content:center;margin-top:2px;font-size:12px}
+.check.on{background:var(--g);border-color:var(--g);color:#fff}
+.row{display:flex;gap:12px;align-items:flex-start;padding:11px 0;position:relative}
+.row+.row::before{content:'';position:absolute;left:0;right:0;top:0;height:.5px;background:var(--sep)}
+.pill{font-size:11px;padding:3px 8px;border-radius:8px;background:var(--chip);color:var(--l2);display:inline-block}
+.tabbar{display:flex;padding:9px 0 22px;border-top:.5px solid var(--sep);background:var(--bg);flex:none}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--gr);
+  font-size:9.5px;font-weight:600}
+.tab svg.ic{width:23px;height:23px;display:block}
+.tab.active{color:var(--o)}
+.phone .anat{color:var(--l2)}.phone .anat b{color:var(--l1)}
+footer{border-top:1px solid rgba(244,241,235,.1);margin-top:60px;padding:38px 40px 56px;text-align:center;
+  color:rgba(244,241,235,.36);font-size:11.5px;font-family:ui-monospace,Consolas,monospace;line-height:2}
+footer a{color:rgba(244,241,235,.55)}
+</style></head><body>
+<svg style="display:none">  <symbol id="i-house" viewBox="0 0 512 512"><g fill="currentColor"><path d="M261.56,101.28a8,8,0,0,0-11.06,0L66.4,277.15a8,8,0,0,0-2.47,5.79L63.9,448a32,32,0,0,0,32,32H192a16,16,0,0,0,16-16V328a8,8,0,0,1,8-8h80a8,8,0,0,1,8,8l0,136a16,16,0,0,0,16,16h96.06a32,32,0,0,0,32-32l0-165.06a8,8,0,0,0-2.47-5.79Z"/><path d="M490.91,244.15l-74.8-71.56,0-108.59a16,16,0,0,0-16-16h-48a16,16,0,0,0-16,16l0,32L278.19,40.62C272.77,35.14,264.71,32,256,32h0c-8.68,0-16.72,3.14-22.14,8.63L21.16,244.13c-6.22,6-7,15.87-1.34,22.37A16,16,0,0,0,43,267.56L250.5,69.28a8,8,0,0,1,11.06,0L469.08,267.56a16,16,0,0,0,22.59-.44C497.81,260.76,497.3,250.26,490.91,244.15Z"/></g></symbol>
+  <symbol id="i-list" viewBox="0 0 512 512"><g fill="currentColor"><line x1="160" y1="144" x2="448" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="160" y1="256" x2="448" y2="256" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><line x1="160" y1="368" x2="448" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/><circle cx="80" cy="144" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="80" cy="256" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><circle cx="80" cy="368" r="16" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol>
+  <symbol id="i-cal" viewBox="0 0 512 512"><g fill="currentColor"><path d="M480,128a64,64,0,0,0-64-64H400V48.45c0-8.61-6.62-16-15.23-16.43A16,16,0,0,0,368,48V64H144V48.45c0-8.61-6.62-16-15.23-16.43A16,16,0,0,0,112,48V64H96a64,64,0,0,0-64,64v12a4,4,0,0,0,4,4H476a4,4,0,0,0,4-4Z"/><path d="M32,416a64,64,0,0,0,64,64H416a64,64,0,0,0,64-64V179a3,3,0,0,0-3-3H35a3,3,0,0,0-3,3ZM376,208a24,24,0,1,1-24,24A24,24,0,0,1,376,208Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,376,288Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,296,208Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,296,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,296,368Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,216,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,216,368Zm-80-80a24,24,0,1,1-24,24A24,24,0,0,1,136,288Zm0,80a24,24,0,1,1-24,24A24,24,0,0,1,136,368Z"/></g></symbol>
+  <symbol id="i-chart" viewBox="0 0 512 512"><g fill="currentColor"><path d="M104,496H72a24,24,0,0,1-24-24V328a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,104,496Z"/><path d="M328,496H296a24,24,0,0,1-24-24V232a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,328,496Z"/><path d="M440,496H408a24,24,0,0,1-24-24V120a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,440,496Z"/><path d="M216,496H184a24,24,0,0,1-24-24V40a24,24,0,0,1,24-24h32a24,24,0,0,1,24,24V472A24,24,0,0,1,216,496Z"/></g></symbol>
+  <symbol id="i-settings" viewBox="0 0 512 512"><g fill="currentColor"><circle cx="256" cy="256" r="48"/><path d="M470.39,300l-.47-.38-31.56-24.75a16.11,16.11,0,0,1-6.1-13.33l0-11.56a16,16,0,0,1,6.11-13.22L469.92,212l.47-.38a26.68,26.68,0,0,0,5.9-34.06l-42.71-73.9a1.59,1.59,0,0,1-.13-.22A26.86,26.86,0,0,0,401,92.14l-.35.13L363.55,107.2a15.94,15.94,0,0,1-14.47-1.29q-4.92-3.1-10-5.86a15.94,15.94,0,0,1-8.19-11.82L325.3,48.64l-.12-.72A27.22,27.22,0,0,0,298.76,26H213.24a26.92,26.92,0,0,0-26.45,22.39l-.09.56-5.57,39.67A16,16,0,0,1,173,100.44c-3.42,1.84-6.76,3.79-10,5.82a15.92,15.92,0,0,1-14.43,1.27l-37.13-15-.35-.14a26.87,26.87,0,0,0-32.48,11.34l-.13.22L35.71,177.9A26.71,26.71,0,0,0,41.61,212l.47.38,31.56,24.75a16.11,16.11,0,0,1,6.1,13.33l0,11.56a16,16,0,0,1-6.11,13.22L42.08,300l-.47.38a26.68,26.68,0,0,0-5.9,34.06l42.71,73.9a1.59,1.59,0,0,1,.13.22A26.86,26.86,0,0,0,111,419.86l.35-.13,37.07-14.93a15.94,15.94,0,0,1,14.47,1.29q4.92,3.11,10,5.86a15.94,15.94,0,0,1,8.19,11.82l5.56,39.59.12.72A27.22,27.22,0,0,0,213.24,486h85.52a26.92,26.92,0,0,0,26.45-22.39l.09-.56,5.57-39.67a16,16,0,0,1,8.18-11.82c3.42-1.84,6.76-3.79,10-5.82a15.92,15.92,0,0,1,14.43-1.27l37.13,14.95.35.14a26.85,26.85,0,0,0,32.48-11.34,2.53,2.53,0,0,1,.13-.22l42.71-73.89A26.7,26.7,0,0,0,470.39,300ZM335.91,259.76a80,80,0,1,1-83.66-83.67A80.21,80.21,0,0,1,335.91,259.76Z"/></g></symbol>
+  <symbol id="i-dumbbell" viewBox="0 0 512 512"><g fill="currentColor"><path d="M467,176a29.94,29.94,0,0,0-25.32,12.5,2,2,0,0,1-3.64-1.14V150.71c0-20.75-16.34-38.21-37.08-38.7A38,38,0,0,0,362,150v82a2,2,0,0,1-2,2H152a2,2,0,0,1-2-2V150.71c0-20.75-16.34-38.21-37.08-38.7A38,38,0,0,0,74,150v37.38a2,2,0,0,1-3.64,1.14A29.94,29.94,0,0,0,45,176c-16.3.51-29,14.31-29,30.62v98.72c0,16.31,12.74,30.11,29,30.62a29.94,29.94,0,0,0,25.32-12.5A2,2,0,0,1,74,324.62v36.67C74,382,90.34,399.5,111.08,400A38,38,0,0,0,150,362V280a2,2,0,0,1,2-2H360a2,2,0,0,1,2,2v81.29c0,20.75,16.34,38.21,37.08,38.7A38,38,0,0,0,438,362V324.62a2,2,0,0,1,3.64-1.14A29.94,29.94,0,0,0,467,336c16.3-.51,29-14.31,29-30.62V206.64C496,190.33,483.26,176.53,467,176Z"/></g></symbol>
+  <symbol id="i-chev" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="184 112 328 256 184 400" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:48px"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 512 512"><g fill="currentColor"><polyline points="416 128 192 384 96 288" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></g></symbol></svg>
+
+<header>
+  <div class="kicker">Design · Round 04 · Exercise Guide v2</div>
+  <h1>动作指导 · <em>改用真动画</em></h1>
+  <p class="sub">上一版用 workout-guide 的静态线稿，只能两帧交替、还有线宽与取景问题。
+     这一版换 <b>exercises-dataset</b>：1324 个动作，每个一段 <b>12 帧 GIF</b> ——
+     真动画、<b>带运动残影</b>、而且<b>发力肌群已经用红色标在图上</b>。
+     你要的「动起来 + 发力点」，它一次给全。</p>
+  <div class="chips">
+    <div class="chip">动作 <b>1324 个</b></div>
+    <div class="chip">帧数 <b>12 帧 GIF</b></div>
+    <div class="chip">发力点 <b>已标注</b></div>
+    <div class="chip">说明 <b>含中文</b></div>
+    <div class="chip">尺寸 <b>180×180</b></div>
+    <div class="chip">许可 <b>© Gym visual</b></div>
+  </div>
+  <div class="warn">
+    <b>许可说明（必须读）</b><br>
+    GIF 版权属 <b>© Gym visual</b>，数据集仅在 180×180 分辨率下允许分发，且每次使用都要保留署名。
+    <b>克隆数据集仓库不等于获得素材授权</b>，商用需另行购买。<br>
+    当前仓库是<b>私有</b>、仅自用测试，暂时可用。转为公开或分发 IPA 之前必须：
+    取得授权，或替换为自绘/已授权的素材。素材已隔离在 <code>docs/04-ui-polish/vendor/</code>，
+    附 <code>NOTICE.md</code>，替换时整目录删掉即可。
+  </div>
+</header>
+
+<section class="band">
+  <div class="bh">
+    <div class="kicker">Content</div>
+    <h2>素材实际长这样</h2>
+    <p>每张图里红色就是发力肌群，浅色残影是动作轨迹 —— 这两件事原来是打算自己叠上去的，
+       现在素材自带。<b>下面全是真 GIF，正在播。</b></p>
+  </div>
+  <div class="cats"><div class="cat"><div class="fig"><img src="vendor/barbell-bench-press.gif"></div><h4>杠铃卧推</h4><div class="m1">胸大肌</div><div class="m2">肱三头肌 · 三角肌前束</div></div><div class="cat"><div class="fig"><img src="vendor/barbell-bent-over-row.gif"></div><h4>杠铃俯身划船</h4><div class="m1">背阔肌</div><div class="m2">肱二头肌 · 斜方肌</div></div><div class="cat"><div class="fig"><img src="vendor/barbell-deadlift.gif"></div><h4>杠铃硬拉</h4><div class="m1">腘绳肌 · 臀大肌</div><div class="m2">竖脊肌 · 背阔肌</div></div><div class="cat"><div class="fig"><img src="vendor/barbell-squat.gif"></div><h4>杠铃深蹲</h4><div class="m1">股四头肌 · 臀大肌</div><div class="m2">腘绳肌 · 核心</div></div><div class="cat"><div class="fig"><img src="vendor/cable-lateral-raise.gif"></div><h4>绳索侧平举</h4><div class="m1">三角肌中束</div><div class="m2">斜方肌</div></div><div class="cat"><div class="fig"><img src="vendor/push-up.gif"></div><h4>俯卧撑</h4><div class="m1">胸大肌</div><div class="m2">肱三头肌 · 核心</div></div><div class="cat"><div class="fig"><img src="vendor/shoulder-press.gif"></div><h4>绳索肩上推举</h4><div class="m1">三角肌</div><div class="m2">肱三头肌</div></div><div class="cat"><div class="fig"><img src="vendor/pull-up.gif"></div><h4>窄距引体向上</h4><div class="m1">背阔肌 · 肱二头肌</div><div class="m2">前臂</div></div></div>
+</section>
+
+<section class="band">
+  <div class="bh">
+    <div class="kicker">Size</div>
+    <h2>尺寸上限：200pt 左右</h2>
+    <p>源只有 180×180。2 倍屏下 200pt 需要 400px，已经是 2.2 倍放大 ——
+       <b>200pt 可接受，再大就糊</b>。所以详情页用 200pt，训练执行页用更小的尺寸。</p>
+  </div>
+  <div class="card">
+    <h3>同一张 GIF 在不同尺寸下（真机 2 倍屏等效）</h3>
+    <div class="sizes">
+      <div class="size"><div class="p" style="width:140px;height:140px"><img src="vendor/barbell-bench-press.gif"></div><span>140pt</span></div><div class="size"><div class="p" style="width:180px;height:180px"><img src="vendor/barbell-bench-press.gif"></div><span>180pt</span></div><div class="size"><div class="p" style="width:220px;height:220px"><img src="vendor/barbell-bench-press.gif"></div><span>220pt</span></div><div class="size bad"><div class="p" style="width:280px;height:280px"><img src="vendor/barbell-bench-press.gif"></div><span>280pt</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="gallery">
+
+<div class="scene">
+  <div class="scene-label"><div class="no">SCREEN 01 · DARK</div>
+    <h2>动作详情</h2>
+    <p>GIF 占满卡片宽度，下面是训练参数与要点。图下方保留署名 —— 这是 Gym visual 的使用条件之一。</p></div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">&#9646;&#9646;&#9646; 5G &#9646;</span></div>
+    <div class="screen-body">
+      <div class="nav"><span class="t">动作详情</span><span class="r">完成</span></div>
+      <div class="scroll">
+        <div class="card2" style="margin-top:14px">
+          <div class="figbox big"><img src="vendor/barbell-bench-press.gif"></div>
+          <div class="credit">示范动画 © Gym visual</div>
+        </div>
+        <div class="card2">
+          <div class="ttl" style="font-size:20px">杠铃卧推</div>
+          <div class="sub2" style="margin-top:4px">杠铃 · 复合动作</div>
+          <div style="margin-top:13px;display:flex;gap:7px;flex-wrap:wrap">
+            <span class="pill">4 组 × 8 次</span><span class="pill">目标 80 kg</span>
+          </div>
+        </div>
+        <div class="listhead"><span>发力点</span><span class="n">推起时</span></div>
+        <div class="card2">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+            <span style="width:10px;height:10px;border-radius:3px;background:#D64541;display:block;flex:none"></span>
+            <span style="font-size:14px;font-weight:600">胸大肌</span>
+            <span style="font-size:11.5px;color:var(--l3);margin-left:auto">图中红色区域</span>
+          </div>
+          <div class="anat">
+            <div>· 推起时<b>用胸部发力</b>，想象把杠铃往中间挤</div>
+            <div>· 肩胛骨收紧下沉，别用肩膀代偿</div>
+            <div>· 下放到胸口轻触，不要弹震</div>
+            <div style="color:rgba(244,241,235,.38);margin-top:3px">动作说明来自数据集（含中文），无需额外生成</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tabbar">
+        <div class="tab active"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+        <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+        <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+        <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+        <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<div class="scene">
+  <div class="scene-label"><div class="no">SCREEN 02 · DARK · 下一轮候选</div>
+    <h2>训练执行</h2>
+    <p>真实场景：做到第三组忘了要领。GIF 缩到 140pt 与当前动作并排，逐组打勾在下面，一屏放得下。</p>
+    <p><b>本轮不做</b> —— 这不是界面皮肤而是一个功能：逐组打勾要给 <code>ExerciseSet</code> 加「做到第几组」的字段，与本轮「不改数据模型结构」冲突。留作下一轮候选，见 <code>docs/README.md</code>。</p></div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">&#9646;&#9646;&#9646; 5G &#9646;</span></div>
+    <div class="screen-body">
+      <div class="nav"><span class="t">胸 + 三头</span><span class="r">结束</span></div>
+      <div class="scroll">
+        <div class="listhead" style="margin-top:14px"><span>第 3 / 5 个动作</span><span class="n">已练 24 分钟</span></div>
+        <div class="card2">
+          <div style="display:flex;gap:14px">
+            <div style="width:140px;height:140px;flex:none;background:#fff;border-radius:16px;overflow:hidden;display:flex">
+              <img src="vendor/barbell-bench-press.gif"></div>
+            <div style="flex:1;min-width:0">
+              <div class="ttl" style="font-size:18px">杠铃卧推</div>
+              <div class="sub2" style="margin-top:3px">80 kg · 5 组 × 8 次</div>
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+                <span class="pill">第 3 组</span><span class="pill">胸大肌</span>
+              </div>
+              <div class="anat" style="margin-top:11px;font-size:11.5px">
+                <div>推起时用胸部发力，肩胛收紧下沉</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <div class="row"><span class="check on">&#10003;</span><div><div class="ttl">第 1 组</div><div class="sub2">80 kg × 8</div></div></div>
+            <div class="row"><span class="check on">&#10003;</span><div><div class="ttl">第 2 组</div><div class="sub2">80 kg × 8</div></div></div>
+            <div class="row"><span class="check"></span><div><div class="ttl">第 3 组</div><div class="sub2">80 kg × 8</div></div></div>
+            <div class="row"><span class="check"></span><div><div class="ttl">第 4 组</div><div class="sub2">80 kg × 8</div></div></div>
+          </div>
+        </div>
+        <div class="btn">完成这组</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<div class="scene">
+  <div class="scene-label"><div class="no">SCREEN 03 · LIGHT</div>
+    <h2>浅色模式 · 与未收录兜底</h2>
+    <p>GIF 自带白底，浅色模式下与页面同色，几乎无缝；深色下则是一张「图片卡」——
+       这是位图素材的代价，换来的是真动画。未收录动作仍只显示名称，不硬凑图。</p></div>
+  <div class="phone light"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">&#9646;&#9646;&#9646; 5G &#9646;</span></div>
+    <div class="screen-body">
+      <div class="nav"><span class="t">动作详情</span><span class="r">完成</span></div>
+      <div class="scroll">
+        <div class="card2" style="margin-top:14px">
+          <div class="figbox big"><img src="vendor/barbell-deadlift.gif"></div>
+          <div class="credit">示范动画 © Gym visual</div>
+        </div>
+        <div class="card2">
+          <div class="ttl" style="font-size:20px">杠铃硬拉</div>
+          <div class="sub2" style="margin-top:4px">腘绳肌 · 臀大肌 主导</div>
+        </div>
+        <div class="listhead"><span>词库没命中时</span></div>
+        <div class="card2">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:60px;height:60px;border-radius:14px;flex:none;background:var(--card2);color:var(--l2);
+                 display:flex;align-items:center;justify-content:center">
+              <svg style="width:32px;height:32px"><use href="#i-dumbbell"/></svg></div>
+            <div style="flex:1"><div class="ttl">壶铃摇摆</div>
+              <div class="sub2">未收录 · 只显示动作名与组次</div></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tabbar">
+        <div class="tab active"><svg class="ic"><use href="#i-house"/></svg>今日</div>
+        <div class="tab"><svg class="ic"><use href="#i-list"/></svg>记录</div>
+        <div class="tab"><svg class="ic"><use href="#i-cal"/></svg>课程表</div>
+        <div class="tab"><svg class="ic"><use href="#i-chart"/></svg>洞察</div>
+        <div class="tab"><svg class="ic"><use href="#i-settings"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+</div>
+
+<section class="band">
+  <div class="bh">
+    <div class="kicker">Compare</div>
+    <h2>换素材前后</h2>
+  </div>
+  <div class="grid g2">
+    <div class="card"><h3>上一版 · workout-guide 线稿</h3>
+      <div class="anat">
+        <div>只有 3 帧，其中中帧线宽是另两帧近 2 倍，<b>用不了</b> → 只能两帧交替，跳</div>
+        <div>三帧取景没对齐，脚底漂 24–257px → <b>小人上下跳</b>（已修）</div>
+        <div>发力点要自己叠：MuscleMap 肌肉图 + manifest 数据映射</div>
+        <div>矢量、可任意缩放、可换色</div>
+        <div>许可 CC BY-SA 4.0</div>
+      </div>
+    </div>
+    <div class="card"><h3>这一版 · exercises-dataset GIF</h3>
+      <div class="anat">
+        <div>12 帧真动画，<b>带运动残影</b>，一眼看出动作轨迹</div>
+        <div><b>发力肌群已标在图上</b>，不用自己叠</div>
+        <div>说明文案<b>自带中文</b>，无需 LLM 生成</div>
+        <div>位图 180×180，<b>放大受限</b>（200pt 上限）；白底，深色下是「图片卡」</div>
+        <div>许可 © Gym visual，<b>非开源、需署名、商用要授权</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Agentic-KeepKeep · 动作示意图设计稿 v2 · 2026-09-13<br>
+  素材：<a href="https://github.com/hasaneyldrm/exercises-dataset">exercises-dataset</a>
+  （数据 MIT / 媒体 © Gym visual）<br>
+  本页所有动图均为真实素材，非占位图。
+</footer>
+</body></html>

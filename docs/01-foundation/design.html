@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic-KeepKeep — iOS 界面设计稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   iOS 规范变量（Apple HIG · Dark Mode 语义色）
+   引用：developer.apple.com/design/human-interface-guidelines
+   ============================================ */
+:root{
+  /* iOS Dark Mode 系统色 */
+  --sys-orange:#FF9F0A;      /* systemOrange Dark —— 全 App 强调色 */
+  --sys-green:#30D158;
+  --sys-yellow:#FFD60A;
+  --sys-blue:#0A84FF;
+  --sys-red:#FF453A;
+  --sys-gray:#8E8E93;
+  /* 背景层级（base → elevated） */
+  --bg-base:#000000;         /* systemBackground */
+  --bg-grouped:#1C1C1E;      /* secondarySystemGroupedBackground */
+  --bg-elevated:#2C2C2E;     /* tertiarySystemGroupedBackground */
+  --fill-tertiary:rgba(118,118,128,.24);  /* tertiarySystemFill */
+  /* 文字层级 */
+  --label:rgba(255,255,255,1);
+  --label-2:rgba(235,235,245,.6);
+  --label-3:rgba(235,235,245,.3);
+  --separator:rgba(84,84,88,.6);
+  /* 展示页自身 */
+  --ink:#0A0A0B;
+  --paper:#F5F2EC;
+  --accent:#FF9F0A;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:var(--ink);
+  color:var(--paper);
+  font-family:'Noto Sans SC',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.bg-glow{
+  position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(900px 500px at 15% -5%, rgba(255,159,10,.12), transparent 60%),
+    radial-gradient(700px 500px at 90% 110%, rgba(255,159,10,.07), transparent 60%);
+}
+/* ---------- 页头（展示页，非 App 内） ---------- */
+header{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:96px 40px 56px}
+.kicker{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.35em;color:var(--accent);text-transform:uppercase;display:flex;align-items:center;gap:14px}
+.kicker::before{content:'';width:36px;height:1px;background:var(--accent)}
+h1{font-family:'Noto Serif SC',serif;font-weight:900;font-size:clamp(44px,6vw,84px);line-height:1.08;margin-top:22px;letter-spacing:.01em}
+h1 em{font-style:normal;color:var(--accent)}
+.sub{margin-top:22px;max-width:600px;color:rgba(245,242,236,.62);font-size:16px;line-height:1.9}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.chip{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:7px 14px;border:1px solid rgba(245,242,236,.16);border-radius:100px;color:rgba(245,242,236,.7)}
+.chip b{color:var(--accent);font-weight:600}
+/* ---------- 屏幕网格 ---------- */
+.gallery{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:24px 40px 120px;display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:76px 48px}
+.scene{display:flex;flex-direction:column;align-items:center;gap:26px}
+.scene-label{width:100%;max-width:393px}
+.scene-label .no{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:12px;letter-spacing:.25em}
+.scene-label h2{font-family:'Noto Serif SC',serif;font-weight:600;font-size:24px;margin-top:8px}
+.scene-label p{color:rgba(245,242,236,.5);font-size:13.5px;line-height:1.8;margin-top:8px}
+.scene-label .hig{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:rgba(245,242,236,.32);margin-top:10px;display:block}
+
+/* ============================================
+   iPhone 机身 & 屏幕内均为 iOS 规范实现
+   ============================================ */
+.phone{
+  width:393px;height:852px;flex:none;
+  background:var(--bg-base);
+  border-radius:56px;padding:12px;
+  box-shadow:0 0 0 2px #3a3a3c,0 0 0 6px #17171a,0 40px 90px rgba(0,0,0,.65),0 0 120px rgba(255,159,10,.05);
+  position:relative;
+}
+/* App 内字体：SF Pro（回退苹方），字级按 HIG Text Styles */
+.screen{
+  width:100%;height:100%;border-radius:44px;overflow:hidden;
+  background:var(--bg-base);
+  display:flex;flex-direction:column;position:relative;
+  font-family:-apple-system,'SF Pro Text','SF Pro Display','PingFang SC','Noto Sans SC','Microsoft YaHei',sans-serif;
+  font-size:17px;            /* Body 17pt */
+  letter-spacing:-.41px;     /* HIG: 17pt tracking −0.41 */
+  color:var(--label);
+}
+.island{position:absolute;top:23px;left:50%;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:20px;z-index:30}
+.statusbar{
+  height:59px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 36px 8px;font-weight:600;font-size:17px;letter-spacing:0;
+  position:relative;z-index:20;
+}
+.statusbar .icons{display:flex;align-items:center;gap:7px;font-size:13px}
+.home-indicator{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:139px;height:5px;border-radius:3px;background:rgba(255,255,255,.9);z-index:40}
+
+/* ---------- iOS 通用 ---------- */
+.body{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.scroll{flex:1;overflow:hidden;padding:0 16px}
+/* Large Title: 34pt Bold, tracking +0.37 */
+.large-title{font-size:34px;font-weight:700;letter-spacing:.37px;color:var(--label);padding:2px 4px 0}
+.date-sub{color:var(--label-2);font-size:15px;padding:2px 4px 14px}
+/* 卡片 = secondarySystemGroupedBackground，iOS 圆角 16 */
+.card{background:var(--bg-grouped);border-radius:16px;padding:16px;margin-bottom:14px}
+/* Section header: 13pt, secondaryLabel, 全大写 */
+.card-title{font-size:13px;font-weight:400;letter-spacing:-.08px;color:var(--label-2);text-transform:uppercase;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--label-2)}
+.small{font-size:13px;letter-spacing:-.08px}
+.footnote{font-size:13px;color:var(--label-2);letter-spacing:-.08px}
+/* iOS 徽标（tinted fill） */
+.badge{font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;background:rgba(255,159,10,.16);color:var(--sys-orange);white-space:nowrap;letter-spacing:0}
+.badge.grey{background:var(--fill-tertiary);color:var(--label-2)}
+.badge.yellow{background:rgba(255,214,10,.14);color:var(--sys-yellow)}
+.badge.green{background:rgba(48,209,88,.14);color:var(--sys-green)}
+
+/* ---------- 健康快照 ---------- */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--bg-elevated);border-radius:12px;padding:11px 13px}
+.stat .ico{font-size:15px}
+.stat .v{font-size:22px;font-weight:700;letter-spacing:.35px;color:var(--label);margin-top:6px}
+.stat .v small{font-size:13px;font-weight:400;color:var(--label-2)}
+.stat .k{font-size:12px;color:var(--label-2);margin-top:1px}
+
+/* ---------- 记录列表 ---------- */
+.log-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:.5px solid var(--separator)}
+.log-item:last-child{border-bottom:none}
+.log-ico{width:36px;height:36px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--bg-elevated)}
+.log-main{font-weight:600;font-size:16px;letter-spacing:-.24px;color:var(--label)}
+.log-sub{color:var(--label-2);font-size:13px;margin-top:1px}
+.log-time{color:var(--label-3);font-size:13px;margin-left:auto;flex:none}
+
+/* ---------- 底部输入条 ---------- */
+.inputbar{flex:none;padding:8px 16px 24px;background:linear-gradient(transparent,rgba(0,0,0,.92) 35%);position:relative;z-index:15}
+.inputbar .field{display:flex;align-items:center;gap:10px;background:var(--fill-tertiary);border-radius:20px;padding:10px 16px}
+.inputbar .placeholder{color:var(--label-3);font-size:15px}
+.inputbar .mic{margin-left:auto;font-size:15px;opacity:.7}
+.inputbar .send{margin-left:auto;width:29px;height:29px;border-radius:50%;background:var(--sys-orange);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;flex:none}
+
+/* ---------- TabBar（49pt + home 区域） ---------- */
+.tabbar{
+  flex:none;height:83px;background:rgba(28,28,30,.94);backdrop-filter:blur(24px);
+  border-top:.5px solid var(--separator);
+  display:flex;align-items:flex-start;padding:7px 4px 0;position:relative;z-index:15;
+}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--sys-gray);font-size:10px;font-weight:500;letter-spacing:0}
+.tab svg{width:25px;height:25px;stroke-width:1.5}
+.tab.active{color:var(--sys-orange)}
+
+/* ---------- 底部 Sheet（确认卡片） ---------- */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.5);z-index:18}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:19;background:var(--bg-grouped);border-radius:14px 14px 0 0;padding:8px 16px 34px}
+.grabber{width:36px;height:5px;border-radius:3px;background:var(--label-3);margin:4px auto 14px}
+.sheet h3{color:var(--label);font-size:20px;font-weight:700;letter-spacing:.38px}
+.sheet .src{color:var(--label-2);font-size:13px;margin:5px 0 15px}
+.field-row{display:flex;align-items:center;background:var(--bg-elevated);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.field-row .k{color:var(--label-2);font-size:15px;width:62px;flex:none}
+.field-row .v{color:var(--label);font-size:17px;font-weight:600}
+.field-row .chev{margin-left:auto;color:var(--label-3);font-size:14px;font-weight:600}
+.sheet-btns{display:flex;gap:10px;margin-top:16px}
+.btn{flex:1;text-align:center;padding:13px;border-radius:12px;font-size:17px;font-weight:600;letter-spacing:-.24px}
+.btn.primary{background:var(--sys-orange);color:#fff}
+.btn.ghost{background:var(--bg-elevated);color:var(--sys-orange)}
+.parsing{display:flex;align-items:center;gap:9px;color:var(--label-2);font-size:13px;margin-bottom:12px}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--sys-orange);margin-right:4px;animation:blink 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+
+/* ---------- 对话 ---------- */
+.chat{display:flex;flex-direction:column;gap:10px;padding:6px 0}
+.bubble{max-width:80%;padding:10px 15px;border-radius:18px;font-size:16px;line-height:1.45;letter-spacing:-.24px;color:var(--label)}
+.bubble.me{align-self:flex-end;background:var(--sys-orange);color:#fff;border-bottom-right-radius:4px}
+.bubble.ai{align-self:flex-start;background:var(--bg-elevated);border-bottom-left-radius:4px}
+.plan-card{align-self:flex-start;width:94%;background:var(--bg-grouped);border:1px solid rgba(255,159,10,.4);border-radius:16px;padding:14px}
+.plan-card .fn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sys-orange);letter-spacing:.02em;margin-bottom:9px}
+.plan-day{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--separator);font-size:15px;color:var(--label)}
+.plan-day:last-of-type{border-bottom:none}
+.plan-day span{color:var(--label-2);font-size:12px;text-align:right}
+
+/* ---------- 洞察 ---------- */
+.report-hero{background:linear-gradient(155deg,#26180C,var(--bg-grouped) 70%);border:1px solid rgba(255,159,10,.28)}
+/* 报告引文使用 New York 衬线（HIG 编辑场景）——以 Noto Serif 代 */
+.quote{font-family:'New York','Noto Serif SC',serif;font-weight:600;font-size:18px;line-height:1.65;letter-spacing:.2px;color:var(--label)}
+.tags{display:flex;gap:6px;margin-top:13px;flex-wrap:wrap}
+.minichart{display:flex;align-items:flex-end;gap:6px;height:72px;margin-top:16px}
+.minichart i{flex:1;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--sys-orange),rgba(255,159,10,.35))}
+.minichart i.dim-bar{background:var(--fill-tertiary)}
+.report-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:.5px solid var(--separator)}
+.report-item:last-child{border-bottom:none}
+.chevron{color:var(--label-3);font-size:14px;font-weight:600}
+
+/* ---------- 设置（inset-grouped list） ---------- */
+.group{background:var(--bg-grouped);border-radius:12px;overflow:hidden;margin-bottom:20px}
+.group-label{font-size:13px;color:var(--label-2);text-transform:uppercase;padding:0 16px 6px;letter-spacing:-.08px}
+.set-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:.5px solid var(--separator);font-size:17px;color:var(--label)}
+.set-row:last-child{border-bottom:none}
+.set-row .val{margin-left:auto;color:var(--label-2);font-size:16px;display:flex;align-items:center;gap:6px}
+.set-ico{width:29px;height:29px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center}
+.set-ico svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.dot-green{width:8px;height:8px;border-radius:50%;background:var(--sys-green);display:inline-block}
+
+footer{position:relative;z-index:1;border-top:1px solid rgba(245,242,236,.08);padding:44px 40px 56px;text-align:center;color:rgba(245,242,236,.4);font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:.08em;line-height:2}
+footer a{color:rgba(245,242,236,.55)}
+@media (max-width:480px){.phone{width:340px;height:736px}header,.gallery{padding-left:20px;padding-right:20px}}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<header>
+  <div class="kicker">UI Design · v1.1 · Apple HIG</div>
+  <h1>Agentic-<em>KeepKeep</em><br>iOS 界面设计稿</h1>
+  <p class="sub">严格按 Apple Human Interface Guidelines 深色模式实现：系统语义色（systemOrange #FF9F0A）、SF Pro 字级（Large Title 34 / Body 17 / Footnote 13）、inset-grouped 列表、44pt 触控区。</p>
+  <div class="meta-row">
+    <div class="chip">Device <b>iPhone 15 Pro · 393×852</b></div>
+    <div class="chip">Accent <b>systemOrange #FF9F0A</b></div>
+    <div class="chip">Mode <b>Dark · 语义色</b></div>
+    <div class="chip">原则 <b>记录快 · 确认稳 · AI 不抢戏</b></div>
+  </div>
+</header>
+
+<div class="gallery">
+
+<!-- ============ 1. 今日 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 01</div>
+    <h2>今日 Today</h2>
+    <p>健康快照来自 HealthKit 只读数据；底部常驻输入条，任何时刻一句话开始记录。</p>
+    <span class="hig">HIG: Large Title 34pt · Card = secondarySystemGroupedBackground · Tab 49pt</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll">
+        <div class="large-title">今天</div>
+        <div class="date-sub">9月11日 星期五</div>
+
+        <div class="card">
+          <div class="card-title">身体状态 · HealthKit</div>
+          <div class="stat-grid">
+            <div class="stat"><div class="ico">😴</div><div class="v">6.5<small> 小时</small></div><div class="k">睡眠 · 偏低</div></div>
+            <div class="stat"><div class="ico">💓</div><div class="v">42<small> ms</small></div><div class="k">HRV · 较昨日 -8%</div></div>
+            <div class="stat"><div class="ico">👟</div><div class="v">3,240<small> 步</small></div><div class="k">活动量</div></div>
+            <div class="stat"><div class="ico">❤️</div><div class="v">58<small> bpm</small></div><div class="k">静息心率</div></div>
+          </div>
+        </div>
+
+        <div class="card" style="border:1px solid rgba(255,159,10,.4)">
+          <div class="row">
+            <div class="grow">
+              <div class="card-title" style="margin-bottom:5px">今日课程</div>
+              <div style="font-weight:700;font-size:17px;letter-spacing:-.24px">胸 + 三头</div>
+              <div class="small muted" style="margin-top:2px">5 个动作 · 约 50 分钟</div>
+            </div>
+            <div class="btn primary" style="flex:none;padding:9px 18px;font-size:15px">去完成</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">今日已记录</div>
+          <div class="log-item">
+            <div class="log-ico">🏋️</div>
+            <div class="grow"><div class="log-main">深蹲 100kg · 5×5</div><div class="log-sub">RPE 8 · 有点累</div></div>
+            <div class="log-time">09:30</div>
+          </div>
+          <div class="log-item">
+            <div class="log-ico">🍜</div>
+            <div class="grow"><div class="log-main">牛肉面 <span class="badge">AI 估算</span></div><div class="log-sub">~650 kcal · 蛋白质 ≈30g</div></div>
+            <div class="log-time">12:40</div>
+          </div>
+        </div>
+      </div>
+      <div class="inputbar">
+        <div class="field"><span class="placeholder">说点什么，比如「深蹲100kg 5×5」…</span><span class="mic">🎤</span></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>今日</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>课程表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>洞察</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.1-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2.1 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.1 1.2L10 21h4l.5-2.7a7 7 0 0 0 2.1-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ============ 2. 解析确认流 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 02</div>
+    <h2>AI 解析 · 确认卡片</h2>
+    <p>LLM 输出必须经确认卡片入库。每个字段点按即改；失败则降级为原文笔记，不丢数据。</p>
+    <span class="hig">HIG: Modal Sheet · 触控区 ≥44pt · Tinted 按钮</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll" style="opacity:.45">
+        <div class="large-title">今天</div>
+        <div class="date-sub">9月11日 星期五</div>
+        <div class="card"><div class="card-title">今日已记录</div>
+          <div class="log-item"><div class="log-ico">🏋️</div><div class="grow"><div class="log-main">深蹲 100kg · 5×5</div><div class="log-sub">RPE 8</div></div><div class="log-time">09:30</div></div>
+        </div>
+      </div>
+      <div class="dim"></div>
+      <div class="sheet">
+        <div class="grabber"></div>
+        <div class="parsing"><span class="dots"><span></span><span></span><span></span></span> GLM 已理解 · 请确认</div>
+        <h3>🏋️ 力量训练</h3>
+        <div class="src">「中午练了胸，卧推80做组，5组每组8个」</div>
+        <div class="field-row"><span class="k">动作</span><span class="v">杠铃卧推</span><span class="chev">›</span></div>
+        <div class="field-row"><span class="k">重量</span><span class="v">80 kg</span><span class="chev">›</span></div>
+        <div class="field-row"><span class="k">组次</span><span class="v">5 组 × 8 次</span><span class="chev">›</span></div>
+        <div class="field-row"><span class="k">时间</span><span class="v">今天 12:30</span><span class="chev">›</span></div>
+        <div class="sheet-btns">
+          <div class="btn ghost">取消</div>
+          <div class="btn primary">保存</div>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ============ 3. 记录时间流 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 03</div>
+    <h2>记录 Records</h2>
+    <p>逆序时间流。Watch 同步的运动标注来源且只读；解析失败的原文以黄色警示条提示待归类。</p>
+    <span class="hig">HIG: 0.5pt 分隔线 · tertiaryLabel 时间戳 · 语义化警示色</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll">
+        <div class="row" style="padding:2px 4px 14px">
+          <div class="large-title" style="padding:0">记录</div>
+          <div class="badge grey" style="margin-left:auto">筛选</div>
+        </div>
+
+        <div class="card-title" style="padding-left:4px">今天 · 9月11日</div>
+        <div class="card">
+          <div class="log-item"><div class="log-ico">🏋️</div><div class="grow"><div class="log-main">深蹲 100kg · 5×5</div><div class="log-sub">RPE 8 · 有点累</div></div><div class="log-time">09:30</div></div>
+          <div class="log-item"><div class="log-ico">🍜</div><div class="grow"><div class="log-main">牛肉面 <span class="badge">AI 估算</span></div><div class="log-sub">~650 kcal</div></div><div class="log-time">12:40</div></div>
+        </div>
+
+        <div class="card" style="background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.22)">
+          <div class="log-item" style="border:none;padding:2px 0">
+            <div class="log-ico" style="background:rgba(255,214,10,.12)">📝</div>
+            <div class="grow">
+              <div class="log-main" style="font-weight:500">「昨晚只睡了5小时，今天练不动」</div>
+              <div class="log-sub" style="color:var(--sys-yellow)">⚠️ 未归类 · 点按修正或重新解析</div>
+            </div>
+            <span class="badge yellow">待归类</span>
+          </div>
+        </div>
+
+        <div class="card-title" style="padding-left:4px">昨天 · 9月10日</div>
+        <div class="card">
+          <div class="log-item"><div class="log-ico">🏃</div><div class="grow"><div class="log-main">户外跑步 5.2 km <span class="badge grey">⌚ Watch</span></div><div class="log-sub">配速 5'48" · 平均心率 152</div></div><div class="log-time">20:10</div></div>
+          <div class="log-item"><div class="log-ico">🍗</div><div class="grow"><div class="log-main">鸡胸肉沙拉 <span class="badge">AI 估算</span></div><div class="log-sub">~420 kcal · 蛋白质 ≈38g</div></div><div class="log-time">12:15</div></div>
+          <div class="log-item"><div class="log-ico">⚖️</div><div class="grow"><div class="log-main">体重 74.5 kg</div><div class="log-sub">较上周 -0.3</div></div><div class="log-time">07:55</div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>今日</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>课程表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>洞察</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.1-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2.1 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.1 1.2L10 21h4l.5-2.7a7 7 0 0 0 2.1-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ============ 4. 教练对话 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 04 · P1</div>
+    <h2>教练对话 Coach</h2>
+    <p>多轮对话澄清需求，function call 输出渲染为计划卡片——点「加入课程表」才写入，也支持后续手动改。</p>
+    <span class="hig">HIG: 气泡圆角 18 · iMessage 式非对称角 · Inline 操作卡</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll">
+        <div class="row" style="padding:8px 4px 12px;border-bottom:.5px solid var(--separator);margin-bottom:14px">
+          <div style="font-size:17px;font-weight:700">AI 教练</div>
+          <span class="badge" style="margin-left:auto">GLM-5.3-Flash</span>
+        </div>
+        <div class="chat">
+          <div class="bubble me">我想增肌，每周能练4天，家里只有一对哑铃</div>
+          <div class="bubble ai">明白。看了你最近 4 周记录：上肢推力偏弱、睡眠平均 6.5h。我给你排一个 4 周哑铃增肌计划，分化训练 + 第 4 周减载。</div>
+          <div class="plan-card">
+            <div class="fn">⚡ function_call → create_plan(weeks=4, days=4)</div>
+            <div class="plan-day"><b>周一 · 胸+三头</b><span>哑铃卧推 4×10 等 5 个动作</span></div>
+            <div class="plan-day"><b>周二 · 背+二头</b><span>单臂划船 4×12 等 5 个动作</span></div>
+            <div class="plan-day"><b>周四 · 腿+肩</b><span>高脚杯深蹲 4×12 等 6 个动作</span></div>
+            <div class="plan-day"><b>周六 · 全身+核心</b><span>循环训练 3 轮</span></div>
+            <div class="sheet-btns">
+              <div class="btn ghost" style="padding:10px;font-size:15px">修改</div>
+              <div class="btn primary" style="padding:10px;font-size:15px">加入课程表</div>
+            </div>
+          </div>
+          <div class="bubble ai">另外注意到你连续 3 天睡眠 &lt; 6.5h，建议把周六训练降到 RPE 7。要应用吗？</div>
+        </div>
+      </div>
+      <div class="inputbar">
+        <div class="field"><span class="placeholder">继续和教练聊…</span><div class="send">↑</div></div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ============ 5. 洞察 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 05</div>
+    <h2>洞察 Insights</h2>
+    <p>每周一基于聚合摘要生成。报告标注依据的数据来源，AI 的推理透明可查。引文用 New York 衬线（HIG 编辑场景）。</p>
+    <span class="hig">HIG: Serif for editorial · 图表语义色 · 分组列表</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll">
+        <div class="large-title">洞察</div>
+        <div class="date-sub">AI 分析 · 基于本地数据摘要</div>
+
+        <div class="card report-hero">
+          <div class="row" style="margin-bottom:12px">
+            <div class="card-title" style="margin:0">本周报告 · 9/8 – 9/14</div>
+            <span class="badge" style="margin-left:auto">NEW</span>
+          </div>
+          <div class="quote">「深蹲进入平台期：重量 3 周未涨，而睡眠连续低于 6.5h——恢复不足很可能是主因，建议本周减载 15%。」</div>
+          <div class="tags">
+            <span class="badge yellow">⚠️ 平台期</span>
+            <span class="badge">😴 恢复警告</span>
+            <span class="badge grey">依据：12 次训练 · 7 天睡眠</span>
+          </div>
+          <div class="minichart">
+            <i style="height:45%"></i><i style="height:58%"></i><i style="height:52%"></i><i style="height:70%"></i><i style="height:64%"></i><i class="dim-bar" style="height:48%"></i><i class="dim-bar" style="height:40%"></i>
+          </div>
+          <div class="footnote" style="margin-top:8px">深蹲 e1RM 趋势（近 7 周）→ 近 2 周停滞</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">历史报告</div>
+          <div class="report-item"><div class="log-ico">📊</div><div class="grow"><div class="log-main">9/1 – 9/7</div><div class="log-sub">训练量 +12%，蛋白质摄入达标 5/7 天</div></div><span class="chevron">›</span></div>
+          <div class="report-item"><div class="log-ico">📊</div><div class="grow"><div class="log-main">8/25 – 8/31</div><div class="log-sub">卧推 PR 80kg ×8，有氧频率偏低</div></div><span class="chevron">›</span></div>
+          <div class="report-item"><div class="log-ico">📊</div><div class="grow"><div class="log-main">8/18 – 8/24</div><div class="log-sub">首份报告 · 建立基线</div></div><span class="chevron">›</span></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>今日</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>课程表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>洞察</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>洞察</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.1-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2.1 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.1 1.2L10 21h4l.5-2.7a7 7 0 0 0 2.1-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+<!-- ============ 6. 设置 ============ -->
+<div class="scene">
+  <div class="scene-label">
+    <div class="no">SCREEN 06</div>
+    <h2>设置 Settings</h2>
+    <p>BYOK：Key 存 Keychain，端点可切换任何 OpenAI 兼容服务。用量透明，随时可导出数据。</p>
+    <span class="hig">HIG: Inset-grouped list · 29pt 图标圆角 7 · 右侧 secondaryLabel 值</span>
+  </div>
+  <div class="phone"><div class="screen">
+    <div class="island"></div>
+    <div class="statusbar"><span>9:41</span><span class="icons">▲●●● 5G ▮</span></div>
+    <div class="body">
+      <div class="scroll">
+        <div class="large-title">设置</div>
+        <div class="date-sub"> </div>
+
+        <div class="group-label">AI 模型 · BYOK</div>
+        <div class="group">
+          <div class="set-row"><div class="set-ico" style="background:#FF9F0A"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4.2"/><path d="M11.2 11.8 20 3M15.5 7l2.5 2.5M18.2 4.3l2 2"/></svg></div>API Key<span class="val">sk-••••••4f2a ›</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#0A84FF"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c-5.2 5.6-5.2 11.4 0 17 5.2-5.6 5.2-11.4 0-17Z"/></svg></div>端点<span class="val">bigmodel.cn ›</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#30D158"><svg viewBox="0 0 24 24"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H13L13 2Z"/></svg></div>主模型<span class="val">GLM-5.3-Flash</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#8E8E93"><svg viewBox="0 0 24 24"><path d="M3 12h3.5l2-5.5 3.5 11 2.5-8 1.5 2.5H21"/></svg></div>连接测试<span class="val"><i class="dot-green"></i> 正常 · 412ms</span></div>
+        </div>
+
+        <div class="group-label">数据</div>
+        <div class="group">
+          <div class="set-row"><div class="set-ico" style="background:#FF375F"><svg viewBox="0 0 24 24"><path d="M12 20.2S4 15.4 4 9.6C4 6.5 6.4 4.5 9 4.5c1.2 0 2.4.6 3 1.5.6-.9 1.8-1.5 3-1.5 2.6 0 5 2 5 5.1 0 5.8-8 10.6-8 10.6Z"/></svg></div>HealthKit<span class="val">已授权（只读）›</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#5E5CE6"><svg viewBox="0 0 24 24"><path d="M12 15.5V3.5M8.5 7 12 3.5 15.5 7"/><path d="M5 12.5v5.5a2.5 2.5 0 0 0 2.5 2.5h9a2.5 2.5 0 0 0 2.5-2.5v-5.5"/></svg></div>导出我的数据<span class="val">JSON ›</span></div>
+        </div>
+
+        <div class="group-label">本月用量</div>
+        <div class="group">
+          <div class="set-row"><div class="set-ico" style="background:#FFD60A"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 7.5 12 11.5l3.5-4M12 11.5V17M9 13.5h6M9 16h6"/></svg></div>Token 消耗<span class="val">184K · ≈¥1.2</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#30D158"><svg viewBox="0 0 24 24"><path d="M5.5 3.5h3.8L11 8.2 8.8 9.7a12.5 12.5 0 0 0 5.5 5.5l1.5-2.2 4.7 1.7v3.8a2 2 0 0 1-2.2 2A17.5 17.5 0 0 1 3.5 5.7a2 2 0 0 1 2-2.2Z"/></svg></div>Agent 调用<span class="val">解析 96 · 分析 3 ›</span></div>
+        </div>
+
+        <div class="group-label">关于</div>
+        <div class="group">
+          <div class="set-row"><div class="set-ico" style="background:#8E8E93"><svg viewBox="0 0 24 24"><path d="m12 3.5 2.7 5.4 6 .9-4.3 4.2 1 5.9L12 17l-5.4 2.9 1-5.9-4.3-4.2 6-.9L12 3.5Z"/></svg></div>GitHub 开源<span class="val">MIT ›</span></div>
+          <div class="set-row"><div class="set-ico" style="background:#8E8E93"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11.2V17M12 7.2v.3"/></svg></div>版本<span class="val">0.1.0 (MVP)</span></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>今日</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>记录</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>课程表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>洞察</div>
+        <div class="tab active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2.1-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2.1 1.2L10 21h4l.5-2.7a7 7 0 0 0-2.1 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 2.1 1.2L10 21h4l.5-2.7a7 7 0 0 0 2.1-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg>设置</div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div></div>
+</div>
+
+</div>
+
+<footer>
+  AGENTIC-KEEPKEEP · UI MOCKUP v1.1 · MIT © 2026 MINJUNG-GO<br>
+  设计依据：<a href="https://developer.apple.com/design/human-interface-guidelines/dark-mode">Apple HIG · Dark Mode</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/typography">Apple HIG · Typography</a>
+</footer>
+
+</body>
+</html>

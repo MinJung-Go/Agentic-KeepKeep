@@ -1,0 +1,73 @@
+# Xcode / Swift .gitignore
+# 来源：github.com/github/gitignore 的 Swift + Xcode + macOS 模板
+
+## User settings
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+## Compatibility with Xcode 8 and earlier
+*.xcworkspace/xcuserdata/
+!default.xcworkspace/xcuserdata/
+
+## Build products
+build/
+DerivedData/
+*.app
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Xcode 工程由 XcodeGen 从 project.yml 生成，不进库
+*.xcodeproj/
+*.xcworkspace/
+!default.xcworkspace
+
+## Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+## CocoaPods / Carthage（如日后引入）
+Pods/
+Carthage/Build/
+
+## fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+## Code injection
+iOSInjectionProject/
+
+## macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+## Thumbnails
+._*
+
+## Claude Code 本地配置
+.claude/
+
+## 敏感信息（BYOK 项目约定：只提交示例，不提交真实配置）
+.env
+.env.local
+**/Secrets.xcconfig
+!**/Secrets.example.xcconfig
+**/APIKeys.plist
+!**/APIKeys.example.plist
+
+## 历史第三方素材（已停用，禁止重新纳入构建）
+docs/04-ui-polish/vendor/*.gif
+docs/04-ui-polish/vendor/*.png
+
+## 设计稿截图（由 tools/render.mjs 生成，且可能含第三方素材画面）
+docs/04-ui-polish/preview/*.png
+docs/05-exercise-illustrations/preview/*.png
+
+# Legacy third-party media (removed; guard against local leftovers)
+AgenticKeepKeep/Resources/ExerciseMedia/*.gif
+AgenticKeepKeep/Resources/ExerciseMedia/*.tmp
