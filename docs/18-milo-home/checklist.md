@@ -107,4 +107,13 @@
 - [x] 完整回复左下角增加复制、系统分享操作（44pt 点击区域），生成过程中不显示。
 - [x] 本地思考状态与角色相关测试 10 项通过，Swift 语法与 diff 检查通过。
 - [ ] iOS 编译与真机排版验收：中文／英文混排、链接、长段落、流式高度和大字体。
-- 本节尚未提交／推送／打包；重新生成及来源聚合入口未在本节实现。
+- 已提交推送并打包 0.4.9 (13)；重新生成及来源聚合入口未在本节实现。
+
+### 回复排版构建 · 2026-09-16
+
+- 源码 `aa6c925`，分支 `fix/chat-output-polish`；作者与提交者 MinJung-Go。
+- [CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35071428204)：iOS 编译与 archive 成功，353 XCTest 通过、0 失败。
+- [下载 Moveliq 0.4.9 (13)](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35071428204/artifacts/10436591539)。
+- 包内版本、原 Bundle ID、ZIP 完整与无旧动作数据集已验证；2,324,676 bytes。
+- SHA-256：`4824eb151c218cfea6b3184a7f6b603504d4c99f87fb785b662026d7c08138e5`。
+- 真机排版／流式高度／链接选择体验待验证；尚未合并 main。
