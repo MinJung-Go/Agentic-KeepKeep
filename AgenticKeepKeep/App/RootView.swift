@@ -67,7 +67,7 @@ struct RootView: View {
         }
         .tint(Theme.accent)
         // 导航层通栏实底（FR13.1）：内容从下方滚过时不该透出来
-        .toolbarBackground(Theme.canvas, for: .tabBar)
+        .toolbarBackground(appState.selectedTab == .today ? Theme.conversationCanvas : Theme.canvas, for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .environmentObject(appState)
         .sheet(isPresented: $appState.isQuickLogPresented, onDismiss: {

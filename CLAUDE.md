@@ -22,10 +22,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | 03-coach-streaming | 教练综合个人数据 + 流式回复 + 图片与文字同发 | requirements.md · checklist.md |
 | 04-ui-polish | 界面与交互优化（设计系统 v2、动作示意图） | requirements.md · design-system.md · design.html · checklist.md |
 
-- 新轮次建 `docs/NN-<slug>/`，**先写 `requirements.md` 并确认，再动手**
-- **除纯 bug 修复轮外，每轮都必须有需求文档**；bug 修复轮只写 `checklist.md`（现象 / 根因 / 修复 / 验证）
+- 新轮次建 `docs/NN-<slug>/`，**先写 `requirements.md`，再列 `checklist.md`，最后按清单开发**；已有轮次的追加需求更新对应文件。
+- 每轮都必须有需求文档；纯 bug 修复可简写现象、预期行为与范围，并在清单记录根因、修复和验证。历史轮次缺少需求文档不要求为此追溯补齐。
 - `checklist.md` 记录实施项与验证结果，包含 CI 提交号与单测数量
 - 设计稿（高保真 HTML、线框、真机截图）放同一文件夹，命名 `design.*`
+
+## 开发顺序与 UI 设计确认
+
+1. **先列需求文档**：在 `requirements.md` 写清目标、范围、预期行为与验收标准，以用户已表达的需求为依据。
+2. **再列 checklist**：把需求拆成可验证的任务；明确哪些涉及 UI／交互变动，并区分设计、开发和验证项。
+3. **涉及 UI 变动，优先出设计稿**：先完成对应的本地设计稿及必要的状态示意（如浅深色、空态、键盘等），在 checklist 中附上可查看的设计稿链接。此时只完成设计项，开发项保持未完成。
+4. **设计稿确认后再开发**：用户确认具体设计稿后，记录确认范围，再按 checklist 实施对应 UI 与依赖该设计的开发项。未确认时继续完善设计稿，不自行把提案接入 App。用户在当前会话中已经确认的设计不重复询问；后续超出确认范围的视觉或交互调整，先更新设计稿再确认。
+5. **按清单开发与验证**：不涉及 UI 的任务可在需求与 checklist 明确后直接开发；独立且已获授权的非 UI 工作可在等待设计确认期间推进。完成后更新清单和实际验证结果，区分设计预览、代码实现、CI 与真机验证。
+
+默认顺序：**需求文档 → checklist → UI 设计稿（如涉及）→ 用户确认设计稿 → 按 checklist 开发 → 验证并回填清单**。用户明确要求调整流程时，以当前会话指令为准。
 
 ## 构建与测试（无 Mac 开发链路）
 
@@ -61,7 +71,7 @@ Features/ (SwiftUI UI)  →  Core/Agents/  →  Core/LLM/ (BYOK 协议抽象)  �
 
 ## 工作流约定
 
-- 一轮工作 = 建分支 → 写需求文档与清单 → 分批实现（每批 push 后等 CI 绿）→ 开 PR → 合并回 main → 打 tag 出 IPA
+- 一轮工作 = 建分支 → 写需求文档 → 列 checklist → 涉及 UI 时先出设计稿并经用户确认 → 按 checklist 分批实现（每批 push 后等 CI 绿）→ 开 PR → 合并回 main → 打 tag 出 IPA
 - 敏感配置（API Key 等）不进库；`.claude/` 已 gitignore
 - commit / push 需用户明确要求
 - 真机才能验证的改动（相机、健康数据、通知、签名相关）要在报告里明确标注，不要声称已验证

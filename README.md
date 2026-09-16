@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/18-milo-home/assets/milo.png" alt="Milo：淡蓝色小糯团，戴黄色手环" width="112">
+
 <h1>Moveliq</h1>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -7,15 +9,29 @@
 ![Swift](https://img.shields.io/badge/SwiftUI%20%2B%20SwiftData-orange.svg)
 [![iOS CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/workflows/ios.yml/badge.svg)](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/workflows/ios.yml)
 
-**用一句话记录训练与饮食，由 AI 解析归档、跨维度分析，并像私教一样生成和调整课程表的 iOS 应用。**
+**和运动伙伴 Milo 一起，用一句话记录训练与饮食，回顾身体状态，安排适合自己的训练。**
 
 </div>
 
 ---
 
+## 界面示意
+
+Milo 是 Moveliq 的运动伙伴，默认出现在首页；称呼与相处方式可在设置中自定义。新版形象采用淡蓝小糯团、黄色手环与同色浅腹肌。
+
+<p align="center">
+  <img src="docs/18-milo-home/preview-milo-themes.png" alt="Milo 首页浅深色设计对照：左侧白底淡蓝角色，右侧炭黑背景与柔和蓝色角色，下方展示三种头像尺寸" width="900">
+</p>
+
+> 上图为 HTML 设计预览，非真机截图；训练与记录内容均为演示。新版 Milo、深色角色调色与背景适配已接入当前源码，已通过 0.4.10 (14) 的 iOS 编译与 353 项单测，真机效果待验收；请以对应构建的提交与版本为准。
+
+[浅深色对照稿](docs/18-milo-home/design-milo-themes.html) · [四屏交互稿](docs/18-milo-home/design.html) · [设计需求](docs/18-milo-home/requirements.md) · [实施清单](docs/18-milo-home/checklist.md)
+
+HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码。
+
 ## 这个项目解决什么
 
-现有健身应用（Keep、Apple Fitness+ 等）的记录依赖繁琐的点选表单，分析停留在静态图表，课程是固定模板。Agentic-KeepKeep 的差异：
+现有健身应用（Keep、Apple Fitness+ 等）的记录依赖繁琐的点选表单，分析停留在静态图表，课程是固定模板。Moveliq 的差异：
 
 | 维度 | 常见做法 | 本项目 |
 |------|---------|--------|
@@ -29,7 +45,7 @@
 - **自然语言记录**：「深蹲100kg 5×5」「中午吃了牛肉面」→ 解析成结构化记录；解析结果先过确认卡片，每个字段可改
 - **失败不丢数据**：解析失败时原文存为「待归类」笔记，联网或有 Key 后可重新解析
 - **AI 周报**：基于本地聚合摘要分析渐进超负荷、平台期、训练与睡眠/饮食的关联；报告标注 AI 依据
-- **对话式课程表**：和教练说明目标与器械，通过 function call 生成周期化计划，确认后写入；支持手动增删改，也支持让教练提出减载/换动作建议
+- **对话式课程表**：和 Milo 说明目标与器械，通过 function call 生成周期化计划，确认后写入；支持手动增删改，也支持让 Milo 提出减载/换动作建议
 - **饮食分析**：日均热量与宏营养素、蛋白质目标缺口、每日热量图
 - **照片估算热量**：拍一张食物照片，估算组成与热量（标注为 AI 估算，可修正）
 - **健康数据接入**：HealthKit 只读同步睡眠、HRV、静息心率、步数与运动记录（含 Apple Watch 训练，按 UUID 去重）
@@ -68,7 +84,7 @@ open AgenticKeepKeep.xcodeproj
 2. 「设置 → AI 模型」选择服务商并填入 API Key，点「连接测试」确认真实可用
    - 默认预设为智谱 GLM（`glm-5.3-flash`）；也可切换 OpenAI、Claude（Anthropic 原生协议）或任意 OpenAI 兼容端点
    - 模型名可在设置里直接改，请以服务商文档为准
-3. 回到「今日」页，在底部输入条输入「深蹲100kg 5×5，有点累」→ 确认卡片 → 保存，记录出现在「记录」页
+3. 回到「Milo」首页（标签随角色称呼变化），在底部输入条输入「深蹲100kg 5×5，有点累」→ 确认卡片 → 保存，记录出现在「记录」页
 
 ## 权限与数据
 
@@ -108,13 +124,15 @@ xcodebuild test -project AgenticKeepKeep.xcodeproj -scheme AgenticKeepKeep \
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-架构：`Features/`（SwiftUI UI）→ `Core/Agents/`（ParserAgent / CoachAgent / AnalystAgent / VisionAgent，纯逻辑可单测）→ `Core/LLM/`（BYOK 协议抽象，OpenAI 兼容 + Anthropic 原生）→ `Core/Data/`（SwiftData，唯一数据源）。当前有 139 个单元测试，CI 每次推送运行构建与测试。
+架构：`Features/`（SwiftUI UI）→ `Core/Agents/`（ParserAgent / CoachAgent / AnalystAgent / VisionAgent，纯逻辑可单测）→ `Core/LLM/`（BYOK 协议抽象，OpenAI 兼容 + Anthropic 原生）→ `Core/Data/`（SwiftData，唯一数据源）。测试结果以对应提交的 GitHub Actions 为准；主分支推送、PR 与手动触发可运行构建和测试。
 
 文档按轮次组织（索引与约定见 [docs/README.md](docs/README.md)）：
 
 - 轮次 01 · 项目基线：[需求文档](docs/01-foundation/requirements.md)（P0/P1/P2 分级与明确不做清单）· [实施清单](docs/01-foundation/checklist.md) · [界面设计稿](docs/01-foundation/design.html)（HTML 高保真稿，非真机截图）
 - 轮次 02 · 真机反馈修复：[实施清单](docs/02-device-feedback/checklist.md)
 - 轮次 03 · 教练流式与个人数据：[需求文档](docs/03-coach-streaming/requirements.md) · [实施清单](docs/03-coach-streaming/checklist.md)
+
+- 轮次 18 · Moveliq 品牌与 Milo 首页：[需求文档](docs/18-milo-home/requirements.md) · [实施清单](docs/18-milo-home/checklist.md) · [浅深色设计对照](docs/18-milo-home/design-milo-themes.html)
 
 ## 许可证
 

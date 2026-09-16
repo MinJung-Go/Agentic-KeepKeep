@@ -74,6 +74,9 @@ struct SettingsView: View {
                     settingsLink(.about, symbol: "info.circle", detail: nil)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Theme.canvas)
+            .toolbarBackground(Theme.canvas, for: .navigationBar)
             .navigationTitle("设置")
             .navigationDestination(for: Page.self) { page in
                 Form {

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SwiftData
 
 /// 与 AI 教练对话：澄清需求 → function call 生成计划 → 确认后写入课程表
@@ -102,7 +103,7 @@ struct CoachChatView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
-                        Image("Milo").resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
+                        MiloAvatar(size: 36)
                         Text(displayName).font(.headline)
                     }
                 }
@@ -154,7 +155,7 @@ struct CoachChatView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-            Image("Milo").resizable().scaledToFit().frame(width: 64, height: 64).accessibilityHidden(true)
+            MiloAvatar(size: 64)
             Text("今天，从哪里开始？")
                 .font(Theme.Font.largeTitle)
                 .foregroundStyle(.primary)
@@ -258,9 +259,28 @@ struct CoachChatView: View {
                 }
 
                 if !message.content.isEmpty {
-                    MarkdownText(content: message.content)
+                    MarkdownText(content: message.content, justifiedParagraphs: true)
                         .lineSpacing(5)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if !message.content.isEmpty {
+                    HStack(spacing: 2) {
+                        Button {
+                            UIPasteboard.general.string = message.content
+                            appState.showToast("已复制")
+                        } label: {
+                            Image(systemName: "doc.on.doc").frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel("复制回复")
+                        ShareLink(item: message.content) {
+                            Image(systemName: "square.and.arrow.up").frame(width: 44, height: 44)
+                        }
+                        .accessibilityLabel("分享回复")
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(Theme.secondaryLabel)
+                    .buttonStyle(.plain)
                 }
 
                 if message.pendingPlanJSON != nil && message.planDecisionRaw != "rejected" {
@@ -559,7 +579,7 @@ struct CoachChatView: View {
                 CoachToolActivityView(activities: toolActivities, initiallyExpanded: true, showThinking: settings.thinkingEnabled)
             }
             if settings.thinkingEnabled, !toolActivities.contains(where: { $0.kind == "thinking" }), !streamingReasoning.isEmpty {
-                ThinkingBlock(text: streamingReasoning, isStreaming: true)
+                ThinkingBlock(text: streamingReasoning, isStreaming: streamingText.isEmpty)
             } else if streamingText.isEmpty && !toolActivities.contains(where: { $0.status == .running }) {
                 HStack(spacing: Theme.Spacing.s) {
                     PulsingDots()
@@ -570,7 +590,7 @@ struct CoachChatView: View {
             }
 
             if !streamingText.isEmpty {
-                MarkdownText(content: streamingText)
+                MarkdownText(content: streamingText, justifiedParagraphs: true)
                     .lineSpacing(5)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }

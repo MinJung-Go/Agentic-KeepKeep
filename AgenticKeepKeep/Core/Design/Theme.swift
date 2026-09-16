@@ -6,7 +6,7 @@ enum Theme {
 
     // MARK: - 强调色（全 App 唯一的交互色）
 
-    static let accent = Color(red: 1, green: 159.0 / 255, blue: 10.0 / 255)
+    static let accent = Color("AccentColor")
     static let onAccent = Color(red: 36.0 / 255, green: 22.0 / 255, blue: 0)
     static let userBubble = Color(uiColor: UIColor { trait in
         trait.userInterfaceStyle == .dark
@@ -18,20 +18,30 @@ enum Theme {
     ///
     /// **只允许出现在按钮上** —— 那是 iOS tinted button 的固有样式。不要把这个做法
     /// 搬到卡片、徽标、警示条上：语义色被摊薄成一块看不清的底，同色文字又丢掉了对比度。
-    static let accentSoft = Color(uiColor: .systemOrange).opacity(0.16)
+    static let accentSoft = accent.opacity(0.16)
 
     // MARK: - 表面
 
-    /// 页面底色（浅色 `#F2F2F7` / 深色 `#000000`）
-    static let canvas = Color(uiColor: .systemGroupedBackground)
-    /// 聊天正文使用系统纯色画布，浅色白底、深色黑底。
-    static let conversationCanvas = Color(uiColor: .systemBackground)
-    /// 卡片（浅色 `#FFFFFF` / 深色 `#1C1C1E`）
-    static let card = Color(uiColor: .secondarySystemGroupedBackground)
-    /// 卡片内嵌块：指标块、字段行、缩略图、思考区容器（浅色 `#F2F2F7` / 深色 `#2C2C2E`）
-    static let cardNested = Color(uiColor: .tertiarySystemGroupedBackground)
+    /// 页面底色：浅色保留系统分组底色，深色使用炭黑 #161719。
+    static let canvas = surface(light: .systemGroupedBackground, dark: 0x161719)
+    /// 首页与聊天正文：浅色白底、深色炭黑。
+    static let conversationCanvas = surface(light: .systemBackground, dark: 0x161719)
+    /// 卡片：浅色白底，深色 #232528。
+    static let card = surface(light: .secondarySystemGroupedBackground, dark: 0x232528)
+    /// 卡片内嵌块：指标块、字段行、缩略图、思考区容器（浅色 `#F2F2F7` / 深色 `#2C2E32`）
+    static let cardNested = surface(light: .tertiarySystemGroupedBackground, dark: 0x2C2E32)
     /// 中性填充：徽标底、未强调的柱、行内代码、图表里的非重点序列
-    static let chip = Color(uiColor: .tertiarySystemFill)
+    static let chip = surface(light: .tertiarySystemFill, dark: 0x232528)
+
+    private static func surface(light: UIColor, dark: UInt32) -> Color {
+        Color(uiColor: UIColor { trait in
+            trait.userInterfaceStyle == .dark
+                ? UIColor(red: CGFloat((dark >> 16) & 0xFF) / 255,
+                          green: CGFloat((dark >> 8) & 0xFF) / 255,
+                          blue: CGFloat(dark & 0xFF) / 255, alpha: 1)
+                : light.resolvedColor(with: trait)
+        })
+    }
 
     /// 0.5pt 分隔线与描边：深色用白 8.5%、浅色用黑 5.5%。
     ///
