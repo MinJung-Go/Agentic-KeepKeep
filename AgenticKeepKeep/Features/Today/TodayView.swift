@@ -95,7 +95,9 @@ struct TodayView: View {
             .contentShape(Rectangle())
             .simultaneousGesture(TapGesture().onEnded { isInputFocused = false })
             .scrollDismissesKeyboard(.immediately)
-            .background(Theme.canvas)
+            .background(Theme.conversationCanvas)
+            .toolbarBackground(Theme.conversationCanvas, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle("Moveliq")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -137,8 +139,7 @@ struct TodayView: View {
                         .lineLimit(2)
                 }
                 Spacer(minLength: 0)
-                Image("Milo").resizable().scaledToFit()
-                    .frame(width: 78, height: 78).accessibilityHidden(true)
+                MiloAvatar(size: 78)
             }
             Text(Format.day(.now)).font(Theme.Font.caption).foregroundStyle(Theme.secondaryLabel)
             ViewThatFits(in: .horizontal) {
@@ -464,7 +465,7 @@ struct TodayView: View {
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.s)
         .frame(maxWidth: .infinity)
-        .background(Theme.canvas.ignoresSafeArea(edges: .bottom))
+        .background(Theme.conversationCanvas.ignoresSafeArea(edges: .bottom))
 
     }
 

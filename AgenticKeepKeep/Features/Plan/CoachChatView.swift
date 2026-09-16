@@ -103,7 +103,7 @@ struct CoachChatView: View {
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
-                        Image("Milo").resizable().scaledToFit().frame(width: 36, height: 36).accessibilityHidden(true)
+                        MiloAvatar(size: 36)
                         Text(displayName).font(.headline)
                     }
                 }
@@ -155,7 +155,7 @@ struct CoachChatView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
-            Image("Milo").resizable().scaledToFit().frame(width: 64, height: 64).accessibilityHidden(true)
+            MiloAvatar(size: 64)
             Text("今天，从哪里开始？")
                 .font(Theme.Font.largeTitle)
                 .foregroundStyle(.primary)
