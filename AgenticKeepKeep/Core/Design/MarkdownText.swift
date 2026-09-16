@@ -13,6 +13,7 @@ struct MarkdownText: View {
     let content: String
     var font: Font = Theme.Font.body
     var foreground: Color = .primary
+    var justifiedParagraphs = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -52,7 +53,11 @@ struct MarkdownText: View {
                 .padding(.vertical, Theme.Spacing.xs)
 
         case .paragraph(let text):
-            inline(text)
+            if justifiedParagraphs {
+                JustifiedChatParagraph(content: text)
+            } else {
+                inline(text)
+            }
         }
     }
 

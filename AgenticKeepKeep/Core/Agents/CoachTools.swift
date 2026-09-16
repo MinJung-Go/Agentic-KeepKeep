@@ -91,6 +91,11 @@ struct CoachToolClient: LLMClient {
                             try Task.checkCancellation()
                             switch event {
                             case .text(let chunk):
+                                if !chunk.isEmpty, var activity = thinkingActivity {
+                                    activity.finish(.completed, since: thinkingStart)
+                                    await tools.onActivity(activity)
+                                    thinkingActivity = nil
+                                }
                                 outcome.text += chunk
                                 continuation.yield(event)
                             case .reasoning(let chunk):
