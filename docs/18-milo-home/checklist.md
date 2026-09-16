@@ -97,4 +97,5 @@
 - 根因：部分行使用系统 Label，其他行使用 24pt 图标列的自定义 HStack，布局与系统着色不同。
 - [x] 首页设置入口统一使用 SettingsRowLabel：28pt 图标列、20pt 常规字重符号、12pt 标题间距；图标统一次要文字色。
 - [x] 图标尺寸随动态字体缩放，行分隔线使用同一标题起点，保留原导航、Picker 与状态文字。
-- [ ] iOS 编译与真机复核：浅深色、较大字体，图标中心／文字起点／分隔线对齐。本节未提交、未推送或打包。
+- [ ] 真机复核：浅深色、较大字体，图标中心／文字起点／分隔线对齐。
+- [CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35054392786) 编译通过，352 项单测全部通过；经 [PR #1](https://github.com/MinJung-Go/Agentic-KeepKeep/pull/1) 合并回 main。
