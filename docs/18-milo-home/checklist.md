@@ -1,5 +1,18 @@
 # Moveliq / Milo 首页实施清单
 
+## 当前安装包 · 仓库重建后
+
+- [x] **Moveliq 0.4.7 (11)**：[下载 IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35044411910/artifacts/10426970197)，解压后重签安装。
+- [x] [CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35044411910)：源码 `d32c0186f1c1b2d275e01eb5dcbfb4499716152d`，352 XCTest 通过、0 失败，iOS archive 成功。
+- [x] 包内名称、版本、原 Bundle ID、ZIP 完整性与无旧动作数据集已核验。
+- [x] 包含 GLM-5.3 参数兼容、首次欢迎页联网与 Milo 助手身份修复。
+- 提交作者／提交者均为 MinJung-Go，使用 GitHub noreply 邮箱。
+- IPA：2,309,997 bytes；SHA-256 `8299ee52cc8e5d7add14bb6dd53db46a7b636acc14a58b81e08960d93e30c7e0`。
+- 首次联网弹窗、实际模型对话和重签升级仍需真机验证。
+
+下方为历史实施记录；仓库重建前的 PR / Actions / IPA 链接已失效，安装请使用上方当前链接。
+
+
 用户已确认按设计开发并产出 IPA；暂不同步 Figma。
 
 ## 品牌与首页
