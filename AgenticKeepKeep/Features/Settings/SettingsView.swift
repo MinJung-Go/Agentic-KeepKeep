@@ -51,7 +51,9 @@ struct SettingsView: View {
                     .padding(.vertical, Theme.Spacing.xs)
                 }
                 Section {
-                    NavigationLink { MiloSettingsView() } label: { Label("\(displayName) · 相处方式", systemImage: "person.crop.circle") }
+                    NavigationLink { MiloSettingsView() } label: {
+                        SettingsRowLabel(title: "\(displayName) · 相处方式", symbol: "person.crop.circle")
+                    }
                     settingsLink(.model, symbol: "cpu", detail: settings.isConfigured ? "已配置" : "待配置")
                     settingsLink(.health, symbol: "heart", detail: healthSummary)
                 }
@@ -61,7 +63,7 @@ struct SettingsView: View {
                             Text(mode.title).tag(mode)
                         }
                     } label: {
-                        Label("外观", systemImage: "circle.lefthalf.filled")
+                        SettingsRowLabel(title: "外观", symbol: "circle.lefthalf.filled")
                     }
                 }
                 Section {
@@ -106,20 +108,7 @@ struct SettingsView: View {
 
     private func settingsLink(_ page: Page, symbol: String, detail: String?) -> some View {
         NavigationLink(value: page) {
-            HStack(spacing: Theme.Spacing.m) {
-                Image(systemName: symbol)
-                    .foregroundStyle(Theme.secondaryLabel)
-                    .frame(width: 24)
-                    .accessibilityHidden(true)
-                Text(page.rawValue)
-                    .foregroundStyle(.primary)
-                Spacer(minLength: Theme.Spacing.s)
-                if let detail {
-                    Text(detail)
-                        .font(Theme.Font.subheadline)
-                        .foregroundStyle(Theme.secondaryLabel)
-                }
-            }
+            SettingsRowLabel(title: page.rawValue, symbol: symbol, detail: detail)
         }
     }
 
@@ -641,4 +630,37 @@ struct PrivacyInfoView: View {
     SettingsView()
         .environmentObject(AppState())
         .modelContainer(try! AppModelContainer.inMemory())
+}
+
+/// All root settings rows share the same icon column, typography and title inset.
+private struct SettingsRowLabel: View {
+    let title: String
+    let symbol: String
+    var detail: String? = nil
+
+    @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 28
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 20
+    private let spacing: CGFloat = 12
+
+    var body: some View {
+        HStack(spacing: spacing) {
+            Image(systemName: symbol)
+                .font(.system(size: iconSize, weight: .regular))
+                .foregroundStyle(Theme.secondaryLabel)
+                .frame(width: iconWidth)
+                .accessibilityHidden(true)
+            Text(title)
+                .font(.body)
+                .foregroundStyle(.primary)
+            if let detail {
+                Spacer(minLength: Theme.Spacing.s)
+                Text(detail)
+                    .font(Theme.Font.subheadline)
+                    .foregroundStyle(Theme.secondaryLabel)
+            }
+        }
+        .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+            dimensions[.leading] + iconWidth + spacing
+        }
+    }
 }
