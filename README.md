@@ -23,7 +23,7 @@ Milo 是 Moveliq 的运动伙伴，默认出现在首页；称呼与相处方式
   <img src="docs/18-milo-home/preview-milo-themes.png" alt="Milo 首页浅深色设计对照：左侧白底淡蓝角色，右侧炭黑背景与柔和蓝色角色，下方展示三种头像尺寸" width="900">
 </p>
 
-> 上图为 HTML 设计预览，非真机截图；训练与记录内容均为演示。新版 Milo、深色角色调色与背景适配已接入当前源码，尚待本次 iOS 编译和真机验证；请以对应构建的提交与版本为准。
+> 上图为 HTML 设计预览，非真机截图；训练与记录内容均为演示。新版 Milo、深色角色调色与背景适配已接入当前源码，已通过 0.4.10 (14) 的 iOS 编译与 353 项单测，真机效果待验收；请以对应构建的提交与版本为准。
 
 [浅深色对照稿](docs/18-milo-home/design-milo-themes.html) · [四屏交互稿](docs/18-milo-home/design.html) · [设计需求](docs/18-milo-home/requirements.md) · [实施清单](docs/18-milo-home/checklist.md)
 

@@ -143,7 +143,7 @@
 - [x] AccentColor 增加浅色 #F4B353／深色 #DBAB65，Theme.accent 与次级按钮复用动态强调色。
 - [x] 保留外观设置的跟随系统／浅色／深色，复核 preferredColorScheme 到头像及动态颜色的引用链路。
 - [x] Swift 语法解析、资源清单与颜色范围检查、git diff --check 通过。
-- [ ] iOS CI 编译验证本次改动（尚未提交／推送；先前 353 项 CI 不代表此次验证）。
+- [x] 本次源码 1c86116 的 iOS CI 编译、353 项单测和 IPA 归档通过，见下方构建记录。
 - [ ] 真机验收：系统与手动切换外观、首页／聊天／设置、三个头像尺寸、底部栏以及增加对比度模式。
 
 设计稿以 CSS 调色展示目标效果；App 现用同一透明 PNG 配合 SwiftUI 饱和度和颜色乘法实现，独立深色 PNG 不再需要。跨渲染器的最终观感以真机验收为准。
@@ -153,3 +153,12 @@
 验证：Chromium 实际渲染并检查新版图片加载、主题切换、角色改名、记录意图弹窗；390px 无页面横向溢出。已视觉核对并排截图及 36／64／78pt 样例。更新 preview-light.png 与 preview-dark.png；这些是浏览器设计预览，不代表 iOS 真机验证。
 
 - [x] README 更新新版 Milo 介绍、透明角色图与浅深色并排示意图，链接本轮设计稿和清单；标注 HTML 预览与尚未接入的深色适配，修正旧首页称呼及过期测试数量描述。
+
+## 浅深色适配构建 · 2026-09-16
+
+- 源码 `1c86116`，分支 `fix/chat-output-polish`，作者与提交者 MinJung-Go。
+- [CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35083250179)：iOS 编译、353 XCTest（0 失败）及 Archive 全部成功。
+- [Moveliq 0.4.10 (14) IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35083250179/artifacts/10441522758)，安装前需侧载工具重新签名。
+- 已校验 ZIP 完整、版本、原 Bundle ID 与无旧动作数据集；IPA 2,377,384 bytes。
+- SHA-256：`c543179539f854f93ead81c2ec592d449fcea1f0aa7e621a2a9710e3400ee496`。
+- 真机浅深色切换、头像边缘、动态字体及聊天排版待验收。
