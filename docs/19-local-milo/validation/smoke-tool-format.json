@@ -1,0 +1,36 @@
+{
+  "environment": "Linux CPU; not iPhone or Metal",
+  "load_seconds": 1.3903032094240189,
+  "cases": [
+    {
+      "name": "identity",
+      "status": 0,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "first_piece_seconds": 0.5177581645548344,
+      "elapsed_seconds": 0.6653509214520454,
+      "text": "我叫 Milo。"
+    },
+    {
+      "name": "json",
+      "status": 0,
+      "input_tokens": 48,
+      "output_tokens": 38,
+      "first_piece_seconds": 0.5650962628424168,
+      "elapsed_seconds": 2.3998841121792793,
+      "text": "{\n  \"exercise\": \"深蹲\",\n  \"kg\": 100,\n  \"sets\": 5,\n  \"reps\": 5\n}"
+    },
+    {
+      "name": "app-tools",
+      "status": 0,
+      "input_tokens": 1760,
+      "output_tokens": 78,
+      "first_piece_seconds": 21.254552390426397,
+      "elapsed_seconds": 25.381732136011124,
+      "text": "<tool_call>\n<function=query_local_records>\n<parameter=end_date>\n2026-09-18\n</parameter>\n<parameter=exercise>\n\n</parameter>\n<parameter=kind>\nhealth\n</parameter>\n<parameter=start_date>\n2026-09-18\n</parameter>\n</function>\n</tool_call>"
+    }
+  ],
+  "runtime_revision": "972d2313bc0bf0a45f634f77d95c9fb03aeab12c",
+  "model_revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+  "evaluation_scope": "Raw model/C bridge smoke; not App E2E or iPhone performance"
+}

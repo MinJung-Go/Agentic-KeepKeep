@@ -1,0 +1,46 @@
+{
+  "environment": "Linux CPU; not iPhone or Metal",
+  "load_seconds": 1.3942595906555653,
+  "cases": [
+    {
+      "name": "identity",
+      "status": 0,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "first_piece_seconds": 0.5167756006121635,
+      "elapsed_seconds": 0.6631179191172123,
+      "text": "我叫 Milo。",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "json",
+      "status": 0,
+      "input_tokens": 48,
+      "output_tokens": 38,
+      "first_piece_seconds": 0.5713942311704159,
+      "elapsed_seconds": 2.4042813293635845,
+      "text": "{\n  \"exercise\": \"深蹲\",\n  \"kg\": 100,\n  \"sets\": 5,\n  \"reps\": 5\n}",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "app-tools",
+      "status": 0,
+      "input_tokens": 1817,
+      "output_tokens": 78,
+      "first_piece_seconds": 21.770110484212637,
+      "elapsed_seconds": 26.145440828055143,
+      "text": "<tool_call>\n<function=query_local_records>\n<parameter=end_date>\n2026-09-18\n</parameter>\n<parameter=exercise>\n\n</parameter>\n<parameter=kind>\nhealth\n</parameter>\n<parameter=start_date>\n2026-09-18\n</parameter>\n</function>\n</tool_call>",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "app-followup",
+      "status": 0,
+      "input_tokens": 1940,
+      "output_tokens": 64,
+      "first_piece_seconds": 22.91382620483637,
+      "elapsed_seconds": 26.532184671610594,
+      "text": "今天步数是 **4,321** 步。\n\n这属于日常通勤或短距离活动量，不算特别高，但配合你之前的训练计划，也属于合理的恢复与活动范围。\n\n如果你近期感觉身体比较疲惫，或者想增加一点运动量，我们可以看看如何平衡一下。",
+      "smoke_assertions_passed": true
+    }
+  ]
+}

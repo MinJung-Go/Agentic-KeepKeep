@@ -14,7 +14,7 @@ final class ExerciseTutorialStore: ObservableObject {
     private var batchGeneration = 0
     init(configuration: @escaping () throws -> LLMClientConfig? = {
         let settings = LLMSettings.shared
-        guard settings.webSearchEnabled, settings.supportsWebSearch, settings.isConfigured else { return nil }
+        guard !settings.useLocalModel, settings.webSearchEnabled, settings.supportsWebSearch, settings.isConfigured else { return nil }
         return try settings.makeRecordingClient().config
     }, fetch: @escaping (TutorialExercise, LLMClientConfig) async throws -> [ExerciseTutorial] = { exercise, config in
         let body = try JSONSerialization.data(withJSONObject: [

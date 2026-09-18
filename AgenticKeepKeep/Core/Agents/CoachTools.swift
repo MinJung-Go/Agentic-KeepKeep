@@ -1,11 +1,5 @@
 import Foundation
 
-struct CoachToolResult {
-    var content: String
-    var sources: [URL] = []
-    var failed = false
-}
-
 /// The caller owns database/network access; the Agent sees only bounded summaries.
 struct CoachTools {
     var webSearchEnabled = false

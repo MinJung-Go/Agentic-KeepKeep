@@ -84,6 +84,18 @@ final class CoachContextTests: XCTestCase {
         XCTAssertLessThan(try policy.inputLimit(retrying: true), try policy.inputLimit())
     }
 
+    func testLocalEightKCanPrepareInitialToolRequest() async throws {
+        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+        let settings = LLMSettings(defaults: defaults)
+        settings.useLocalModel = true
+        let tools = CoachTools(webSearchEnabled: true, execute: { _ in CoachToolResult(content: "测试") })
+        let prepared = try await CoachContextEngine(client: ContextScriptClient(), policy: settings.coachPolicy,
+                                                    queryTools: tools.definitions).prepare(
+            history: [], userMessage: "今天走了多少步？", context: CoachContext(), memory: nil, thinking: false)
+        try settings.coachPolicy.validate(prepared.request)
+        XCTAssertEqual(prepared.request.maxTokens, 1024)
+    }
+
     func testShortChatHasNoSummaryAndThinkingReservesActualOutput() async throws {
         let client = ContextScriptClient()
         let result = try await CoachContextEngine(client: client).prepare(history: [], userMessage: "你好", context: CoachContext(), memory: nil, thinking: true)

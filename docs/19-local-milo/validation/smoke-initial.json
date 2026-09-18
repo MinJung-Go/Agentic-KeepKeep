@@ -1,0 +1,45 @@
+{
+  "environment": "Linux CPU; not iPhone or Metal",
+  "load_seconds": 1.4212239757180214,
+  "cases": [
+    {
+      "name": "identity",
+      "status": 0,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "first_piece_seconds": 0.5264138244092464,
+      "elapsed_seconds": 0.7036098204553127,
+      "text": "我叫 Milo。"
+    },
+    {
+      "name": "json",
+      "status": 0,
+      "input_tokens": 48,
+      "output_tokens": 38,
+      "first_piece_seconds": 0.5801666118204594,
+      "elapsed_seconds": 2.812301628291607,
+      "text": "{\n  \"exercise\": \"深蹲\",\n  \"kg\": 100,\n  \"sets\": 5,\n  \"reps\": 5\n}"
+    },
+    {
+      "name": "app-tools",
+      "status": 0,
+      "input_tokens": 1581,
+      "output_tokens": 112,
+      "first_piece_seconds": 18.657811529934406,
+      "elapsed_seconds": 24.95688083395362,
+      "text": "你好，Milo。作为你的运动伙伴，我注意到你问到了步数，但我的系统目前还没有自动同步到今天的实时数据。\n\n为了给你最准确的建议，我需要先确认一下：\n**你今天的步数是多少？**\n\n如果你不方便直接告诉我，或者你希望我帮你估算，请告诉我你今天的**训练天数**（比如是第几天）、**可用器械**（如哑铃、跑步机、跳绳等）以及**是否有伤病或恢复期**。有了这些信息，我就能为你生成一份个性化的训练计划。"
+    },
+    {
+      "name": "vision",
+      "status": 0,
+      "input_tokens": 292,
+      "output_tokens": 34,
+      "first_piece_seconds": 8.03944605216384,
+      "elapsed_seconds": 9.888584766536951,
+      "text": "Nutrition facts\nEnergy: 250 kcal\nProtein: 12 g\nCarbohydrate: 30 g\nFat: 9 g"
+    }
+  ],
+  "runtime_revision": "972d2313bc0bf0a45f634f77d95c9fb03aeab12c",
+  "model_revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+  "evaluation_scope": "Raw model/C bridge smoke; not App E2E or iPhone performance"
+}

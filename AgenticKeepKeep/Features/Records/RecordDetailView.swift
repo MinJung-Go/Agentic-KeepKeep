@@ -340,6 +340,7 @@ struct MetricDetailView: View {
 struct RawNoteDetailView: View {
 
     @Bindable var note: RawNote
+    @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
@@ -351,6 +352,9 @@ struct RawNoteDetailView: View {
     var body: some View {
         Form {
             Section("原文") {
+                if let data = note.photoData, let image = UIImage(data: data) {
+                    Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 220)
+                }
                 TextField("内容", text: $note.text, axis: .vertical)
                     .lineLimit(3...8)
                 DatePicker("时间", selection: $note.date)
@@ -362,7 +366,13 @@ struct RawNoteDetailView: View {
 
             Section {
                 Button {
-                    Task { await reparse() }
+                    if let photo = note.photoData {
+                        appState.pendingLogText = note.text
+                        appState.pendingLogPhoto = photo
+                        appState.isQuickLogPresented = true
+                    } else {
+                        Task { await reparse() }
+                    }
                 } label: {
                     HStack {
                         Label("用 AI 重新解析", systemImage: "wand.and.stars")
@@ -378,7 +388,7 @@ struct RawNoteDetailView: View {
                 }
             } footer: {
                 if !settings.isConfigured {
-                    Text("重新解析需要先在「设置」里配置 API Key")
+                    Text("请先在设置中准备好离线模型或云端 AI")
                 } else if let message {
                     Text(message)
                 } else {

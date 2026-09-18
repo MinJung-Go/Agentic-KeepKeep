@@ -17,11 +17,12 @@ struct CoachContextPolicy {
     var safetyMargin: Int = 1_024
     var memoryLimit: Int = 1_500
     var recentRounds: Int = 6
+    var queryResultReserve: Int = 2_200
     var estimator: any CoachTokenEstimating = CoachUTF8Estimator()
 
     func inputLimit(retrying: Bool = false) throws -> Int {
         guard window >= 4_096, window <= 1_048_576,
-              outputReserve >= 4_096, outputReserve < window,
+              outputReserve >= 512, outputReserve < window,
               safetyMargin >= 512, inputCap > 0, memoryLimit > 0, recentRounds > 0 else {
             throw CoachContextError.invalidBudget
         }

@@ -21,6 +21,7 @@ struct CoachChatView: View {
     @FocusState private var isInputFocused: Bool
     @State private var isSending = false
     @State private var isPreparingContext = false
+    @StateObject private var browser = LocalBrowserSession()
     @StateObject private var memoryStore = CoachMemoryStore()
     @State private var errorText: String?
     /// 本次对话注入教练的个人概况（展示给用户，保持透明）
@@ -99,7 +100,17 @@ struct CoachChatView: View {
                     }
                 }
             }
-            .onDisappear { stopStreaming() }
+            .environment(\.openURL, OpenURLAction { url in
+                guard settings.useLocalModel else { return .systemAction }
+                guard LocalBrowserPolicy.allows(url) else {
+                    appState.showToast("此验证版本暂不支持该来源的内置阅读")
+                    return .handled
+                }
+                Task { try? await browser.preview(url) }
+                return .handled
+            })
+            .sheet(isPresented: $browser.isPresented) { LocalBrowserView(browser: browser) }
+            .onDisappear { stopStreaming(); browser.cancel() }
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
@@ -185,7 +196,7 @@ struct CoachChatView: View {
                     .font(Theme.Font.footnote)
                     .foregroundStyle(Theme.danger)
             } else if !settings.isConfigured {
-                Text("先在「设置 → AI 模型」配置 API Key，即可开始对话")
+                Text(settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "可在设置中下载离线模型，或配置云端 AI")
                     .font(Theme.Font.footnote)
                     .foregroundStyle(Theme.secondaryLabel)
             }
@@ -368,7 +379,7 @@ struct CoachChatView: View {
         guard !text.isEmpty else { isSending = false; return }
 
         guard settings.isConfigured else {
-            errorText = "请先在「设置 → AI 模型」中配置 API Key"
+            errorText = settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请先在设置中选择离线模式或配置云端 AI"
             isSending = false
             return
         }
@@ -434,6 +445,7 @@ struct CoachChatView: View {
                           args.sourceIndex > 0, args.sourceIndex <= searchSources.count else {
                         return CoachToolResult(content: "请先搜索，再选择本轮返回的有效来源编号。未读取网页。", failed: true)
                     }
+                    if settings.useLocalModel { return try await browser.read(searchSources[args.sourceIndex - 1]) }
                     return try await GLMWebReader(config: client.config).read(url: searchSources[args.sourceIndex - 1])
                 }
                 guard settings.webSearchEnabled && settings.supportsWebSearch,
@@ -441,7 +453,9 @@ struct CoachChatView: View {
                     return CoachToolResult(content: "联网搜索未启用，或公共主题不受支持。没有执行搜索。", failed: true)
                 }
                 let count = args.count ?? GLMWebSearch.defaultResultCount
-                let result = try await GLMWebSearch(config: client.config).search(topic: args.topic, count: count)
+                let result: CoachToolResult
+                if settings.useLocalModel { result = try await browser.search(topic: args.topic, count: count) }
+                else { result = try await GLMWebSearch(config: client.config).search(topic: args.topic, count: count) }
                 searchSources = result.sources
                 return result
             }

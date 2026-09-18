@@ -63,18 +63,16 @@ final class LoggingViewModel: ObservableObject {
     /// 发送一轮：只发文字、只发照片，或文字 + 照片（文字作为照片的补充说明）
     func submit(context: ModelContext, photo: Data? = nil) async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty || photo != nil else { return }
+        guard !isParsing, !text.isEmpty || photo != nil else { return }
 
         turns.append(LogTurn(kind: .user, text: text, photoData: photo))
         inputText = ""
 
         guard settings.isConfigured else {
-            if !text.isEmpty {
-                RecordImporter.storeRawNote(text, failureReason: "未配置 API Key", to: context)
-            }
+            RecordImporter.storeRawNote(text, failureReason: settings.useLocalModel ? "离线模型未就绪" : "未配置 API Key", to: context, photoData: photo)
             turns.append(LogTurn(
                 kind: .failure,
-                text: "尚未配置 AI，这次没能解析。填好 API Key 后可以重新处理，也可以先手动记录。"
+                text: settings.useLocalModel ? "离线模型还没准备好。下载完成后可以重新处理，也可以先手动记录。" : "尚未配置 AI，这次没能解析。下载离线模型或配置云端 AI 后可以重新处理。"
             ))
             return
         }
@@ -88,10 +86,20 @@ final class LoggingViewModel: ObservableObject {
 
             if let photo {
                 guard let base64 = ImageDownscaler.jpegBase64(from: photo) else {
-                    turns.append(LogTurn(kind: .failure, text: "这张图片无法读取，请换一张再试，或改用文字记录。"))
+                    RecordImporter.storeRawNote(text, failureReason: "图片无法读取", to: context, photoData: photo)
+                    turns.append(LogTurn(kind: .failure, text: "这张图片无法读取，原输入已保存在待归类记录。请换一张或改用文字记录。"))
                     return
                 }
-                drafts = try await visionDrafts(photo: photo, base64: base64, note: text, client: client)
+                if settings.useLocalModel {
+                    let records = try await ParserAgent(client: client).parse(text, imageBase64JPEG: base64)
+                    drafts = records.compactMap { record in
+                        guard var draft = LogDraft.from(record) else { return nil }
+                        if draft.kind == .meal { draft.meal.photoData = ImageDownscaler.jpegData(from: photo) }
+                        return draft
+                    }
+                } else {
+                    drafts = try await visionDrafts(photo: photo, base64: base64, note: text, client: client)
+                }
             } else {
                 // 不含本轮：本轮输入单独作为最后一条 user 消息
                 let history = Self.historyTurns(from: Array(turns.dropLast()))
@@ -102,7 +110,7 @@ final class LoggingViewModel: ObservableObject {
             guard !drafts.isEmpty else { throw AgentError.emptyResult }
             turns.append(LogTurn(kind: .assistant, drafts: drafts))
         } catch {
-            appendFailure(for: error, text: text, hasPhoto: photo != nil, context: context)
+            appendFailure(for: error, text: text, photo: photo, context: context)
         }
     }
 
@@ -119,12 +127,13 @@ final class LoggingViewModel: ObservableObject {
         return [draft]
     }
 
-    /// 失败处理：文字留存为 RawNote，照片无法留存但要给出可执行的提示
-    private func appendFailure(for error: Error, text: String, hasPhoto: Bool, context: ModelContext) {
-        if hasPhoto {
+    /// 失败处理：文字和附件均留存为 RawNote，保留重试入口。
+    private func appendFailure(for error: Error, text: String, photo: Data?, context: ModelContext) {
+        if let photo {
+            RecordImporter.storeRawNote(text, failureReason: error.localizedDescription, to: context, photoData: photo)
             let message = (error as? LLMError).map(Self.photoFailureMessage(for:))
                 ?? "照片识别失败：\(error.localizedDescription)"
-            turns.append(LogTurn(kind: .failure, text: message))
+            turns.append(LogTurn(kind: .failure, text: message + "\n原输入已保存在待归类记录。"))
             return
         }
 

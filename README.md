@@ -1,3 +1,9 @@
+[![Milo 本地图文与网页搜索设计演示](docs/19-local-milo/design-preview.gif)](docs/19-local-milo/design-video.mp4)
+
+[观看 24 秒设计短片（MP4）](docs/19-local-milo/design-video.mp4) · [六屏交互设计稿](docs/19-local-milo/design.html)
+
+> 以上为设计稿演示，非真机录屏。第 19 轮本地图文与浏览器功能正在验证，不能视为已通过 iPhone 性能或可用性验收。
+
 <div align="center">
 
 <img src="docs/18-milo-home/assets/milo.png" alt="Milo：淡蓝色小糯团，戴黄色手环" width="112">
@@ -68,10 +74,11 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 需要 macOS + Xcode 16 或更新版本，以及 [XcodeGen](https://github.com/yonaskolb/XcodeGen)：
 
 ```bash
-brew install xcodegen
+brew install xcodegen cmake
 git clone https://github.com/MinJung-Go/Agentic-KeepKeep.git
 cd Agentic-KeepKeep
 python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep  # 检查无旧动作数据集
+bash scripts/build_local_runtime.sh  # 首次构建锁定的 llama.cpp / Metal / 图文引擎
 xcodegen generate
 open AgenticKeepKeep.xcodeproj
 ```
@@ -117,6 +124,7 @@ open AgenticKeepKeep.xcodeproj
 
 ```bash
 python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep  # 检查无旧动作数据集
+bash scripts/build_local_runtime.sh  # 首次构建本地图文引擎（只需在引擎版本变化后重建）
 xcodegen generate   # 生成 Xcode 工程
 
 # 本机（需 macOS）

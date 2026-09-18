@@ -28,15 +28,23 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep
         PRODUCT_NAME: KeepKeep
         PRODUCT_MODULE_NAME: AgenticKeepKeep
+        SWIFT_OBJC_BRIDGING_HEADER: AgenticKeepKeep/Core/LocalMilo/MiloNative.h
+        CLANG_CXX_LANGUAGE_STANDARD: c++17
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.4.10"
-        CURRENT_PROJECT_VERSION: "14"
+        MARKETING_VERSION: "0.4.11"
+        CURRENT_PROJECT_VERSION: "15"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeep/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeep/Resources/KeepKeep.entitlements
     dependencies:
+      - framework: Vendor/llama.xcframework
+        embed: true
+        codeSign: true
+      - sdk: Accelerate.framework
+      - sdk: Metal.framework
+      - sdk: libc++.tbd
       - sdk: HealthKit.framework
       - target: KeepKeepWidget
 
@@ -60,8 +68,8 @@ targets:
         PRODUCT_NAME: KeepKeepWidget
         PRODUCT_MODULE_NAME: KeepKeepWidget
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.4.10"
-        CURRENT_PROJECT_VERSION: "14"
+        MARKETING_VERSION: "0.4.11"
+        CURRENT_PROJECT_VERSION: "15"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeepWidget/Info.plist
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeepWidget/KeepKeepWidget.entitlements

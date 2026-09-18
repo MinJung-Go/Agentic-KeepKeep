@@ -1,0 +1,15 @@
+Local Milo evaluation runtime
+
+Qwen3.5-2B: Qwen Team, Apache License 2.0.
+Original model: https://huggingface.co/Qwen/Qwen3.5-2B
+Quantized distribution: https://huggingface.co/unsloth/Qwen3.5-2B-GGUF
+Pinned quantized revision: f6d5376be1edb4d416d56da11e5397a961aca8ae
+Language weights Q4_K_M; vision projection F16. Downloaded separately, not shipped in IPA.
+This application is not affiliated with or endorsed by Qwen or Unsloth.
+
+llama.cpp and libmtmd: ggml-org contributors, MIT License.
+https://github.com/ggml-org/llama.cpp
+Pinned source: 972d2313bc0bf0a45f634f77d95c9fb03aeab12c
+Compiled with Metal support. App-specific bridge is in Core/LocalMilo/MiloNative.cpp.
+
+See Qwen-LICENSE.txt and llama-LICENSE.txt for license text.

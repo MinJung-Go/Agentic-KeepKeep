@@ -28,6 +28,9 @@ struct TodayView: View {
     }
     @State private var chatEntry: ChatEntry?
     @State private var choosesIntent = false
+    @AppStorage("localMilo.invitationShown") private var invitationShown = false
+    @State private var showsLocalInvitation = false
+    @ObservedObject private var localStore = LocalModelStore.shared
 
     /// 今日页输入条里敲的内容（还没提交，所以不进 ViewModel）
     @State private var showsHealthDetails = false
@@ -84,6 +87,12 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                     greeting.staggeredAppear(0)
+                    if localStore.phase != .absent {
+                        NavigationLink { LocalModelView() } label: {
+                            LocalDownloadStatus().frame(maxWidth: .infinity, alignment: .leading).padding(16)
+                                .background(RoundedRectangle(cornerRadius: 18).stroke(Theme.secondaryLabel.opacity(0.2)))
+                        }.buttonStyle(.plain)
+                    }
                     planSection.staggeredAppear(1)
                     recordsSection.staggeredAppear(2)
                     if !snapshots.isEmpty { healthSection }
@@ -107,6 +116,13 @@ struct TodayView: View {
                         Image(systemName: "bubble.left.and.bubble.right").frame(width: 44, height: 44)
                     }
                     .accessibilityLabel("与 \(displayName) 的对话")
+                }
+            }
+            .sheet(isPresented: $showsLocalInvitation) { LocalModelInvitation() }
+            .task {
+                if !invitationShown {
+                    invitationShown = true
+                    showsLocalInvitation = true
                 }
             }
             .sheet(item: $chatEntry) { entry in

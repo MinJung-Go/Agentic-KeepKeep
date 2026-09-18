@@ -19,7 +19,7 @@ struct TutorialProgressView: View {
                 Button("停止补充") { batch?.cancel(); store.stopAll() }
             } else {
                 Text(settings.webSearchEnabled ? "教学已找到 \(ready) / \(Set(names).count) · 在动作详情查看" : "联网搜索已关闭 · 课程照常可用")
-                if settings.webSearchEnabled && settings.supportsWebSearch && ready < keys.count {
+                if !settings.useLocalModel && settings.webSearchEnabled && settings.supportsWebSearch && ready < keys.count {
                     Button("继续补充教学") {
                         batch?.cancel()
                         batch = Task { await store.enrich(names: names, context: context, retryUnresolved: true) }

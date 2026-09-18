@@ -3,6 +3,15 @@ import XCTest
 
 final class ParserAgentTests: XCTestCase {
 
+    func testPhotoOnlyRequestCanProduceTrainingProposal() async throws {
+        let json = #"{"records":[{"type":"workout","workout":{"exercises":[{"name":"深蹲","weightKg":100,"sets":5,"reps":5}]}}]}"#
+        let client = MockLLMClient(responses: [.text(json)])
+        let records = try await ParserAgent(client: client).parse("", imageBase64JPEG: "fixture-image")
+        XCTAssertEqual(client.lastRequest?.messages.last?.imagesBase64JPEG, ["fixture-image"])
+        XCTAssertEqual(records.first?.workout?.exercises.first?.weightKg, 100)
+        XCTAssertEqual(records.first?.kind, .workout)
+    }
+
     func testParsesWorkoutRecord() async throws {
         let json = """
         {"records":[{"type":"workout","workout":{"title":"腿日","exercises":[{"name":"深蹲","weightKg":100,"reps":5,"sets":5}],"rpe":8}}]}

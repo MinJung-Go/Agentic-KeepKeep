@@ -58,9 +58,12 @@ enum RecordImporter {
         _ text: String,
         failureReason: String,
         to context: ModelContext,
-        date: Date = .now
+        date: Date = .now,
+        photoData: Data? = nil
     ) {
-        context.insert(RawNote(text: text, date: date, failureReason: failureReason))
+        let note = RawNote(text: text.isEmpty && photoData != nil ? "待整理的照片" : text, date: date, failureReason: failureReason)
+        note.photoData = photoData
+        context.insert(note)
         try? context.save()
     }
 

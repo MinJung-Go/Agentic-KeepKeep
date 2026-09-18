@@ -16,7 +16,7 @@ struct ExerciseTutorialSection: View {
     private var entry: ExerciseTutorialCache? { cache.first { $0.key == key } }
     private var videos: [ExerciseTutorial] { ExerciseTutorialStore.entries(entry) }
     private var loading: Bool { key.map { store.running.contains($0) } ?? false }
-    private var enabled: Bool { settings.webSearchEnabled && settings.supportsWebSearch && settings.isConfigured }
+    private var enabled: Bool { !settings.useLocalModel && settings.webSearchEnabled && settings.supportsWebSearch && settings.isConfigured }
 
     var body: some View {
         Section {
@@ -79,6 +79,7 @@ struct ExerciseTutorialSection: View {
         }
     }
     private var emptyMessage: String {
+        if settings.useLocalModel { return "本机模式可在 Milo 对话中查阅公开资料；教学视频自动补充暂不支持。" }
         if key == nil { return "暂无合适视频。动作名称或器械变式暂未匹配，不影响训练。" }
         if !settings.webSearchEnabled { return "联网搜索已关闭，已有课程仍可使用。" }
         if !enabled { return "请先配置智谱官方模型与联网搜索。" }

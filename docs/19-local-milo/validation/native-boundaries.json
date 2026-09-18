@@ -1,0 +1,17 @@
+{
+  "environment": "Linux CPU; actual native bridge and model, not iOS",
+  "cases": [
+    {
+      "name": "oversized-context",
+      "status": -2,
+      "passed": true,
+      "seconds": 0.036354344338178635
+    },
+    {
+      "name": "cancel-before-generate",
+      "status": -3,
+      "passed": true,
+      "seconds": 0.009535644203424454
+    }
+  ]
+}

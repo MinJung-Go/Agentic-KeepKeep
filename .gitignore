@@ -71,3 +71,6 @@ docs/05-exercise-illustrations/preview/*.png
 # Legacy third-party media (removed; guard against local leftovers)
 AgenticKeepKeep/Resources/ExerciseMedia/*.gif
 AgenticKeepKeep/Resources/ExerciseMedia/*.tmp
+
+# Built locally from pinned llama.cpp source
+Vendor/

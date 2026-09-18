@@ -60,6 +60,10 @@ final class LLMSettings: ObservableObject {
 
     private let defaults: UserDefaults
 
+    @Published var useLocalModel: Bool {
+        didSet { defaults.set(useLocalModel, forKey: "llm.useLocalModel") }
+    }
+
     @Published var preset: LLMEndpointPreset {
         didSet { defaults.set(preset.rawValue, forKey: Key.preset) }
     }
@@ -82,7 +86,7 @@ final class LLMSettings: ObservableObject {
     }
 
     var supportsWebSearch: Bool {
-        preset == .zhipuGLM && GLMWebSearch.isOfficialEndpoint(baseURL)
+        useLocalModel || (preset == .zhipuGLM && GLMWebSearch.isOfficialEndpoint(baseURL))
     }
 
     /// 仅在内存中保留；变更即写入 Keychain
@@ -101,6 +105,7 @@ final class LLMSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.useLocalModel = defaults.bool(forKey: "llm.useLocalModel")
 
         let storedPreset = defaults.string(forKey: Key.preset).flatMap(LLMEndpointPreset.init(rawValue:)) ?? .zhipuGLM
         self.preset = storedPreset
@@ -136,7 +141,12 @@ final class LLMSettings: ObservableObject {
     }
 
     var coachPolicy: CoachContextPolicy {
-        CoachContextPolicy(window: coachContextWindow, inputCap: coachContextWindow)
+        if useLocalModel {
+            return CoachContextPolicy(window: 8192, inputCap: 8192, outputReserve: 1024,
+                                      safetyMargin: 512, memoryLimit: 700, recentRounds: 2, queryResultReserve: 768,
+                                      estimator: LocalTokenEstimator())
+        }
+        return CoachContextPolicy(window: coachContextWindow, inputCap: coachContextWindow)
     }
 
     /// 生效的端点地址
@@ -145,7 +155,8 @@ final class LLMSettings: ObservableObject {
     }
 
     var isConfigured: Bool {
-        !apiKey.isEmpty
+        if useLocalModel { return LocalModelManifest.isInstalled() }
+        return !apiKey.isEmpty
             && !baseURL.trimmingCharacters(in: .whitespaces).isEmpty
             && !modelName.trimmingCharacters(in: .whitespaces).isEmpty
     }
@@ -161,6 +172,10 @@ final class LLMSettings: ObservableObject {
 
     /// 构造客户端（Agent 层唯一入口）
     func makeClient() throws -> LLMClient {
+        if useLocalModel {
+            guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
+            return LocalLLMClient()
+        }
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
         let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -221,5 +236,14 @@ final class LLMSettings: ObservableObject {
         } catch {
             return .failure(error)
         }
+    }
+}
+
+/// Used only to plan pruning. The native tokenizer enforces the real 8K limit before decode.
+struct LocalTokenEstimator: CoachTokenEstimating {
+    func count(_ text: String) -> Int {
+        let scalars = text.unicodeScalars
+        let ascii = scalars.filter(\.isASCII).count
+        return max(1, (ascii + 2) / 3 + (scalars.count - ascii) * 2)
     }
 }

@@ -54,6 +54,9 @@ struct SettingsView: View {
                     NavigationLink { MiloSettingsView() } label: {
                         SettingsRowLabel(title: "\(displayName) · 相处方式", symbol: "person.crop.circle")
                     }
+                    NavigationLink { LocalModelView() } label: {
+                        SettingsRowLabel(title: "离线模式", symbol: "iphone", detail: settings.useLocalModel ? "已选择" : nil)
+                    }
                     settingsLink(.model, symbol: "cpu", detail: settings.isConfigured ? "已配置" : "待配置")
                     settingsLink(.health, symbol: "heart", detail: healthSummary)
                 }
@@ -82,6 +85,13 @@ struct SettingsView: View {
                 Form {
                     switch page {
                     case .model:
+                        if settings.useLocalModel {
+                            Section {
+                                Text("当前使用离线模式。下面的云端配置不会自动启用。")
+                                    .font(.footnote).foregroundStyle(.secondary)
+                                Button("切换到云端 AI") { settings.useLocalModel = false }
+                            }
+                        }
                         llmSection
                         searchSection
                     case .health: healthSection
@@ -123,7 +133,7 @@ struct SettingsView: View {
                 .disabled(!settings.supportsWebSearch)
         } footer: {
             Text(settings.supportsWebSearch
-                 ? "按需查询公共健身资料并显示来源。仅发送公共主题词，不发送个人记录；搜索按智谱 API 单独计费。"
+                 ? (settings.useLocalModel ? "通过 App 内置浏览器查询公共资料。搜索词发送给搜索网站，不附带聊天或健康记录。" : "按需查询公共健身资料并显示来源。仅发送公共主题词，不发送个人记录；搜索按智谱 API 单独计费。")
                  : "联网搜索仅支持智谱官方 API。切换至智谱 GLM 后可开启。")
         }
     }
@@ -193,10 +203,10 @@ struct SettingsView: View {
                 }
 
                 HStack(spacing: Theme.Spacing.xs) {
-                    Image(systemName: settings.isConfigured ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                    Image(systemName: !settings.apiKey.isEmpty ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
                         .font(.system(size: 11, weight: .semibold))
                         .symbolRenderingMode(.hierarchical)
-                    Text(settings.isConfigured ? "已配置 · 存于系统钥匙串" : "尚未配置，AI 功能不可用")
+                    Text(!settings.apiKey.isEmpty ? "已配置 · 存于系统钥匙串" : "尚未配置云端 API Key")
                         .font(Theme.Font.badge)
                         .fontWeight(.regular)
                 }
