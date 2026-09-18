@@ -24,6 +24,9 @@ enum LocalModelManifest {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
             .appendingPathComponent("LocalMilo/\(revision)", isDirectory: true)
     }
+    static func requiredDownloadSpace(existingSizes: [String: Int64]) -> Int64 {
+        files.filter { existingSizes[$0.name] != $0.bytes }.reduce(Int64(268_435_456)) { $0 + $1.bytes }
+    }
     static func isInstalled(at directory: URL = directory) -> Bool {
         guard (try? String(contentsOf: directory.appendingPathComponent("ready"), encoding: .utf8)) == revision else { return false }
         return files.allSatisfy { file in

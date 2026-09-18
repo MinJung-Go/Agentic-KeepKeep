@@ -98,8 +98,15 @@ final class LocalModelStore: ObservableObject {
                 var values = URLResourceValues(); values.isExcludedFromBackup = true
                 try folder.setResourceValues(values)
                 let available = try folder.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]).volumeAvailableCapacityForImportantUsage ?? 0
-                let remaining = LocalModelManifest.files.filter { !FileManager.default.fileExists(atPath: folder.appendingPathComponent($0.name).path) }.reduce(Int64(0)) { $0 + $1.bytes }
-                guard available > remaining + 268_435_456 else { throw LocalMiloError.insufficientSpace }
+                var existingSizes: [String: Int64] = [:]
+                for file in LocalModelManifest.files {
+                    if let size = try? folder.appendingPathComponent(file.name).resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                        existingSizes[file.name] = Int64(size)
+                    }
+                }
+                guard available > LocalModelManifest.requiredDownloadSpace(existingSizes: existingSizes) else {
+                    throw LocalMiloError.insufficientSpace
+                }
                 var completed: Int64 = 0
                 for file in LocalModelManifest.files {
                     try Task.checkCancellation()
