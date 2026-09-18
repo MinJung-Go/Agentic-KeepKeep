@@ -36,6 +36,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
     private var unloadReason: LocalMiloError?
     // Only accessed by the serialized task chain.
     private var verified = false
+    private var hasUsedMLX = false
 
     func unload(reason: LocalMiloError? = nil) async {
         await enqueueUnload(reason: reason).value
@@ -48,7 +49,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
         let task = Task.detached { [self] in
             await prior?.value
             verified = false
-            Memory.clearCache()
+            if hasUsedMLX { Memory.clearCache() }
             finishUnload()
         }
         tail = task
@@ -78,7 +79,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
     private func generate(_ request: LLMRequest, flag: LocalCancellation,
                           continuation: AsyncThrowingStream<LLMStreamEvent, Error>.Continuation) async {
         var container: ModelContainer?
-        defer { container = nil; Memory.clearCache() }
+        defer { container = nil; if hasUsedMLX { Memory.clearCache() } }
         do {
             try flag.check()
             guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
@@ -92,6 +93,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
             let rendered = try LocalPrompt.render(request)
             let imageData = try Self.image(request.messages.flatMap(\.imagesBase64JPEG))
             let directory = try LocalModelManifest.runtimeDirectory()
+            hasUsedMLX = true
             Memory.cacheLimit = 16 * 1_048_576
             Memory.clearCache()
             do {
