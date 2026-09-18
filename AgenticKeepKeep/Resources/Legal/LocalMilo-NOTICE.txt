@@ -4,6 +4,9 @@ Qwen3.5-2B: Qwen Team, Apache License 2.0.
 Original model: https://huggingface.co/Qwen/Qwen3.5-2B
 Quantized distribution: https://huggingface.co/unsloth/Qwen3.5-2B-GGUF
 Pinned quantized revision: f6d5376be1edb4d416d56da11e5397a961aca8ae
+Default download mirror: https://modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF
+Pinned ModelScope revision: 90057e31161eb95cc0bc1413c4f53b44de9b49c8
+Both required files match the pinned original SHA-256 hashes and sizes.
 Language weights Q4_K_M; vision projection F16. Downloaded separately, not shipped in IPA.
 This application is not affiliated with or endorsed by Qwen or Unsloth.
 

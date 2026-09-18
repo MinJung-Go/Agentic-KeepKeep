@@ -6,11 +6,13 @@ struct LocalModelFile: Codable, Equatable {
     let bytes: Int64
     let sha256: String
     var url: URL {
-        URL(string: "https://huggingface.co/unsloth/Qwen3.5-2B-GGUF/resolve/\(LocalModelManifest.revision)/\(name)")!
+        URL(string: "https://modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF/resolve/\(LocalModelManifest.modelScopeRevision)/\(name)")!
     }
 }
 
 enum LocalModelManifest {
+    static let modelScopeRevision = "90057e31161eb95cc0bc1413c4f53b44de9b49c8"
+    // Content identity stays stable: both hosts publish exactly the same verified bytes.
     static let revision = "f6d5376be1edb4d416d56da11e5397a961aca8ae"
     static let files = [
         LocalModelFile(name: "Qwen3.5-2B-Q4_K_M.gguf", bytes: 1_280_835_840,

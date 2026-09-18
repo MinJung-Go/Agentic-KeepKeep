@@ -16,7 +16,7 @@ final class LocalModelTransfer: NSObject, URLSessionDownloadDelegate, @unchecked
     init(file: LocalModelFile, directory: URL, progress: @escaping @Sendable (Int64) -> Void) {
         self.file = file; self.directory = directory; self.progress = progress
     }
-    var resumeURL: URL { directory.appendingPathComponent(file.name + ".resume") }
+    var resumeURL: URL { directory.appendingPathComponent(file.name + ".modelscope.resume") }
     func run(cellular: Bool) async throws -> URL {
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { cont in

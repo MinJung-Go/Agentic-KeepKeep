@@ -71,8 +71,8 @@ final class LocalModelInstallTests: XCTestCase {
         XCTAssertEqual(LocalModelManifest.totalBytes, 1_949_063_104)
         for file in LocalModelManifest.files {
             XCTAssertEqual(file.sha256.count, 64)
-            XCTAssertEqual(file.url.host, "huggingface.co")
-            XCTAssertTrue(file.url.path.contains(LocalModelManifest.revision))
+            XCTAssertEqual(file.url.host, "modelscope.cn")
+            XCTAssertTrue(file.url.path.contains(LocalModelManifest.modelScopeRevision))
             XCTAssertFalse(file.url.path.contains("/main/"))
         }
     }

@@ -128,3 +128,9 @@
 - 上下文 8192；聊天输出预留 1024，图片最长边 768，视觉 token 64–512；官方 ChatML 非思考前缀，temperature 沿用请求，非贪心 top-k 20 / top-p 0.8 / seed 42。其他 Agent 默认输出上限 2048，native 按总 token 严格校验。
 - 首轮浏览器为 Bing 公开主题搜索 + 有限健康来源 HTTPS 清单；不开放任意网址。用户在可见网页点“使用搜索结果”或“让 Milo 阅读这页”后提取；遇验证由用户操作。实际网络探测结果不稳定，不能承诺免费搜索替代服务质量。
 - 文件、运行时和 Linux smoke 已验证；事实一致性出现失败，尚未满足 R4。完整评测、iOS CI、iPhone 内存／性能和浏览器测试仍待完成，详见 [验证记录](validation/README.md)。
+
+### 默认下载源与苹果端候选 · 用户追加
+
+默认从 ModelScope 下载，固定镜像 revision `90057e31161eb95cc0bc1413c4f53b44de9b49c8`；两文件大小、SHA-256 与原 Hugging Face 清单一致，Range 实测返回 206 和正确总长。内容版本目录保持不变，断点文件按来源隔离，不混用 Hugging Face 的恢复数据。
+
+另已核对 ModelScope 的 `mlx-community/Qwen3.5-2B-4bit`：主权重 1,722,271,785 字节，包含视觉配置，属于 MLX 路线的候选，不是当前 GGUF 文件的直接替代。MLX Swift LM 已加入 Qwen3.5 视觉支持，但需重新验证 iOS 最低版本、图文加载、工具与内存，不能用模型页面存在代替真机结论。本次 IPA 保留已构建验证的 llama.cpp／Metal。
