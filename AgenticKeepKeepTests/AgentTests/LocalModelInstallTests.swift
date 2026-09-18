@@ -38,11 +38,16 @@ final class LocalModelInstallTests: XCTestCase {
         XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [files[0].name: files[0].bytes]), files[1].bytes + 268_435_456)
         XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [files[0].name: 1]), LocalModelManifest.totalBytes + 268_435_456)
     }
-    func testCancelledTransferCannotStartNetworkRequest() async throws {
-        let transfer = LocalModelTransfer(file: LocalModelManifest.files[0], directory: FileManager.default.temporaryDirectory) { _ in }
-        transfer.pause()
-        do { _ = try await transfer.run(cellular: false); XCTFail("Cancelled transfer must not start") }
-        catch { XCTAssertTrue(error is CancellationError) }
+    @MainActor
+    func testBackgroundSessionSeparatesCellularConsent() {
+        let wifi = LocalModelStore.configuration(cellular: false)
+        let cellular = LocalModelStore.configuration(cellular: true)
+        XCTAssertFalse(wifi.allowsCellularAccess)
+        XCTAssertTrue(cellular.allowsCellularAccess)
+        XCTAssertNotEqual(wifi.identifier, cellular.identifier)
+        XCTAssertEqual(wifi.identifier, LocalModelStore.configuration(cellular: false).identifier)
+        XCTAssertTrue(wifi.sessionSendsLaunchEvents)
+        XCTAssertFalse(wifi.isDiscretionary)
     }
     func testChecksumAcceptsOnlyExpectedBytes() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)

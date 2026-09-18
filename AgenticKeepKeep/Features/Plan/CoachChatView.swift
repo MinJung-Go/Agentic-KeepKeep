@@ -497,7 +497,13 @@ struct CoachChatView: View {
                 inputText = text
             }
             // 中断或失败：已收到的内容照样保留
-            if accumulatedText.isEmpty && accumulatedReasoning.isEmpty {
+            let wasCancelled = error is CancellationError || Task.isCancelled
+                || (error as? URLError)?.code == .cancelled
+            if wasCancelled {
+                errorText = accumulatedText.isEmpty && accumulatedReasoning.isEmpty
+                    ? "本次回复已停止，可以重新发送。"
+                    : "本次回复已停止，已保留收到的内容。"
+            } else if accumulatedText.isEmpty && accumulatedReasoning.isEmpty {
                 errorText = "调用失败：\(error.localizedDescription)"
             } else {
                 errorText = "回复中断：\(error.localizedDescription)\n已保留收到的内容。"
