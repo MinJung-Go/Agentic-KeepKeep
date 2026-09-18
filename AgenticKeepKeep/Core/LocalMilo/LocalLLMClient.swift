@@ -61,7 +61,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
                             LocalModelManifest.directory.appendingPathComponent(LocalModelManifest.files[1].name).path, flag.pointer)
                     }
                     guard !flag.cancelled else { throw CancellationError() }
-                    guard let engine = self.engine else { throw LocalMiloError.runtime }
+                    guard let engine = self.engine else { throw LocalMiloError.native(milo_last_error_code()) }
                     let output = LocalOutput(continuation: continuation, flag: flag)
                     let retained = Unmanaged.passUnretained(output).toOpaque()
                     var inputCount: Int32 = 0, outputCount: Int32 = 0
@@ -77,7 +77,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
                     guard !flag.cancelled, status != -3 else { throw CancellationError() }
                     if status == -2 { throw LocalMiloError.budget }
                     if status == -4 { throw LocalMiloError.image }
-                    guard status >= 0 else { throw LocalMiloError.runtime }
+                    guard status >= 0 else { throw LocalMiloError.native(status) }
                     guard let raw = String(data: output.data, encoding: .utf8) else { throw LocalMiloError.runtime }
                     if status == 1 { throw CoachContextError.truncated }
                     let response = try LocalPrompt.parse(raw, tools: request.tools)

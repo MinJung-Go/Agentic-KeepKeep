@@ -1,11 +1,3 @@
-[![Milo 本地图文与网页搜索设计演示](docs/19-local-milo/design-preview.gif)](docs/19-local-milo/design-video.mp4)
-
-[观看 24 秒设计短片（MP4）](docs/19-local-milo/design-video.mp4) · [六屏交互设计稿](docs/19-local-milo/design.html)
-
-> 以上为设计稿演示，非真机录屏。第 19 轮本地图文与浏览器功能正在验证，不能视为已通过 iPhone 性能或可用性验收。
-
-[离线功能验证 IPA · 0.4.12（18）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35321866383)：386 项单测通过，已接入后台模型下载，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
-
 <div align="center">
 
 <img src="docs/18-milo-home/assets/milo.png" alt="Milo：淡蓝色小糯团，戴黄色手环" width="112">
@@ -24,6 +16,12 @@
 ---
 
 ## 界面示意
+
+[![Milo 本地图文与网页搜索设计演示](docs/19-local-milo/design-preview.gif)](docs/19-local-milo/design-video.mp4)
+
+[观看 24 秒设计短片（MP4）](docs/19-local-milo/design-video.mp4) · [六屏交互设计稿](docs/19-local-milo/design.html)
+
+> 以上为设计稿演示，非真机录屏。第 19 轮本地图文与浏览器功能正在验证，不能视为已通过 iPhone 性能或可用性验收。
 
 Milo 是 Moveliq 的运动伙伴，默认出现在首页；称呼与相处方式可在设置中自定义。新版形象采用淡蓝小糯团、黄色手环与同色浅腹肌。
 
@@ -63,6 +61,8 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 ## 安装与启动
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
+
+[离线功能验证 IPA · 0.4.12（18）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35321866383)：386 项单测通过，已接入后台模型下载，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
 
 仓库自带 GitHub Actions 流水线，打 tag 会自动构建并产出未签名 IPA：
 

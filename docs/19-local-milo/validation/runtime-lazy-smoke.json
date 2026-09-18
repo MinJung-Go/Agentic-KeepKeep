@@ -1,0 +1,36 @@
+{
+  "environment": "Linux CPU; not iPhone or Metal",
+  "load_seconds": 1.1107759736478329,
+  "cases": [
+    {
+      "name": "identity",
+      "status": 0,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "first_piece_seconds": 0.5148286707699299,
+      "elapsed_seconds": 0.6666331514716148,
+      "text": "我叫 Milo。",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "json",
+      "status": 0,
+      "input_tokens": 48,
+      "output_tokens": 38,
+      "first_piece_seconds": 0.5998971648514271,
+      "elapsed_seconds": 2.4787787944078445,
+      "text": "{\n  \"exercise\": \"深蹲\",\n  \"kg\": 100,\n  \"sets\": 5,\n  \"reps\": 5\n}",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "vision",
+      "status": 0,
+      "input_tokens": 292,
+      "output_tokens": 34,
+      "first_piece_seconds": 8.422968085855246,
+      "elapsed_seconds": 10.499165289103985,
+      "text": "Nutrition facts\nEnergy: 250 kcal\nProtein: 12 g\nCarbohydrate: 30 g\nFat: 9 g",
+      "smoke_assertions_passed": true
+    }
+  ]
+}

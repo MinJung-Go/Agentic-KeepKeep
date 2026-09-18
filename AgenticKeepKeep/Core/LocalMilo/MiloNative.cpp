@@ -18,12 +18,15 @@
 
 namespace {
 using Flag = std::atomic_bool;
+thread_local int last_error = 0;
 bool aborted(void * p) { return p && static_cast<Flag *>(p)->load(); }
 bool progress(float, void * p) { return !aborted(p); }
 struct Engine {
     llama_model * model = nullptr;
     llama_context * context = nullptr;
     mtmd_context * vision = nullptr;
+    std::string vision_path;
+    bool use_gpu = false;
     ~Engine() { if (vision) mtmd_free(vision); if (context) llama_free(context); if (model) llama_model_free(model); }
 };
 }
@@ -31,29 +34,54 @@ void * milo_cancel_create() { return new Flag(false); }
 void milo_cancel_set(void * p) { static_cast<Flag *>(p)->store(true); }
 void milo_cancel_free(void * p) { delete static_cast<Flag *>(p); }
 void milo_engine_free(void * p) { delete static_cast<Engine *>(p); }
+int milo_last_error_code() { return last_error; }
 void * milo_engine_create(const char * model, const char * vision, void * flag) {
+    last_error = 0;
     try {
         static std::once_flag init;
         std::call_once(init, [] { llama_backend_init(); });
-        auto e = std::make_unique<Engine>();
-        auto mp = llama_model_default_params();
-        mp.n_gpu_layers = 99;
-        mp.progress_callback = progress; mp.progress_callback_user_data = flag;
-        e->model = llama_model_load_from_file(model, mp);
-        if (!e->model || aborted(flag)) return nullptr;
-        auto cp = llama_context_default_params();
-        cp.n_ctx = 8192; cp.n_batch = 256; cp.n_ubatch = 256;
-        cp.n_threads = 4; cp.n_threads_batch = 4;
-        e->context = llama_init_from_model(e->model, cp);
-        if (!e->context || aborted(flag)) return nullptr;
+        if (!model) { last_error = -10; return nullptr; }
+        // Each failed attempt is destroyed before the next: never retain two models.
+        const bool gpu_available = llama_supports_gpu_offload();
+        for (int attempt = gpu_available ? 0 : 1; attempt < 2; ++attempt) {
+            if (aborted(flag)) { last_error = -3; return nullptr; }
+            auto e = std::make_unique<Engine>();
+            e->use_gpu = attempt == 0;
+            e->vision_path = vision ? vision : "";
+            auto mp = llama_model_default_params();
+            mp.n_gpu_layers = e->use_gpu ? 99 : 0;
+            mp.progress_callback = progress; mp.progress_callback_user_data = flag;
+            e->model = llama_model_load_from_file(model, mp);
+            if (!e->model) { last_error = -10; continue; }
+            if (aborted(flag)) { last_error = -3; return nullptr; }
+            auto cp = llama_context_default_params();
+            cp.n_ctx = 8192; cp.n_batch = 128; cp.n_ubatch = 64;
+            cp.n_threads = 4; cp.n_threads_batch = 4;
+            cp.offload_kqv = e->use_gpu;
+            cp.op_offload = e->use_gpu;
+            e->context = llama_init_from_model(e->model, cp);
+            if (!e->context) { last_error = -11; continue; }
+            if (aborted(flag)) { last_error = -3; return nullptr; }
+            // Text requires no vision encoder. Defer its memory and GPU allocation.
+            last_error = 0;
+            return e.release();
+        }
+        return nullptr;
+    } catch (...) { last_error = -1; return nullptr; }
+}
+static bool ensure_vision(Engine * e, void * flag) {
+    if (e->vision) return true;
+    for (int attempt = e->use_gpu ? 0 : 1; attempt < 2; ++attempt) {
+        if (aborted(flag)) return false;
         auto vp = mtmd_context_params_default();
-        vp.use_gpu = true; vp.n_threads = 4; vp.warmup = false;
+        vp.use_gpu = attempt == 0; vp.n_threads = 4; vp.warmup = false;
         vp.image_min_tokens = 64; vp.image_max_tokens = 512;
         vp.progress_callback = progress; vp.progress_callback_user_data = flag;
-        e->vision = mtmd_init_from_file(vision, e->model, vp);
-        if (!e->vision || !mtmd_support_vision(e->vision) || aborted(flag)) return nullptr;
-        return e.release();
-    } catch (...) { return nullptr; }
+        e->vision = mtmd_init_from_file(e->vision_path.c_str(), e->model, vp);
+        if (e->vision && mtmd_support_vision(e->vision)) return true;
+        if (e->vision) { mtmd_free(e->vision); e->vision = nullptr; }
+    }
+    return false;
 }
 static int generate_impl(void * ptr, const char * prompt, const uint8_t * image, size_t image_size,
                   int max_tokens, float temperature, void * flag, milo_piece_callback callback,
@@ -68,6 +96,7 @@ static int generate_impl(void * ptr, const char * prompt, const uint8_t * image,
         llama_pos pos = 0;
         max_tokens = std::clamp(max_tokens, 1, 4096);
         if (image_size) {
+            if (!ensure_vision(e, flag)) return aborted(flag) ? -3 : -12;
             auto opt = mtmd_helper_init_opt_default();
             auto wrapper = mtmd_helper_bitmap_init_from_buf(e->vision, image, image_size, false, opt);
             std::unique_ptr<mtmd_bitmap, decltype(&mtmd_bitmap_free)> bitmap(wrapper.bitmap, mtmd_bitmap_free);
@@ -79,7 +108,7 @@ static int generate_impl(void * ptr, const char * prompt, const uint8_t * image,
             *input_tokens = int(mtmd_helper_get_n_tokens(chunks.get()));
             if (*input_tokens + max_tokens > 8192) return -2;
             if (aborted(flag)) return -3;
-            if (mtmd_helper_eval_chunks(e->vision, e->context, chunks.get(), 0, 0, 256, true, &pos)) return -1;
+            if (mtmd_helper_eval_chunks(e->vision, e->context, chunks.get(), 0, 0, 128, true, &pos)) return aborted(flag) ? -3 : -13;
         } else {
             int n = llama_tokenize(vocab, prompt, int(strlen(prompt)), nullptr, 0, true, true);
             if (n >= 0) return -1;
@@ -88,10 +117,10 @@ static int generate_impl(void * ptr, const char * prompt, const uint8_t * image,
             if (n <= 0) return -1;
             *input_tokens = n;
             if (n + max_tokens > 8192) return -2;
-            for (int offset = 0; offset < n; offset += 256) {
+            for (int offset = 0; offset < n; offset += 128) {
                 if (aborted(flag)) return -3;
-                auto batch = llama_batch_get_one(tokens.data() + offset, std::min(256, n - offset));
-                if (llama_decode(e->context, batch)) return -1;
+                auto batch = llama_batch_get_one(tokens.data() + offset, std::min(128, n - offset));
+                if (llama_decode(e->context, batch)) return aborted(flag) ? -3 : -13;
             }
             pos = n;
         }
@@ -154,7 +183,7 @@ ws ::= | " " | "\n" [ \t]{0,20}
             batch.n_seq_id[0] = 1; batch.seq_id[0][0] = 0; batch.logits[0] = true;
             int result = llama_decode(e->context, batch);
             llama_batch_free(batch);
-            if (result) return -1;
+            if (result) return aborted(flag) ? -3 : -13;
         }
         return 1; // Output truncated: caller must not execute partial tools.
     } catch (...) { return -1; }

@@ -98,6 +98,15 @@ final class LocalMiloTests: XCTestCase {
         XCTAssertFalse(result.content.contains("attack"))
         XCTAssertTrue(LocalBrowserPolicy.result([], count: 10).failed)
     }
+    func testNativeFailuresKeepTheirStage() {
+        XCTAssertEqual(LocalMiloError.native(-10), .modelLoad)
+        XCTAssertEqual(LocalMiloError.native(-11), .contextLoad)
+        XCTAssertEqual(LocalMiloError.native(-12), .visionLoad)
+        XCTAssertEqual(LocalMiloError.native(-13), .evaluation)
+        XCTAssertEqual(LocalMiloError.native(-2), .budget)
+        XCTAssertEqual(LocalMiloError.native(-4), .image)
+        XCTAssertEqual(LocalMiloError.native(-99), .runtime)
+    }
     private func xml(count: String = "3") -> String {
         "<tool_call><function=query><parameter=kind>health</parameter><parameter=count>\(count)</parameter></function></tool_call>"
     }
