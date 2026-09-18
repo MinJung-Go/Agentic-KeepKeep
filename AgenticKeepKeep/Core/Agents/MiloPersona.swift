@@ -28,7 +28,7 @@ struct MiloPersona: Equatable {
                   preference: defaults.string(forKey: Self.preferenceKey) ?? "")
     }
     var instructions: String {
-        let identity = (try? JSONSerialization.data(withJSONObject: ["assistantName": name, "expressionPreference": preference]))
+        let identity = (try? JSONSerialization.data(withJSONObject: ["assistantName": name, "expressionPreference": preference], options: [.sortedKeys]))
             .flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
         let introduction = name == "Milo"
             ? "你叫 Milo，是 Moveliq 的运动伙伴。"
