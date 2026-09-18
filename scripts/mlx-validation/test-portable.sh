@@ -9,7 +9,7 @@ cp "$repo_dir/MiloMLXValidationTests/ProbeTests.swift" "$test_dir/Tests/MiloMLXV
 cat > "$test_dir/Package.swift" <<'PACKAGE'
 // swift-tools-version: 6.0
 import PackageDescription
-let package = Package(name: "MiloMLXValidation", targets: [
+let package = Package(name: "MiloMLXValidation", platforms: [.macOS(.v14)], targets: [
     .target(name: "MiloMLXValidation"),
     .testTarget(name: "MiloMLXValidationTests", dependencies: ["MiloMLXValidation"])
 ])
