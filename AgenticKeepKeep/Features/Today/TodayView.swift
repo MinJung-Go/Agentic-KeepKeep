@@ -87,7 +87,7 @@ struct TodayView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: Theme.Spacing.xl) {
                     greeting.staggeredAppear(0)
-                    if localStore.phase != .absent {
+                    if localStore.phase != .absent && localStore.phase != .ready {
                         NavigationLink { LocalModelView() } label: {
                             LocalDownloadStatus().frame(maxWidth: .infinity, alignment: .leading).padding(16)
                                 .background(RoundedRectangle(cornerRadius: 18).stroke(Theme.secondaryLabel.opacity(0.2)))

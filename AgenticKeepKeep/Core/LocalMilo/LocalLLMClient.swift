@@ -6,7 +6,16 @@ final class LocalCancellation: @unchecked Sendable {
     let pointer = milo_cancel_create()!
     private let lock = NSLock()
     private var value = false
-    func cancel() { lock.lock(); value = true; milo_cancel_set(pointer); lock.unlock() }
+    private var reason: LocalMiloError?
+    func cancel(reason: LocalMiloError? = nil) {
+        lock.lock(); defer { lock.unlock() }
+        if !value { self.reason = reason }
+        value = true; milo_cancel_set(pointer)
+    }
+    var failure: Error {
+        lock.lock(); defer { lock.unlock() }
+        return reason.map { $0 as Error } ?? CancellationError()
+    }
     var cancelled: Bool { lock.lock(); defer { lock.unlock() }; return value }
     deinit { milo_cancel_free(pointer) }
 }
@@ -19,16 +28,20 @@ final class LocalInferenceWorker: @unchecked Sendable {
     private var cancellations: [UUID: LocalCancellation] = [:]
     private var engine: UnsafeMutableRawPointer?
     private var verified = false
-    private var unloading = false
+    private var unloadCount = 0
+    private var unloadReason: LocalMiloError?
 
-    func unload() async {
-        lock.lock(); unloading = true; let pending = Array(cancellations.values); lock.unlock()
-        pending.forEach { $0.cancel() }
+    func unload(reason: LocalMiloError? = nil) async {
+        lock.lock(); unloadCount += 1; unloadReason = reason
+        let pending = Array(cancellations.values); lock.unlock()
+        pending.forEach { $0.cancel(reason: reason) }
         await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
             queue.async {
                 if let engine = self.engine { milo_engine_free(engine) }
                 self.engine = nil; self.verified = false
-                self.lock.lock(); self.unloading = false; self.lock.unlock()
+                self.lock.lock(); self.unloadCount -= 1
+                if self.unloadCount == 0 { self.unloadReason = nil }
+                self.lock.unlock()
                 cont.resume()
             }
         }
@@ -37,19 +50,19 @@ final class LocalInferenceWorker: @unchecked Sendable {
         AsyncThrowingStream { continuation in
             let flag = LocalCancellation(), id = UUID()
             lock.lock()
-            if unloading { flag.cancel() }
+            if unloadCount > 0 { flag.cancel(reason: unloadReason) }
             cancellations[id] = flag
             lock.unlock()
             continuation.onTermination = { _ in flag.cancel() }
             queue.async {
                 defer { self.lock.lock(); self.cancellations.removeValue(forKey: id); self.lock.unlock() }
                 do {
-                    guard !flag.cancelled else { throw CancellationError() }
+                    guard !flag.cancelled else { throw flag.failure }
                     guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
                     if !self.verified {
                         for file in LocalModelManifest.files {
                             try LocalModelManifest.verify(LocalModelManifest.directory.appendingPathComponent(file.name), file: file, isCancelled: { flag.cancelled })
-                            if flag.cancelled { throw CancellationError() }
+                            if flag.cancelled { throw flag.failure }
                         }
                         self.verified = true
                     }
@@ -60,7 +73,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
                             LocalModelManifest.directory.appendingPathComponent(LocalModelManifest.files[0].name).path,
                             LocalModelManifest.directory.appendingPathComponent(LocalModelManifest.files[1].name).path, flag.pointer)
                     }
-                    guard !flag.cancelled else { throw CancellationError() }
+                    guard !flag.cancelled else { throw flag.failure }
                     guard let engine = self.engine else { throw LocalMiloError.native(milo_last_error_code()) }
                     let output = LocalOutput(continuation: continuation, flag: flag)
                     let retained = Unmanaged.passUnretained(output).toOpaque()
@@ -74,7 +87,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
                                           Unmanaged<LocalOutput>.fromOpaque(context).takeUnretainedValue().append(Data(bytes: bytes, count: count))
                                       }, retained, &inputCount, &outputCount)
                     }
-                    guard !flag.cancelled, status != -3 else { throw CancellationError() }
+                    guard !flag.cancelled, status != -3 else { throw flag.failure }
                     if status == -2 { throw LocalMiloError.budget }
                     if status == -4 { throw LocalMiloError.image }
                     guard status >= 0 else { throw LocalMiloError.native(status) }
@@ -87,11 +100,12 @@ final class LocalInferenceWorker: @unchecked Sendable {
                     continuation.yield(.finished(reason: response.toolCalls.isEmpty ? "stop" : "tool_calls"))
                     continuation.finish()
                 } catch {
+                    let reportedError = flag.cancelled ? flag.failure : error
                     if (error as? LocalMiloError) == .invalidFiles {
                         Task { @MainActor in LocalModelStore.shared.invalidate() }
                     }
                     if let engine = self.engine { milo_engine_free(engine); self.engine = nil }
-                    continuation.finish(throwing: error)
+                    continuation.finish(throwing: reportedError)
                 }
             }
         }

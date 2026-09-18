@@ -15,13 +15,13 @@ struct KeepKeepApp: App {
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background {
                         LocalModelStore.shared.enteredBackground()
-                        Task { await LocalInferenceWorker.shared.unload() }
+                        Task { await LocalInferenceWorker.shared.unload(reason: .backgrounded) }
                     } else if phase == .active {
                         LocalModelStore.shared.becameActive()
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
-                    Task { await LocalInferenceWorker.shared.unload() }
+                    Task { await LocalInferenceWorker.shared.unload(reason: .memoryPressure) }
                 }
         }
         .modelContainer(AppModelContainer.shared)

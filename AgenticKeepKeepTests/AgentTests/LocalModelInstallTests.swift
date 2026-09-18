@@ -5,6 +5,19 @@ import ImageIO
 @testable import AgenticKeepKeep
 
 final class LocalModelInstallTests: XCTestCase {
+    func testCancellationPreservesFirstReason() {
+        let memory = LocalCancellation()
+        memory.cancel(reason: .memoryPressure)
+        memory.cancel()
+        XCTAssertEqual(memory.failure as? LocalMiloError, .memoryPressure)
+        let manual = LocalCancellation()
+        manual.cancel()
+        manual.cancel(reason: .backgrounded)
+        XCTAssertTrue(manual.failure is CancellationError)
+        let background = LocalCancellation()
+        background.cancel(reason: .backgrounded)
+        XCTAssertEqual(background.failure as? LocalMiloError, .backgrounded)
+    }
     func testImagePreprocessingRejectsInvalidAndMultipleImages() throws {
         XCTAssertThrowsError(try LocalInferenceWorker.image(["not base64"]))
         XCTAssertThrowsError(try LocalInferenceWorker.image([Data("not an image".utf8).base64EncodedString()]))
