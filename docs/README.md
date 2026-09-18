@@ -14,6 +14,7 @@
 | 08-coach-context | AI 教练超长上下文管理 | [需求](08-coach-context/requirements.md) · [清单](08-coach-context/checklist.md) |
 | 09-ui-refinement | UI 专项：操作可见性、首页层级、对比、教练卡片与图表 | [需求](09-ui-refinement/requirements.md) · [清单](09-ui-refinement/checklist.md) · [新版 HTML](09-ui-refinement/design.html) · [Figma 主稿](09-ui-refinement/figma.md) |
 | 10-healthkit-sideload | HealthKit 侧载签名声明与授权重试修复 | [清单](10-healthkit-sideload/checklist.md) |
+| 20-mlx-validation | MLX Swift 独立验证 App | [需求](20-mlx-validation/requirements.md) · [清单](20-mlx-validation/checklist.md) · [设计稿](20-mlx-validation/design.html) · [验证说明](20-mlx-validation/validation.md) |
 
 ## 候选需求（尚未立轮次）
 
