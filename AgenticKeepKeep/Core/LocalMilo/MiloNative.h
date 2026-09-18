@@ -16,6 +16,10 @@ typedef void (*milo_piece_callback)(const char *, size_t, void *);
 int milo_generate(void * engine, const char * prompt, const uint8_t * image, size_t image_size,
                   int max_tokens, float temperature, void * flag,
                   milo_piece_callback callback, void * user, int * input_tokens, int * output_tokens);
+// Same interface, JSON-object constrained decoding for recording/report Agents.
+int milo_generate_json(void * engine, const char * prompt, const uint8_t * image, size_t image_size,
+                  int max_tokens, float temperature, void * flag,
+                  milo_piece_callback callback, void * user, int * input_tokens, int * output_tokens);
 #ifdef __cplusplus
 }
 #endif

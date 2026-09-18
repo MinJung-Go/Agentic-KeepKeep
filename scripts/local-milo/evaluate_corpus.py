@@ -11,6 +11,7 @@ def run_shard(args, shard):
  lib.milo_engine_create.argtypes=[c.c_char_p,c.c_char_p,P];lib.milo_engine_create.restype=P
  callback=c.CFUNCTYPE(None,P,c.c_size_t,P)
  lib.milo_generate.argtypes=[P,c.c_char_p,P,c.c_size_t,c.c_int,c.c_float,P,callback,P,c.POINTER(c.c_int),c.POINTER(c.c_int)]
+ lib.milo_generate_json.argtypes=lib.milo_generate.argtypes
  flag=lib.milo_cancel_create();model=pathlib.Path(args.models)
  engine=lib.milo_engine_create(str(model/'Qwen3.5-2B-Q4_K_M.gguf').encode(),str(model/'mmproj-F16.gguf').encode(),flag)
  assert engine
@@ -29,7 +30,8 @@ def run_shard(args, shard):
       if not first:first.append(time.monotonic()-start)
       chunks.append(c.string_at(data,size))
      inputs=c.c_int();outputs=c.c_int()
-     status=lib.milo_generate(engine,case['prompt'].encode(),buf,len(raw),1024,0.1,flag,receive,None,c.byref(inputs),c.byref(outputs))
+     generate=lib.milo_generate_json if case['category'] in ['parse','vision'] else lib.milo_generate
+     status=generate(engine,case['prompt'].encode(),buf,len(raw),1024,0.1,flag,receive,None,c.byref(inputs),c.byref(outputs))
      text=b''.join(chunks).decode('utf-8',errors='replace')
      item=dict(case_id=case['id'],category=case['category'],run=iteration+1,status=status,input_tokens=inputs.value,output_tokens=outputs.value,first_piece_seconds=first[0] if first else None,total_seconds=time.monotonic()-start,text=text,template_sha256=hashlib.sha256(case['prompt'].encode()).hexdigest(),manual_pass=None,scope='first turn only; no database/tool execution')
      if case['category'] in ['parse','vision']:

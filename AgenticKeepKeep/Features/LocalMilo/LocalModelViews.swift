@@ -42,7 +42,7 @@ struct LocalModelView: View {
                 if settings.useLocalModel {
                     Button("使用已配置的云端 AI") { settings.useLocalModel = false }
                 }
-            } footer: { Text("切换由你决定，不会因模型错误自动上传内容。") }
+            } footer: { Text("离线功能为验证版，请核对生成的记录与建议。切换由你决定，不会因模型错误自动上传内容。") }
         }
         .navigationTitle("离线模式").navigationBarTitleDisplayMode(.inline)
         .confirmationDialog("使用蜂窝网络下载？", isPresented: $confirmsCellular, titleVisibility: .visible) {

@@ -12,14 +12,22 @@ cb=c.CFUNCTYPE(None,P,c.c_size_t,P)
 lib.milo_generate.argtypes=[P,c.c_char_p,P,c.c_size_t,c.c_int,c.c_float,P,cb,P,c.POINTER(c.c_int),c.POINTER(c.c_int)]
 f=lib.milo_cancel_create();engine=lib.milo_engine_create(str(models/'Qwen3.5-2B-Q4_K_M.gguf').encode(),str(models/'mmproj-F16.gguf').encode(),f);assert engine
 results=[]
-@cb
-def receive(*args):pass
 try:
- for name,prompt,cancel,expected in [('oversized-context','test '*12000,False,-2),('cancel-before-generate','hello',True,-3)]:
-  if cancel:lib.milo_cancel_set(f)
-  i=c.c_int();o=c.c_int();start=time.monotonic();status=lib.milo_generate(engine,prompt.encode(),None,0,128,0,f,receive,None,c.byref(i),c.byref(o))
-  assert status==expected,(name,status)
-  results.append(dict(name=name,status=status,passed=True,seconds=time.monotonic()-start))
+ cases=[('oversized-context','test '*12000,None,'',-2),('cancel-before-generate','你好',None,'before',-3),('invalid-image','<__media__>描述图片',b'bad image','',-4),('cancel-during-output','请写一篇长篇故事',None,'during',-3),('retry-after-cancel','请说你好',None,'',0)]
+ for name,prompt,image,cancel,expected in cases:
+  flag=lib.milo_cancel_create();pieces=[]
+  if cancel=='before':lib.milo_cancel_set(flag)
+  @cb
+  def receive(data,size,context):
+   pieces.append(c.string_at(data,size))
+   if cancel=='during':lib.milo_cancel_set(flag)
+  try:
+   i=c.c_int();o=c.c_int();start=time.monotonic();buf=c.create_string_buffer(image) if image else None
+   formatted=prompt if name=='oversized-context' else '<|im_start|>user\n'+prompt+'<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n'
+   status=lib.milo_generate(engine,formatted.encode(),buf,len(image or b''),512,0,flag,receive,None,c.byref(i),c.byref(o))
+   results.append(dict(name=name,status=status,passed=status==expected,seconds=time.monotonic()-start,pieces=len(pieces)))
+   assert status==expected,(name,status)
+  finally:lib.milo_cancel_free(flag)
 finally:lib.milo_engine_free(engine);lib.milo_cancel_free(f)
 open(a.output,'w').write(json.dumps({'environment':'Linux CPU; actual native bridge and model, not iOS','cases':results},indent=2)+'\n')
 print(results)

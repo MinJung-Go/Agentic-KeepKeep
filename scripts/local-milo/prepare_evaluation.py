@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Render actual App templates for the fixed offline corpus. No private data."""
-import os,pathlib,subprocess,tempfile
+import os,pathlib,subprocess,tempfile,sys
 root=pathlib.Path(__file__).resolve().parents[2];core=root/'AgenticKeepKeep/Core'
 with tempfile.TemporaryDirectory(prefix='milo-eval-prompts-') as folder:
  t=pathlib.Path(folder)
@@ -10,6 +10,20 @@ with tempfile.TemporaryDirectory(prefix='milo-eval-prompts-') as folder:
  s=(core/'Agents/CoachTools.swift').read_text();(t/'QueryTools.swift').write_text('import Foundation\nenum QueryTools {\n'+s[s.index('    static let records'):s.index('/// A bounded')])
  (t/'main.swift').write_text('''import Foundation
 let folder = URL(fileURLWithPath: CommandLine.arguments[1])
+if CommandLine.arguments.count > 2 {
+let rows = try String(contentsOfFile: CommandLine.arguments[2], encoding: .utf8).split(separator: "\\n")
+for line in rows {
+ var item = try JSONSerialization.jsonObject(with: Data(line.utf8)) as! [String: Any]
+ let category = item["category"] as! String
+ let tools = category == "parse" || category == "vision" ? [] : [PlanTools.createPlanTool, PlanTools.adjustPlanTool, QueryTools.records, QueryTools.search, QueryTools.reader]
+ do {
+  let result = try LocalPrompt.parse(item["text"] as! String, tools: tools)
+  item["validated_tools"] = result.toolCalls.map { ["name": $0.name, "arguments": $0.argumentsJSON] }
+ } catch { item["parse_error"] = error.localizedDescription }
+ let data = try JSONSerialization.data(withJSONObject: item, options: [.sortedKeys, .withoutEscapingSlashes])
+ print(String(decoding: data, as: UTF8.self))
+}
+} else {
 let lines = try String(contentsOf: folder.appendingPathComponent("cases.jsonl"), encoding: .utf8).split(separator: "\\n")
 for line in lines {
  var item = try JSONSerialization.jsonObject(with: Data(line.utf8)) as! [String: Any]
@@ -23,6 +37,7 @@ for line in lines {
  let data = try JSONSerialization.data(withJSONObject: item, options: [.sortedKeys, .withoutEscapingSlashes])
  print(String(decoding: data, as: UTF8.self))
 }
+}
 ''')
  subprocess.run([os.environ.get('SWIFTC','swiftc'),*map(str,files),*map(str,t.glob('*.swift')),'-o',str(t/'render')],check=True)
- subprocess.run([str(t/'render'),str(root/'docs/19-local-milo/validation')],check=True)
+ subprocess.run([str(t/'render'),str(root/'docs/19-local-milo/validation'), *sys.argv[1:]],check=True)

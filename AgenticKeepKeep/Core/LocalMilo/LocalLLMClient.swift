@@ -65,8 +65,9 @@ final class LocalInferenceWorker: @unchecked Sendable {
                     let output = LocalOutput(continuation: continuation, flag: flag)
                     let retained = Unmanaged.passUnretained(output).toOpaque()
                     var inputCount: Int32 = 0, outputCount: Int32 = 0
+                    let generate = request.jsonMode ? milo_generate_json : milo_generate
                     let status = image.withUnsafeBytes { bytes in
-                        milo_generate(engine, prompt, bytes.bindMemory(to: UInt8.self).baseAddress, image.count,
+                        generate(engine, prompt, bytes.bindMemory(to: UInt8.self).baseAddress, image.count,
                                       Int32(min(4096, max(1, request.maxTokens ?? 2048))), Float(request.temperature), flag.pointer,
                                       { bytes, count, context in
                                           guard let bytes, let context else { return }

@@ -55,9 +55,9 @@ void * milo_engine_create(const char * model, const char * vision, void * flag) 
         return e.release();
     } catch (...) { return nullptr; }
 }
-int milo_generate(void * ptr, const char * prompt, const uint8_t * image, size_t image_size,
+static int generate_impl(void * ptr, const char * prompt, const uint8_t * image, size_t image_size,
                   int max_tokens, float temperature, void * flag, milo_piece_callback callback,
-                  void * user, int * input_tokens, int * output_tokens) {
+                  void * user, int * input_tokens, int * output_tokens, bool json_mode) {
     auto e = static_cast<Engine *>(ptr);
     if (!e || !prompt || !callback) return -1;
     try {
@@ -97,6 +97,38 @@ int milo_generate(void * ptr, const char * prompt, const uint8_t * image, size_t
         }
         auto sampler = llama_sampler_chain_init(llama_sampler_chain_default_params());
         std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampling(sampler, llama_sampler_free);
+        if (json_mode) {
+            // Pinned llama.cpp JSON grammar (MIT); syntax constraints do not certify facts.
+            static const char * grammar = R"MILOJSON(root   ::= object
+value  ::= object | array | string | number | ("true" | "false" | "null") ws
+
+object ::=
+  "{" ws (
+            string ":" ws value
+    ("," ws string ":" ws value)*
+  )? "}" ws
+
+array  ::=
+  "[" ws (
+            value
+    ("," ws value)*
+  )? "]" ws
+
+string ::=
+  "\"" (
+    [^"\\\x7F\x00-\x1F] |
+    "\\" (["\\bfnrt] | "u" [0-9a-fA-F]{4}) # escapes
+  )* "\"" ws
+
+number ::= ("-"? ([0-9] | [1-9] [0-9]{0,15})) ("." [0-9]+)? ([eE] [-+]? [0-9] [1-9]{0,15})? ws
+
+# Optional space: by convention, applied in this grammar after literal chars when allowed
+ws ::= | " " | "\n" [ \t]{0,20}
+)MILOJSON";
+            auto json = llama_sampler_init_grammar(vocab, grammar, "root");
+            if (!json) return -1;
+            llama_sampler_chain_add(sampler, json);
+        }
         if (temperature <= 0) llama_sampler_chain_add(sampler, llama_sampler_init_greedy());
         else {
             llama_sampler_chain_add(sampler, llama_sampler_init_top_k(20));
@@ -126,4 +158,15 @@ int milo_generate(void * ptr, const char * prompt, const uint8_t * image, size_t
         }
         return 1; // Output truncated: caller must not execute partial tools.
     } catch (...) { return -1; }
+}
+
+int milo_generate(void * ptr, const char * prompt, const uint8_t * image, size_t image_size,
+                  int max_tokens, float temperature, void * flag, milo_piece_callback callback,
+                  void * user, int * input_tokens, int * output_tokens) {
+    return generate_impl(ptr, prompt, image, image_size, max_tokens, temperature, flag, callback, user, input_tokens, output_tokens, false);
+}
+int milo_generate_json(void * ptr, const char * prompt, const uint8_t * image, size_t image_size,
+                  int max_tokens, float temperature, void * flag, milo_piece_callback callback,
+                  void * user, int * input_tokens, int * output_tokens) {
+    return generate_impl(ptr, prompt, image, image_size, max_tokens, temperature, flag, callback, user, input_tokens, output_tokens, true);
 }
