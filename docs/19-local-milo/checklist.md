@@ -210,3 +210,9 @@ R8 补稿的 Chromium 检查通过：资源、页面定位、下载／空 Key �
 - 未修改模型文件、下载 revision 或校验标准，无需因本次代码调整主动删除重下模型。未提交、推送或重新打包。
 
 R12 首次 iOS CI：`5197558` 编译通过，但原有上下文缓存一致性测试发现角色 JSON 键顺序不稳定。已改为 sortedKeys，保持原断言并重跑全量测试；失败运行 35327502723 不作为可交付 IPA。
+
+### R12 IPA 交付 · 2026-09-18
+
+- 源码 `9eb87911f797e7b6350492d4aaa4b8ba7c398537`，0.4.13（19）；[CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35329404713) 编译、387 项 iOS 单测及归档全部通过，0 失败。包含原缓存一致性测试，未跳过断言。
+- [下载 IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35329404713/artifacts/10541360222)。仍需侧载重签名；模型文件版本保持不变。
+- 安装包已核对版本／Bundle ID／推理框架／许可与不含权重；iPhone 15 加载、Metal→CPU 重试及内存表现尚待真机验收。
