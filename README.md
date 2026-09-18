@@ -4,6 +4,8 @@
 
 > 以上为设计稿演示，非真机录屏。第 19 轮本地图文与浏览器功能正在验证，不能视为已通过 iPhone 性能或可用性验收。
 
+[离线功能验证 IPA · 0.4.11（17）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35312358728)：379 项单测通过，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
+
 <div align="center">
 
 <img src="docs/18-milo-home/assets/milo.png" alt="Milo：淡蓝色小糯团，戴黄色手环" width="112">
