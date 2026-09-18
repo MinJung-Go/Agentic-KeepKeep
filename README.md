@@ -62,7 +62,7 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
 
-[离线功能验证 IPA · 0.4.14（20）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35332747307)：388 项单测通过，已接入后台下载与视觉组件按需加载，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
+[MLX 正式接入 IPA · 0.5.0（21）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35380521646/artifacts/10562367633)：393 项 iOS 单测通过，正式 App 已接入 MLX 文字／单图推理与后台下载。默认从 ModelScope 下载约 1.74 GB 新模型，旧 GGUF 不兼容；图文真机性能与任务质量仍待验收。[需求与 checklist](docs/21-mlx-production/checklist.md) · [安装说明与验证边界](docs/21-mlx-production/validation.md)。
 
 仓库自带 GitHub Actions 流水线，打 tag 会自动构建并产出未签名 IPA：
 
@@ -73,17 +73,18 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式二：从源码构建
 
-需要 macOS + Xcode 16 或更新版本，以及 [XcodeGen](https://github.com/yonaskolb/XcodeGen)：
+需要 macOS + Xcode 16.4（Swift 6.1）或更新版本，以及 [XcodeGen](https://github.com/yonaskolb/XcodeGen)：
 
 ```bash
-brew install xcodegen cmake
+brew install xcodegen
 git clone https://github.com/MinJung-Go/Agentic-KeepKeep.git
 cd Agentic-KeepKeep
 python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep  # 检查无旧动作数据集
-bash scripts/build_local_runtime.sh  # 首次构建锁定的 llama.cpp / Metal / 图文引擎
 xcodegen generate
 open AgenticKeepKeep.xcodeproj
 ```
+
+正式 App 通过 Swift Package Manager 链接 MLX Swift 0.31.3 / MLX Swift LM 2.31.3，首次构建会下载依赖；模型权重从 ModelScope 在 App 内下载，不打包进 IPA。
 
 `.xcodeproj` 由 `project.yml` 生成，不进版本库。在 Xcode 中选择自己的开发团队后即可运行到真机。
 
