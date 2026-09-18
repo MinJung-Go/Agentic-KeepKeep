@@ -161,3 +161,7 @@
 - 复用现有进度／暂停／校验界面，不增加新页面。独立于待确认的首次引导设计实施。
 
 依据：[Apple 后台文件下载](https://developer.apple.com/documentation/foundation/downloading-files-in-the-background)。
+
+## R11 · 宣传演示闪烁修复
+
+原视频每幕淡出到黑场，3 fps GIF 放大闪烁。移除黑场，改为画面交叉溶解，保持演示背景稳定并平滑循环；预览提高到 12 fps。保持六场景与设计演示标识，不改 App UI。验证视频时长、帧数、场景边界无黑帧及 GIF 循环。

@@ -40,7 +40,7 @@ with tempfile.TemporaryDirectory(prefix='milo-film-', ignore_cleanup_errors=True
         ]
         for i,(eyebrow,title,subtitle,ids,state,dark) in enumerate(scenes):
             call('Page.navigate',{'url':(output/'design.html').as_uri()});time.sleep(.45)
-            css='''body{padding:0;background:#eeede9;overflow:hidden}header,footer,.toast,.screen-note,.label{display:none!important}main{position:absolute;left:630px;top:56px;display:flex;gap:22px;width:610px;max-width:none}main>section{display:none;width:270px;flex:none;height:590px}.phone{width:390px;height:812px;transform:scale(.69);transform-origin:top left;border-width:6px}#film-copy{position:absolute;left:65px;top:178px;width:540px;color:#252628}#film-copy small{font-size:12px;letter-spacing:3px;color:#846e4e}#film-copy h1{font-size:42px;letter-spacing:-1.5px;line-height:1.4;margin:25px 0}#film-copy p{white-space:pre-line;font-size:20px;line-height:1.9;color:#66696e}#film-note{position:absolute;bottom:35px;left:65px;font-size:12px;color:#777b83}body.dark{background:#101113}body.dark #film-copy{color:#eceef0}body.dark #film-copy p{color:#9a9fa6}body.dark #film-copy small{color:#d7ae72}'''
+            css='''body{padding:0;background:#eeede9;overflow:hidden}header,footer,.toast,.screen-note,.label{display:none!important}main{position:absolute;left:630px;top:56px;display:flex;gap:22px;width:610px;max-width:none}main>section{display:none;width:270px;flex:none;height:590px}.phone{width:390px;height:812px;transform:scale(.69);transform-origin:top left;border-width:6px}#film-copy{position:absolute;left:65px;top:178px;width:540px;color:#252628}#film-copy small{font-size:12px;letter-spacing:3px;color:#846e4e}#film-copy h1{font-size:42px;letter-spacing:-1.5px;line-height:1.4;margin:25px 0}#film-copy p{white-space:pre-line;font-size:20px;line-height:1.9;color:#66696e}#film-note{position:absolute;bottom:35px;left:65px;font-size:12px;color:#777b83}body.dark{background:#eeede9}body.dark #film-copy{color:#252628}body.dark #film-copy p{color:#66696e}body.dark #film-copy small{color:#846e4e}'''
             js('const filmStyle=document.createElement("style");filmStyle.textContent='+json.dumps(css)+';document.head.append(filmStyle)')
             js('document.body.insertAdjacentHTML("beforeend",'+json.dumps('<div id="film-copy"><small>'+eyebrow+'</small><h1>'+title+'</h1><p>'+subtitle+'</p></div><div id="film-note">设计演示 · 非真机录屏 · 页面内容与交互为示意</div>')+')')
             for screen in ids: js('document.getElementById('+json.dumps(screen)+').parentElement.style.display="block"')
@@ -52,12 +52,24 @@ with tempfile.TemporaryDirectory(prefix='milo-film-', ignore_cleanup_errors=True
             result=call('Page.captureScreenshot',{'format':'png','captureBeyondViewport':False})
             (temp/f'{i:02d}.png').write_bytes(base64.b64decode(result['data']))
         (output/'video-poster.png').write_bytes((temp/'00.png').read_bytes())
-        # Short fades at every chapter keep transitions gentle and repeatable.
-        for i in range(len(scenes)):
-            subprocess.run(['ffmpeg','-v','error','-y','-loop','1','-i',str(temp/f'{i:02d}.png'),'-t','4','-vf','fps=24,fade=t=in:st=0:d=0.25,fade=t=out:st=3.75:d=0.25,format=yuv420p','-c:v','libx264','-preset','fast','-crf','22',str(temp/f'clip{i}.mp4')],check=True)
-        (temp/'concat.txt').write_text(''.join("file 'clip%d.mp4'\n"%i for i in range(len(scenes))))
-        subprocess.run(['ffmpeg','-v','error','-y','-f','concat','-safe','0','-i',str(temp/'concat.txt'),'-c','copy','-movflags','+faststart',str(output/'design-video.mp4')],check=True)
-        subprocess.run(['ffmpeg','-v','error','-y','-i',str(output/'design-video.mp4'),'-vf','fps=3,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=96[p];[s1][p]paletteuse=dither=bayer','-loop','0',str(output/'design-preview.gif')],check=True)
+        # Cross-dissolve actual scenes, never fade through a black frame. Keep the
+        # surrounding canvas light even for dark UI; return to scene 1 for a clean loop.
+        inputs = []
+        for i in list(range(len(scenes))) + [0]:
+            inputs += ['-loop', '1', '-framerate', '24', '-i', str(temp/f'{i:02d}.png')]
+        filters = [f'[{i}:v]format=yuv420p,settb=AVTB,setpts=PTS-STARTPTS[v{i}]' for i in range(7)]
+        previous = 'v0'
+        for i in range(1, 7):
+            destination = f'x{i}'
+            filters.append(f'[{previous}][v{i}]xfade=transition=fade:duration=0.5:offset={i*4-0.5}[{destination}]')
+            previous = destination
+        subprocess.run(['ffmpeg','-v','error','-y',*inputs,'-filter_complex_threads','1',
+                        '-filter_complex',';'.join(filters),'-map',f'[{previous}]','-t','24','-r','24',
+                        '-c:v','libx264','-preset','fast','-crf','22','-pix_fmt','yuv420p','-movflags','+faststart',
+                        str(output/'design-video.mp4')],check=True)
+        subprocess.run(['ffmpeg','-v','error','-y','-i',str(output/'design-video.mp4'),'-vf',
+                        'fps=12,scale=640:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer',
+                        '-loop','0',str(output/'design-preview.gif')],check=True)
         print('Created 24s MP4, README GIF and poster')
     finally:
         proc.terminate()
