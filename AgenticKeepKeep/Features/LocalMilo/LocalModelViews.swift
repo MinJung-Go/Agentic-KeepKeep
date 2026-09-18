@@ -30,9 +30,9 @@ struct LocalModelView: View {
                 LabeledContent("下载大小", value: LocalModelManifest.sizeLabel)
                 Toggle("允许蜂窝网络下载", isOn: Binding(get: { cellular }, set: { if $0 { confirmsCellular = true } else { cellular = false } }))
                 DisclosureGroup("模型信息") {
-                    Text("Qwen3.5-2B · Q4_K_M + F16 视觉组件\n下载来源：ModelScope\nApache 2.0 · Unsloth 量化\n8K 上下文 · 单张图片\n版本 \(LocalModelManifest.revision.prefix(12))")
+                    Text("Qwen3.5-2B · MLX 4bit 图文模型\n下载来源：ModelScope\nApache 2.0 · mlx-community 量化\n8K 上下文 · 单张图片\n版本 \(LocalModelManifest.revision.prefix(12))")
                         .font(.footnote).foregroundStyle(.secondary)
-                    Link("模型来源与许可", destination: URL(string: "https://modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF")!)
+                    Link("模型来源与许可", destination: URL(string: "https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit")!)
                 }
                 if store.phase != .absent {
                     Button("删除离线模型", role: .destructive) { confirmsRemoval = true }.disabled(store.isRemoving)

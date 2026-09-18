@@ -1,18 +1,8 @@
-Local Milo evaluation runtime
-
-Qwen3.5-2B: Qwen Team, Apache License 2.0.
-Original model: https://huggingface.co/Qwen/Qwen3.5-2B
-Quantized distribution: https://huggingface.co/unsloth/Qwen3.5-2B-GGUF
-Pinned quantized revision: f6d5376be1edb4d416d56da11e5397a961aca8ae
-Default download mirror: https://modelscope.cn/models/unsloth/Qwen3.5-2B-GGUF
-Pinned ModelScope revision: 90057e31161eb95cc0bc1413c4f53b44de9b49c8
-Both required files match the pinned original SHA-256 hashes and sizes.
-Language weights Q4_K_M; vision projection F16. Downloaded separately, not shipped in IPA.
-This application is not affiliated with or endorsed by Qwen or Unsloth.
-
-llama.cpp and libmtmd: ggml-org contributors, MIT License.
-https://github.com/ggml-org/llama.cpp
-Pinned source: 972d2313bc0bf0a45f634f77d95c9fb03aeab12c
-Compiled with Metal support. App-specific bridge is in Core/LocalMilo/MiloNative.cpp.
-
-See Qwen-LICENSE.txt and llama-LICENSE.txt for license text.
+Moveliq local runtime: Apple MLX Swift 0.31.3 and MLX Swift LM 2.31.3 (MIT).
+See MLX-LICENSE.txt and MLXLM-LICENSE.txt for notices.
+Model: Qwen3.5-2B, Qwen team / Alibaba (Apache-2.0).
+MLX 4-bit conversion: mlx-community. See Qwen-LICENSE.txt.
+Download source: https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit
+Revision: ffa48c63955c56e22d76c1b2acd9b89e26310618
+Model weights are downloaded separately, not included in the IPA.
+Legacy GGUF files are not compatible with this runtime and are not automatically deleted.

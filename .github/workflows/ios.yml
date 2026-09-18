@@ -25,9 +25,6 @@ jobs:
       - name: 检查已移除第三方动作资源
         run: python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep
 
-      - name: 构建本地图文推理引擎
-        run: bash scripts/build_local_runtime.sh
-
       - name: 生成 Xcode 工程
         run: xcodegen generate
 
@@ -79,9 +76,6 @@ jobs:
 
       - name: 检查已移除第三方动作资源
         run: python3 scripts/verify_no_exercise_dataset.py AgenticKeepKeep
-
-      - name: 构建本地图文推理引擎
-        run: bash scripts/build_local_runtime.sh
 
       - name: 生成 Xcode 工程
         run: xcodegen generate

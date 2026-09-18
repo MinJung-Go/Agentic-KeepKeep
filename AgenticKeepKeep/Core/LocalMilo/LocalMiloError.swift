@@ -17,7 +17,7 @@ enum LocalMiloError: LocalizedError, Equatable {
     }
     var errorDescription: String? {
         switch self {
-        case .notReady: return "请先下载完整的离线模型。照片和文字已保留。"
+        case .notReady: return "请先下载新版 MLX 离线模型；旧版模型格式不兼容。照片和文字已保留。"
         case .invalidFiles: return "模型文件未通过检查，请重新下载。"
         case .insufficientSpace: return "存储空间不足，请释放空间后重试。"
         case .memoryPressure: return "系统发出内存警告，本地推理已停止（L14）。请关闭其他大型 App 后重试；若持续出现，当前模型可能超出设备可用内存。"

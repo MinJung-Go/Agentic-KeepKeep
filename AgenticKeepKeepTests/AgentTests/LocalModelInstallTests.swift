@@ -32,7 +32,7 @@ final class LocalModelInstallTests: XCTestCase {
         let result = try LocalInferenceWorker.image([data.base64EncodedString()])
         let source = try XCTUnwrap(CGImageSourceCreateWithData(result as CFData, nil))
         let image = try XCTUnwrap(CGImageSourceCreateImageAtIndex(source, 0, nil))
-        XCTAssertLessThanOrEqual(max(image.width, image.height), 768)
+        XCTAssertLessThanOrEqual(max(image.width, image.height), 384)
         XCTAssertEqual(image.width, image.height * 2)
     }
     func testHashVerificationCanBeCancelled() throws {
@@ -48,7 +48,7 @@ final class LocalModelInstallTests: XCTestCase {
     func testStorageBudgetIncludesMissingAndTruncatedComponents() {
         let files = LocalModelManifest.files
         XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [:]), LocalModelManifest.totalBytes + 268_435_456)
-        XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [files[0].name: files[0].bytes]), files[1].bytes + 268_435_456)
+        XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [files[0].name: files[0].bytes]), LocalModelManifest.totalBytes - files[0].bytes + 268_435_456)
         XCTAssertEqual(LocalModelManifest.requiredDownloadSpace(existingSizes: [files[0].name: 1]), LocalModelManifest.totalBytes + 268_435_456)
     }
     @MainActor
@@ -85,8 +85,12 @@ final class LocalModelInstallTests: XCTestCase {
         XCTAssertFalse(LocalModelManifest.isInstalled(at: directory))
     }
     func testPinnedManifestIncludesBothComponentsAndNoFloatingRevision() {
-        XCTAssertEqual(LocalModelManifest.files.count, 2)
-        XCTAssertEqual(LocalModelManifest.totalBytes, 1_949_063_104)
+        XCTAssertEqual(LocalModelManifest.files.count, 8)
+        XCTAssertTrue(LocalModelManifest.files.contains { $0.name == "model.safetensors" })
+        XCTAssertTrue(LocalModelManifest.files.contains { $0.name == "preprocessor_config.json" })
+        XCTAssertFalse(LocalModelManifest.files.contains { $0.name.hasSuffix(".gguf") })
+        XCTAssertTrue(LocalModelManifest.revision.hasPrefix("mlx-"))
+        XCTAssertEqual(LocalModelManifest.totalBytes, 1742356547)
         for file in LocalModelManifest.files {
             XCTAssertEqual(file.sha256.count, 64)
             XCTAssertEqual(file.url.host, "modelscope.cn")

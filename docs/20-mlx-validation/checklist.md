@@ -29,3 +29,6 @@
 - 已提交并推送。IPA 源码 `0f7fc20`；[CI 35373796349](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35373796349) 成功，macOS 纯逻辑单测 8 项通过。尚无真机通过结论。
 - Milo Lab 0.1.0 (1)，iOS 17+，未签名 IPA；已核对独立 bundle ID、34.28 MB 主程序及 3.81 MB `default.metallib`，未内置模型权重。
 - [实现说明、构建与真机步骤](validation.md)。
+
+## 用户真机反馈
+用户已反馈本版验证通过、没有问题，授权将 MLX 接入正式 App；未提供原始性能报告。后续迁移见 [第 21 轮](../21-mlx-production/requirements.md)。此反馈不扩展为图文或 8K 工具上下文已通过。

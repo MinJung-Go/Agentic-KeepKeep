@@ -1,113 +1,145 @@
 import Foundation
 import ImageIO
 import UniformTypeIdentifiers
+import CoreImage
+import MLX
+import MLXLLM
+import MLXVLM
+import MLXLMCommon
 
 final class LocalCancellation: @unchecked Sendable {
-    let pointer = milo_cancel_create()!
     private let lock = NSLock()
     private var value = false
     private var reason: LocalMiloError?
     func cancel(reason: LocalMiloError? = nil) {
         lock.lock(); defer { lock.unlock() }
         if !value { self.reason = reason }
-        value = true; milo_cancel_set(pointer)
+        value = true
     }
     var failure: Error {
         lock.lock(); defer { lock.unlock() }
         return reason.map { $0 as Error } ?? CancellationError()
     }
     var cancelled: Bool { lock.lock(); defer { lock.unlock() }; return value }
-    deinit { milo_cancel_free(pointer) }
+    func check() throws { if cancelled { throw failure } }
 }
 
-/// Native calls block this private serial queue, never MainActor. Shared by every Agent.
+/// A task chain serializes async model loading as well as synchronous generation.
+/// Cancelling a consumer signals its flag, but never skips awaiting the previous
+/// task's cleanup. This prevents overlapping MLX containers across all Agents.
 final class LocalInferenceWorker: @unchecked Sendable {
     static let shared = LocalInferenceWorker()
-    private let queue = DispatchQueue(label: "moveliq.local-inference", qos: .userInitiated)
     private let lock = NSLock()
+    private var tail: Task<Void, Never>?
     private var cancellations: [UUID: LocalCancellation] = [:]
-    private var engine: UnsafeMutableRawPointer?
-    private var verified = false
     private var unloadCount = 0
     private var unloadReason: LocalMiloError?
+    // Only accessed by the serialized task chain.
+    private var verified = false
 
     func unload(reason: LocalMiloError? = nil) async {
-        lock.lock(); unloadCount += 1; unloadReason = reason
-        let pending = Array(cancellations.values); lock.unlock()
-        pending.forEach { $0.cancel(reason: reason) }
-        await withCheckedContinuation { (cont: CheckedContinuation<Void, Never>) in
-            queue.async {
-                if let engine = self.engine { milo_engine_free(engine) }
-                self.engine = nil; self.verified = false
-                self.lock.lock(); self.unloadCount -= 1
-                if self.unloadCount == 0 { self.unloadReason = nil }
-                self.lock.unlock()
-                cont.resume()
-            }
-        }
+        await enqueueUnload(reason: reason).value
     }
+    private func enqueueUnload(reason: LocalMiloError?) -> Task<Void, Never> {
+        lock.lock(); defer { lock.unlock() }
+        unloadCount += 1; unloadReason = reason
+        cancellations.values.forEach { $0.cancel(reason: reason) }
+        let prior = tail
+        let task = Task.detached { [self] in
+            await prior?.value
+            verified = false
+            Memory.clearCache()
+            finishUnload()
+        }
+        tail = task
+        return task
+    }
+    private func finishUnload() {
+        lock.lock(); defer { lock.unlock() }
+        unloadCount -= 1
+        if unloadCount == 0 { unloadReason = nil }
+    }
+    private func remove(_ id: UUID) { lock.lock(); defer { lock.unlock() }; cancellations.removeValue(forKey: id) }
     func stream(_ request: LLMRequest) -> AsyncThrowingStream<LLMStreamEvent, Error> {
         AsyncThrowingStream { continuation in
             let flag = LocalCancellation(), id = UUID()
-            lock.lock()
+            continuation.onTermination = { _ in flag.cancel() }
+            lock.lock(); defer { lock.unlock() }
             if unloadCount > 0 { flag.cancel(reason: unloadReason) }
             cancellations[id] = flag
-            lock.unlock()
-            continuation.onTermination = { _ in flag.cancel() }
-            queue.async {
-                defer { self.lock.lock(); self.cancellations.removeValue(forKey: id); self.lock.unlock() }
-                do {
-                    guard !flag.cancelled else { throw flag.failure }
-                    guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
-                    if !self.verified {
-                        for file in LocalModelManifest.files {
-                            try LocalModelManifest.verify(LocalModelManifest.directory.appendingPathComponent(file.name), file: file, isCancelled: { flag.cancelled })
-                            if flag.cancelled { throw flag.failure }
-                        }
-                        self.verified = true
-                    }
-                    let prompt = try LocalPrompt.render(request)
-                    let image = try Self.image(request.messages.flatMap(\.imagesBase64JPEG))
-                    if self.engine == nil {
-                        self.engine = milo_engine_create(
-                            LocalModelManifest.directory.appendingPathComponent(LocalModelManifest.files[0].name).path,
-                            LocalModelManifest.directory.appendingPathComponent(LocalModelManifest.files[1].name).path, flag.pointer)
-                    }
-                    guard !flag.cancelled else { throw flag.failure }
-                    guard let engine = self.engine else { throw LocalMiloError.native(milo_last_error_code()) }
-                    let output = LocalOutput(continuation: continuation, flag: flag)
-                    let retained = Unmanaged.passUnretained(output).toOpaque()
-                    var inputCount: Int32 = 0, outputCount: Int32 = 0
-                    let generate = request.jsonMode ? milo_generate_json : milo_generate
-                    let status = image.withUnsafeBytes { bytes in
-                        generate(engine, prompt, bytes.bindMemory(to: UInt8.self).baseAddress, image.count,
-                                      Int32(min(4096, max(1, request.maxTokens ?? 2048))), Float(request.temperature), flag.pointer,
-                                      { bytes, count, context in
-                                          guard let bytes, let context else { return }
-                                          Unmanaged<LocalOutput>.fromOpaque(context).takeUnretainedValue().append(Data(bytes: bytes, count: count))
-                                      }, retained, &inputCount, &outputCount)
-                    }
-                    guard !flag.cancelled, status != -3 else { throw flag.failure }
-                    if status == -2 { throw LocalMiloError.budget }
-                    if status == -4 { throw LocalMiloError.image }
-                    guard status >= 0 else { throw LocalMiloError.native(status) }
-                    guard let raw = String(data: output.data, encoding: .utf8) else { throw LocalMiloError.runtime }
-                    if status == 1 { throw CoachContextError.truncated }
-                    let response = try LocalPrompt.parse(raw, tools: request.tools)
-                    output.flush(response.content ?? "")
-                    for call in response.toolCalls { continuation.yield(.toolCall(id: call.id, name: call.name, argumentsJSON: call.argumentsJSON)) }
-                    continuation.yield(.usage(LLMUsage(promptTokens: Int(inputCount), completionTokens: Int(outputCount), totalTokens: Int(inputCount + outputCount))))
-                    continuation.yield(.finished(reason: response.toolCalls.isEmpty ? "stop" : "tool_calls"))
-                    continuation.finish()
-                } catch {
-                    let reportedError = flag.cancelled ? flag.failure : error
-                    if (error as? LocalMiloError) == .invalidFiles {
-                        Task { @MainActor in LocalModelStore.shared.invalidate() }
-                    }
-                    if let engine = self.engine { milo_engine_free(engine); self.engine = nil }
-                    continuation.finish(throwing: reportedError)
-                }
+            let prior = tail
+            tail = Task.detached { [self] in
+                await prior?.value
+                await generate(request, flag: flag, continuation: continuation)
+                remove(id)
             }
+        }
+    }
+    private func generate(_ request: LLMRequest, flag: LocalCancellation,
+                          continuation: AsyncThrowingStream<LLMStreamEvent, Error>.Continuation) async {
+        var container: ModelContainer?
+        defer { container = nil; Memory.clearCache() }
+        do {
+            try flag.check()
+            guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
+            if !verified {
+                for file in LocalModelManifest.files {
+                    try LocalModelManifest.verify(LocalModelManifest.directory.appendingPathComponent(file.name), file: file, isCancelled: { flag.cancelled })
+                }
+                verified = true
+            }
+            try flag.check()
+            let rendered = try LocalPrompt.render(request)
+            let imageData = try Self.image(request.messages.flatMap(\.imagesBase64JPEG))
+            let directory = try LocalModelManifest.runtimeDirectory()
+            Memory.cacheLimit = 16 * 1_048_576
+            Memory.clearCache()
+            do {
+                if imageData.isEmpty {
+                    container = try await LLMModelFactory.shared.loadContainer(configuration: ModelConfiguration(directory: directory))
+                } else {
+                    container = try await VLMModelFactory.shared.loadContainer(configuration: ModelConfiguration(directory: directory))
+                }
+            } catch { throw imageData.isEmpty ? LocalMiloError.modelLoad : LocalMiloError.visionLoad }
+            try flag.check()
+            let limit = LocalMLXPolicy.outputLimit(request.maxTokens)
+            let output = LocalOutput(continuation: continuation, flag: flag)
+            let result = try await container!.perform { context in
+                let input: LMInput
+                if imageData.isEmpty {
+                    input = LMInput(tokens: MLXArray(context.tokenizer.encode(text: rendered)))
+                } else {
+                    guard let image = CIImage(data: imageData) else { throw LocalMiloError.image }
+                    let messages: [[String: any Sendable]] = try LocalMLXPolicy.visionMessages(rendered).map { $0.mapValues { $0 as any Sendable } }
+                    let userInput = UserInput(messages: messages, images: [.ciImage(image)], additionalContext: ["enable_thinking": false])
+                    input = try await context.processor.prepare(input: userInput)
+                }
+                try LocalMLXPolicy.validate(input: input.text.tokens.size, output: limit)
+                try flag.check()
+                let generated = try MLXLMCommon.generate(input: input,
+                    parameters: GenerateParameters(maxTokens: limit, maxKVSize: LocalMLXPolicy.context,
+                        temperature: Float(request.temperature), prefillStepSize: 64), context: context) { tokens in
+                    guard !flag.cancelled else { return .stop }
+                    // JSON and tools only execute after complete validation.
+                    if !request.jsonMode { output.replace(context.tokenizer.decode(tokens: tokens)) }
+                    return .more
+                }
+                return (generated.output, generated.promptTokenCount, generated.tokens.count)
+            }
+            try flag.check()
+            guard result.2 < limit else { throw CoachContextError.truncated }
+            if request.jsonMode { try LocalMLXPolicy.validateJSON(result.0) }
+            let response = try LocalPrompt.parse(result.0, tools: request.tools)
+            output.flush(response.content ?? "")
+            for call in response.toolCalls { continuation.yield(.toolCall(id: call.id, name: call.name, argumentsJSON: call.argumentsJSON)) }
+            continuation.yield(.usage(LLMUsage(promptTokens: result.1, completionTokens: result.2, totalTokens: result.1 + result.2)))
+            continuation.yield(.finished(reason: response.toolCalls.isEmpty ? "stop" : "tool_calls"))
+            continuation.finish()
+        } catch {
+            verified = false
+            if (error as? LocalMiloError) == .invalidFiles { await MainActor.run { LocalModelStore.shared.invalidate() } }
+            let failure = flag.cancelled ? flag.failure : error
+            continuation.finish(throwing: failure)
         }
     }
     static func image(_ images: [String]) throws -> Data {
@@ -118,7 +150,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
               let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,
                 kCGImageSourceCreateThumbnailWithTransform: true,
-                kCGImageSourceThumbnailMaxPixelSize: 768,
+                kCGImageSourceThumbnailMaxPixelSize: 384,
                 kCGImageSourceShouldCacheImmediately: true
               ] as CFDictionary) else { throw LocalMiloError.image }
         let output = NSMutableData()
@@ -137,6 +169,10 @@ private final class LocalOutput {
     init(continuation: AsyncThrowingStream<LLMStreamEvent, Error>.Continuation, flag: LocalCancellation) {
         self.continuation = continuation; self.flag = flag
     }
+    func replace(_ text: String) {
+        data = Data()
+        append(Data(text.utf8))
+    }
     func append(_ bytes: Data) {
         guard !flag.cancelled else { return }
         data.append(bytes)
@@ -154,7 +190,7 @@ private final class LocalOutput {
 }
 
 struct LocalLLMClient: LLMClient {
-    let config = LLMClientConfig(baseURL: "local://milo", apiKey: "", model: "Qwen3.5-2B-Q4_K_M")
+    let config = LLMClientConfig(baseURL: "local://milo", apiKey: "", model: "Qwen3.5-2B-MLX-4bit")
     func complete(_ request: LLMRequest) async throws -> LLMResponse { try await LLMStreamCollector.collect(stream(request)).response }
     func stream(_ request: LLMRequest) -> AsyncThrowingStream<LLMStreamEvent, Error> { LocalInferenceWorker.shared.stream(request) }
 }
