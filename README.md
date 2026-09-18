@@ -62,7 +62,7 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
 
-[离线功能验证 IPA · 0.4.13（19）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35329404713)：387 项单测通过，已接入后台下载与视觉组件按需加载，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
+[离线功能验证 IPA · 0.4.14（20）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35332747307)：388 项单测通过，已接入后台下载与视觉组件按需加载，默认从 ModelScope 下载约 1.95 GB 模型。当前模型任务质量未达产品化门槛，保留云端模式；[查看评测与限制](docs/19-local-milo/validation/README.md)。
 
 仓库自带 GitHub Actions 流水线，打 tag 会自动构建并产出未签名 IPA：
 

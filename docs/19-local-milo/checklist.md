@@ -224,3 +224,9 @@ R12 首次 iOS CI：`5197558` 编译通过，但原有上下文缓存一致性�
 - [ ] 测试取消原因与卸载并发状态；真机具体原因待新版提示确认。
 
 R13 本地检查：22 项可移植 Swift XCTest 通过；提取实际 LocalCancellation 类并链接真实 C++ 取消标记，在 Linux 检查内存／后台／手动取消的首因保留，全部通过。新增 iOS XCTest 覆盖相同场景，尚未在 Xcode 执行；卸载并发与真机提示仍待验证。语法和 diff 检查通过，未提交／推送／打包；不能将取消原因判定为已取得真机证据。
+
+### R13 IPA 交付 · 2026-09-18
+
+- 0.4.14（20），源码 `1544117596dc3c202d3c9c4459724c5cb3bf3061`：[CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35332747307) 编译、388 项 iOS 单测和归档成功，0 失败；取消首因保留测试通过。
+- [下载 IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35332747307/artifacts/10542650044)。版本／Bundle ID／引擎嵌入／许可／权重未打包检查通过。
+- 本版隐藏首页已就绪卡，并区分 L14 内存警告和 L15 后台中断；未取得 iPhone 的实际停止原因，不将诊断改善表述为真机故障已解决。模型文件不变，真机复测待用户安装。
