@@ -1,6 +1,6 @@
 # MLX 独立验证：实施与证据
 
-## 已实现，尚待 Apple 编译与真机验收
+## 已实现并通过 Apple 编译，尚待真机验收
 
 - 分支：`feat/mlx-runtime-validation`。独立 `project.mlx.yml`、`MiloMLXValidation/`、包名 `com.minjung.milolab`。
 - 用户已确认独立 App 与三屏设计；原生页面分为准备、测试、报告，使用系统浅深色和 Milo 素材。
@@ -20,7 +20,7 @@
 
 2026-09-18，Linux Swift 6.0.3：8 项纯逻辑 XCTest 通过（预算边界、首个停止原因、并发停止、清单路径／重复文件／大小／哈希格式、固定下载地址、报告隐私、进程峰值）。完整 Swift 源码语法解析通过。
 
-这不等于 iOS SDK 类型检查、下载／哈希实现单测或 MLX 真机推理通过。CI 提交号：暂无，本轮尚未提交／推送。
+上述 Linux 证据不等于 iOS SDK 类型检查、下载／哈希实现单测或 MLX 真机推理通过。后续已在 macOS CI 通过相同 8 项测试及 iPhone Release 编译，见下方打包记录。
 
 ## 构建
 
@@ -31,7 +31,7 @@ xcodebuild -project MiloMLXValidation.xcodeproj -scheme MiloMLXValidation \
 scripts/mlx-validation/test-portable.sh
 ```
 
-`.github/workflows/mlx-validation.yml` 为独立手动 workflow，编译设备版后产出未签名 Milo Lab IPA。不会触发原 Moveliq 发布链路。本轮尚未触发。
+`.github/workflows/mlx-validation.yml` 支持功能分支代码推送和手动触发，编译设备版后产出未签名 Milo Lab IPA。不会触发原 Moveliq 发布链路。已成功执行，见下方打包记录。
 
 ## iPhone 验收步骤
 
@@ -47,3 +47,14 @@ scripts/mlx-validation/test-portable.sh
 - [MLX Swift 0.31.3](https://github.com/ml-explore/mlx-swift/tree/0.31.3)
 - [MLX Swift LM 2.31.3](https://github.com/ml-explore/mlx-swift-lm/tree/2.31.3)
 - [Qwen3.5 ModelScope 转换仓库](https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit)
+
+## IPA 打包记录 · 2026-09-18
+
+- 使用 MinJung-Go 提交并推送至 `feat/mlx-runtime-validation`；IPA 源码 `0f7fc20`。
+- [成功构建 35373796349](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35373796349)，macOS 8 项单测通过，Xcode 16.4 Release-iphoneos 编译成功。
+- [下载 MiloLab-validation](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35373796349/artifacts/10559558562)，解压后为 `MiloLab-unsigned.ipa`。
+- 版本 0.1.0 (1)，最低 iOS 17.0，包名 `com.minjung.milolab`，不覆盖 Moveliq。
+- IPA 8,596,317 字节；主程序 34,280,904 字节；包内 `mlx-swift_Cmlx.bundle/default.metallib` 3,811,308 字节；模型清单、许可证和图标资源存在；未打包 safetensors 或 GGUF。
+- SHA-256：`0dd6aea3d646e480fa7cc766275a86f21b03c27422f68862e33b1f1844192b60`。
+- 构建期间修复测试包 macOS 最低版本声明、独立 App 图标遗漏。上游 Metal C++17 警告和已说明的同步生成 deprecated 警告仍在，不影响本次编译。
+- 这只是构建及包内静态检查通过；实际模型下载、tokenizer 模板处理、首字生成与 L14 内存行为仍需真机验证。
