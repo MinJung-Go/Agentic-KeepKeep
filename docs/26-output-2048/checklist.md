@@ -10,8 +10,15 @@
 - [x] iOS 单测与编译：CI [35506107114](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35506107114)，提交 `fdee3e6`，**411 项 XCTest，0 失败**，测试与 IPA 双 job 成功。
 - [x] `verify_ipa.py` 迁移到 MLX 时代：检查 bundle id／版本／metallib／三份许可／Widget，替换失效的 llama.framework 断言。
 - [x] 版本号提升 0.5.3 (24)：de827bc 记录的 0.5.2 IPA 早于第 25 轮解析修复提交，同名不同内容，必须区分。
-- [ ] 重建 0.5.3 (24) IPA 并核验产物（待 CI）。
+- [x] 重建 0.5.3 (24) IPA 并核验产物：CI [35507116631](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35507116631)，提交 `13173af`，411 项 XCTest 0 失败。
 - [ ] 真机验证：2048 长回复的内存、首字等待与截断体验（需用户设备，另行反馈）。
+
+## IPA · 0.5.3（26）
+
+- [下载未签名 IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35507116631/artifacts/10604137718)，使用原侧载方式重签安装。
+- 已下载产物核验：Bundle ID `com.minjung.keepkeep`，版本 `0.5.3` / build `24`，iOS 17.0+；含 MLX Metal 库（3,814,924 字节）与 Widget、Qwen／MLX／MLXLM 许可与 LocalMilo NOTICE；无 GGUF／safetensors 权重。
+- IPA：8,753,687 字节；SHA-256：`0fc70945f9d81253874c26747872695b8ace99e7c259367ccb9c6b45719b8503`。
+- 内容：本地输出上限 2048（含第 25 轮解析修复）；不含第 27 轮思考模式。
 
 ## 首轮产物（0.5.2/23，仅作过程记录）
 
