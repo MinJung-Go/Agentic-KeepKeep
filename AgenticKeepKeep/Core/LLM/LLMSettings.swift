@@ -142,7 +142,8 @@ final class LLMSettings: ObservableObject {
 
     var coachPolicy: CoachContextPolicy {
         if useLocalModel {
-            return CoachContextPolicy(window: 8192, inputCap: 8192, outputReserve: 1024,
+            return CoachContextPolicy(window: LocalMLXPolicy.context, inputCap: LocalMLXPolicy.context,
+                                      outputReserve: LocalMLXPolicy.maximumOutput,
                                       safetyMargin: 512, memoryLimit: 700, recentRounds: 2, queryResultReserve: 768,
                                       estimator: LocalTokenEstimator())
         }
@@ -239,7 +240,7 @@ final class LLMSettings: ObservableObject {
     }
 }
 
-/// Used only to plan pruning. The native tokenizer enforces the real 8K limit before decode.
+/// Used only to plan pruning. The MLX tokenizer enforces LocalMLXPolicy.context before decode.
 struct LocalTokenEstimator: CoachTokenEstimating {
     func count(_ text: String) -> Int {
         let scalars = text.unicodeScalars

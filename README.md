@@ -62,7 +62,7 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
 
-当前分支已改用 **Qwen3.5-0.8B MLX 4bit**：从 ModelScope 下载约 **645 MB**，保持原有角色、历史与工具流程，8K 上下文。升级后需下载新模型；旧 2B 不会作为新版启用。[本轮修复与验证](docs/22-local-memory/checklist.md)。[下载 IPA · 0.5.1（22）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35483344157/artifacts/10596852788)：397 项 iOS 单测通过，Release 归档成功；L14 与工具／图文质量待同设备复测。下方为上一版本。
+当前分支已改用 **Qwen3.5-0.8B MLX 4bit**：从 ModelScope 下载约 **645 MB**，保持原有角色、历史与工具流程。当前开发分支默认上下文已适配 **16K**（[扩容清单](docs/23-local-context/checklist.md)，尚未打包）；下方已发布的 0.5.1（22）仍为 8K。升级后需下载新模型；旧 2B 不会作为新版启用。[本轮修复与验证](docs/22-local-memory/checklist.md)。[下载 IPA · 0.5.1（22）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35483344157/artifacts/10596852788)：397 项 iOS 单测通过，Release 归档成功；L14 与工具／图文质量待同设备复测。下方为上一版本。
 
 [MLX 正式接入 IPA · 0.5.0（21）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35380521646/artifacts/10562367633)：393 项 iOS 单测通过，正式 App 已接入 MLX 文字／单图推理与后台下载。默认从 ModelScope 下载约 1.74 GB 新模型，旧 GGUF 不兼容；图文真机性能与任务质量仍待验收。[需求与 checklist](docs/21-mlx-production/checklist.md) · [安装说明与验证边界](docs/21-mlx-production/validation.md)。
 
@@ -154,3 +154,7 @@ xcodebuild test -project AgenticKeepKeep.xcodeproj -scheme AgenticKeepKeep \
 ### HealthKit 侧载签名
 
 CI 产出的 IPA 带 ad-hoc 签名，用于携带 HealthKit / App Group 能力声明，仍需安装工具向 Apple 申请相应描述文件并重新签名。历史 artifact 名中的 unsigned 表示尚未完成设备安装签名。Windows 可用 Impactor 验证；仅替换安装工具不保证最终权限获准。授权失败后可在设置重新授权，详见 [修复清单](docs/10-healthkit-sideload/checklist.md)。
+
+### 本地推理引擎
+
+正式 App 使用独立的 [MiloInference 私有 Swift Package](https://github.com/MinJung-Go/MiloInference)，集中维护 MLX、内存保护、模型校验和性能诊断。业务提示词、工具执行与下载交互保留在 App。App 已改为固定提交的远端依赖，本仓库不再保存引擎源码副本。CI 使用专属只读部署密钥；本地构建需具有私有仓库读取权限。[接入说明](docs/24-inference-package/integration.md)。Apple CI／真机回归仍待完成。[拆分清单](docs/24-inference-package/checklist.md)。

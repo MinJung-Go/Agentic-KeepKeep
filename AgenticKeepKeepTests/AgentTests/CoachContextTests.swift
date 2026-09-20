@@ -84,7 +84,7 @@ final class CoachContextTests: XCTestCase {
         XCTAssertLessThan(try policy.inputLimit(retrying: true), try policy.inputLimit())
     }
 
-    func testLocalEightKCanPrepareInitialToolRequest() async throws {
+    func testLocalSixteenKCanPrepareInitialToolRequest() async throws {
         let defaults = UserDefaults(suiteName: UUID().uuidString)!
         let settings = LLMSettings(defaults: defaults)
         settings.useLocalModel = true
@@ -93,6 +93,8 @@ final class CoachContextTests: XCTestCase {
                                                     queryTools: tools.definitions).prepare(
             history: [], userMessage: "今天走了多少步？", context: CoachContext(), memory: nil, thinking: false)
         try settings.coachPolicy.validate(prepared.request)
+        XCTAssertEqual(settings.coachPolicy.window, 16_384)
+        XCTAssertTrue(Set(tools.definitions.map(\.name)).isSubset(of: Set(prepared.request.tools.map(\.name))))
         XCTAssertEqual(prepared.request.maxTokens, 1024)
     }
 

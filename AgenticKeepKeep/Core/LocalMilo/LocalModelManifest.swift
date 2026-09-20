@@ -1,5 +1,5 @@
 import Foundation
-import CryptoKit
+import MiloInference
 
 struct LocalModelFile: Codable, Equatable {
     let name: String
@@ -38,17 +38,10 @@ enum LocalModelManifest {
             .appendingPathComponent("LocalMilo/\(revision)", isDirectory: true)
     }
     static func runtimeDirectory() throws -> URL {
-        let runtime = directory.appendingPathComponent("runtime", isDirectory: true)
-        if FileManager.default.fileExists(atPath: runtime.path) { try FileManager.default.removeItem(at: runtime) }
-        try FileManager.default.createDirectory(at: runtime, withIntermediateDirectories: true)
-        for file in files where file.name != "tokenizer_config.json" {
-            try FileManager.default.linkItem(at: directory.appendingPathComponent(file.name), to: runtime.appendingPathComponent(file.name))
-        }
-        guard var config = try JSONSerialization.jsonObject(with: Data(contentsOf: directory.appendingPathComponent("tokenizer_config.json"))) as? [String: Any] else { throw LocalMiloError.invalidFiles }
-        config["chat_template"] = try String(contentsOf: directory.appendingPathComponent("chat_template.jinja"), encoding: .utf8)
-        try JSONSerialization.data(withJSONObject: config).write(to: runtime.appendingPathComponent("tokenizer_config.json"), options: .atomic)
-        return runtime
+        do { return try ModelFiles.runtimeDirectory(at: directory, files: files.map(\.name)) }
+        catch { throw LocalMiloError.invalidFiles }
     }
+
     static func requiredDownloadSpace(existingSizes: [String: Int64]) -> Int64 {
         files.filter { existingSizes[$0.name] != $0.bytes }.reduce(Int64(268_435_456)) { $0 + $1.bytes }
     }
@@ -59,15 +52,11 @@ enum LocalModelManifest {
         }
     }
     static func verify(_ url: URL, file: LocalModelFile, isCancelled: () -> Bool = { false }) throws {
-        guard (try url.resourceValues(forKeys: [.fileSizeKey])).fileSize == Int(file.bytes) else { throw LocalMiloError.invalidFiles }
-        let handle = try FileHandle(forReadingFrom: url)
-        defer { try? handle.close() }
-        var hash = SHA256()
-        while let chunk = try handle.read(upToCount: 1_048_576), !chunk.isEmpty {
-            try Task.checkCancellation()
-            if isCancelled() { throw CancellationError() }
-            hash.update(data: chunk)
-        }
-        guard hash.finalize().map({ String(format: "%02x", $0) }).joined() == file.sha256 else { throw LocalMiloError.invalidFiles }
+        do {
+            try ModelFiles.verify(url, bytes: file.bytes, sha256: file.sha256) {
+                if isCancelled() { throw CancellationError() }
+            }
+        } catch is CancellationError { throw CancellationError() }
+        catch { throw LocalMiloError.invalidFiles }
     }
 }

@@ -129,12 +129,28 @@ final class LocalModelInstallTests: XCTestCase {
             XCTAssertFalse(file.url.path.contains("/main/"))
         }
     }
+    func testLocalWindowDoesNotOverwriteCloudPreference() throws {
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let settings = LLMSettings(defaults: defaults)
+        settings.coachContextWindow = 65_536
+        settings.useLocalModel = true
+        XCTAssertEqual(settings.coachPolicy.window, 16_384)
+        XCTAssertEqual(settings.coachPolicy.outputReserve, LocalMLXPolicy.maximumOutput)
+        settings.useLocalModel = false
+        XCTAssertEqual(settings.coachPolicy.window, 65_536)
+        XCTAssertEqual(settings.coachContextWindow, 65_536)
+    }
     func testLocalModeNeverRequiresAPIKeyOrFallsBackWhenMissing() throws {
         let defaults = UserDefaults(suiteName: UUID().uuidString)!
         let settings = LLMSettings(defaults: defaults)
         settings.useLocalModel = true
         XCTAssertTrue(settings.supportsWebSearch)
-        XCTAssertEqual(settings.coachPolicy.window, 8192)
+        XCTAssertEqual(settings.coachPolicy.window, 16_384)
+        XCTAssertEqual(settings.coachPolicy.window, LocalMLXPolicy.context)
+        XCTAssertEqual(settings.coachPolicy.inputCap, LocalMLXPolicy.context)
+        XCTAssertEqual(try settings.coachPolicy.inputLimit(), 14_848)
         XCTAssertEqual(settings.coachPolicy.outputReserve, 1024)
         if !LocalModelManifest.isInstalled() {
             XCTAssertThrowsError(try settings.makeClient()) { XCTAssertTrue($0 is LocalMiloError) }

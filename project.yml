@@ -7,12 +7,9 @@ options:
   createIntermediateGroups: true
 
 packages:
-  mlx-swift:
-    url: https://github.com/ml-explore/mlx-swift
-    exactVersion: 0.31.3
-  mlx-swift-lm:
-    url: https://github.com/ml-explore/mlx-swift-lm
-    exactVersion: 2.31.3
+  MiloInference:
+    url: https://github.com/MinJung-Go/MiloInference.git
+    revision: 5c94a02bf00d68a1bb3f5a7b2a104bbedd977888
 
 settings:
   base:
@@ -41,22 +38,18 @@ targets:
         PRODUCT_MODULE_NAME: AgenticKeepKeep
         CLANG_CXX_LANGUAGE_STANDARD: c++17
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.5.1"
-        CURRENT_PROJECT_VERSION: "22"
+        MARKETING_VERSION: "0.5.2"
+        CURRENT_PROJECT_VERSION: "23"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeep/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeep/Resources/KeepKeep.entitlements
     dependencies:
-      - package: mlx-swift
-        product: MLX
-      - package: mlx-swift-lm
-        product: MLXLLM
-      - package: mlx-swift-lm
-        product: MLXVLM
-      - package: mlx-swift-lm
-        product: MLXLMCommon
+      - package: MiloInference
+        product: MiloInference
+      - package: MiloInference
+        product: MiloInferenceCore
       - sdk: Accelerate.framework
       - sdk: Metal.framework
       - sdk: libc++.tbd
@@ -83,8 +76,8 @@ targets:
         PRODUCT_NAME: KeepKeepWidget
         PRODUCT_MODULE_NAME: KeepKeepWidget
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.5.1"
-        CURRENT_PROJECT_VERSION: "22"
+        MARKETING_VERSION: "0.5.2"
+        CURRENT_PROJECT_VERSION: "23"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeepWidget/Info.plist
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeepWidget/KeepKeepWidget.entitlements

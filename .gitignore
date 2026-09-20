@@ -74,3 +74,10 @@ AgenticKeepKeep/Resources/ExerciseMedia/*.tmp
 
 # Built locally from pinned llama.cpp source
 Vendor/
+
+# Private inference dependency checkout for CI (never vendor its source)
+.inference/
+
+# Python helper caches
+__pycache__/
+*.py[cod]

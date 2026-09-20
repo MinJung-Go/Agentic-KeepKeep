@@ -1,5 +1,7 @@
 # MLX 独立验证：实施与证据
 
+> 历史归档：独立 Milo Lab 已按用户要求退役，源码、工程和专属 CI 已删除。以下命令、测试与产物记录仅用于历史追溯；当前验证使用推理包测试与正式 App 回归，见[第 24 轮](../24-inference-package/checklist.md)。
+
 ## 已实现并通过 Apple 编译，尚待真机验收
 
 - 分支：`feat/mlx-runtime-validation`。独立 `project.mlx.yml`、`MiloMLXValidation/`、包名 `com.minjung.milolab`。

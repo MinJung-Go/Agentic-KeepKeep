@@ -3,12 +3,27 @@ import XCTest
 
 final class LocalMLXPolicyTests: XCTestCase {
     func testTokenBudgetIncludesOutput() throws {
-        try LocalMLXPolicy.validate(input: 7168, output: 1024)
-        XCTAssertThrowsError(try LocalMLXPolicy.validate(input: 7169, output: 1024))
+        try LocalMLXPolicy.validate(input: 15360, output: 1024)
+        XCTAssertThrowsError(try LocalMLXPolicy.validate(input: 15361, output: 1024))
         XCTAssertThrowsError(try LocalMLXPolicy.validate(input: Int.max, output: 1024))
         XCTAssertThrowsError(try LocalMLXPolicy.validate(input: 1, output: 1025))
         XCTAssertEqual(LocalMLXPolicy.outputLimit(4096), 1024)
         XCTAssertEqual(LocalMLXPolicy.outputLimit(-1), 1)
+    }
+    func testDefaultBudgetAllowsInputsBeyondOldEightKWindow() throws {
+        XCTAssertEqual(LocalMLXPolicy.context, 16_384)
+        XCTAssertEqual(LocalMLXPolicy.contextLabel, "16K")
+        try LocalMLXPolicy.validate(input: 9_000, output: 1024)
+        try LocalMLXPolicy.validate(input: 16_383, output: 1)
+        XCTAssertThrowsError(try LocalMLXPolicy.validate(input: 16_384, output: 1))
+    }
+    func testInvalidTokenCountsCannotBypassBudget() {
+        for input in [Int.min, -1, 0, Int.max] {
+            XCTAssertThrowsError(try LocalMLXPolicy.validate(input: input, output: 1024))
+        }
+        for output in [Int.min, -1, 0, 1025, Int.max] {
+            XCTAssertThrowsError(try LocalMLXPolicy.validate(input: 1, output: output))
+        }
     }
     func testVisionTranscriptKeepsSystemAndImageRole() throws {
         let request = LLMRequest(messages: [.system("你是 Milo"), .userWithImage("午餐", imageBase64JPEG: "photo")])

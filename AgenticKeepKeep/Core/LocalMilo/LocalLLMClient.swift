@@ -1,28 +1,14 @@
 import Foundation
-import ImageIO
-import UniformTypeIdentifiers
-import CoreImage
-import Darwin
-import MLX
-import MLXLLM
-import MLXVLM
-import MLXLMCommon
+import MiloInference
+import MiloInferenceCore
 
+/// Keep application-specific stop reasons outside the reusable package.
 final class LocalCancellation: @unchecked Sendable {
-    private let lock = NSLock()
-    private var value = false
-    private var reason: LocalMiloError?
-    func cancel(reason: LocalMiloError? = nil) {
-        lock.lock(); defer { lock.unlock() }
-        if !value { self.reason = reason }
-        value = true
-    }
-    var failure: Error {
-        lock.lock(); defer { lock.unlock() }
-        return reason.map { $0 as Error } ?? CancellationError()
-    }
-    var cancelled: Bool { lock.lock(); defer { lock.unlock() }; return value }
-    func check() throws { if cancelled { throw failure } }
+    let inference = InferenceCancellation()
+    func cancel(reason: LocalMiloError? = nil) { inference.cancel(reason: reason) }
+    var failure: Error { inference.failure }
+    var cancelled: Bool { inference.cancelled }
+    func check() throws { try inference.check() }
 }
 
 /// A task chain serializes async model loading as well as synchronous generation.
@@ -37,7 +23,6 @@ final class LocalInferenceWorker: @unchecked Sendable {
     private var unloadReason: LocalMiloError?
     // Only accessed by the serialized task chain.
     private var verified = false
-    private var hasUsedMLX = false
 
     func unload(reason: LocalMiloError? = nil) async {
         await enqueueUnload(reason: reason).value
@@ -50,7 +35,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
         let task = Task.detached { [self] in
             await prior?.value
             verified = false
-            if hasUsedMLX { Memory.clearCache() }
+            await InferenceEngine.shared.unload()
             finishUnload()
         }
         tail = task
@@ -79,22 +64,9 @@ final class LocalInferenceWorker: @unchecked Sendable {
     }
     private func generate(_ request: LLMRequest, flag: LocalCancellation,
                           continuation: AsyncThrowingStream<LLMStreamEvent, Error>.Continuation) async {
-        var container: ModelContainer?
         let diagnostic = LocalInferenceDiagnostic()
-        let sampling = Task.detached {
-            while !Task.isCancelled {
-                diagnostic.sample(footprint: Self.footprint())
-                do { try await Task.sleep(nanoseconds: 200_000_000) } catch { break }
-            }
-        }
-        defer {
-            sampling.cancel()
-            if hasUsedMLX { MLX.Stream.gpu.synchronize() }
-            container = nil
-            if hasUsedMLX { Memory.clearCache() }
-        }
+        diagnostic.update(stage: .checking, vision: request.messages.contains { !$0.imagesBase64JPEG.isEmpty }, footprint: nil)
         do {
-            diagnostic.update(stage: .checking, vision: request.messages.contains { !$0.imagesBase64JPEG.isEmpty }, footprint: Self.footprint())
             try flag.check()
             guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
             if !verified {
@@ -105,100 +77,62 @@ final class LocalInferenceWorker: @unchecked Sendable {
             }
             try flag.check()
             let rendered = try LocalPrompt.render(request)
-            diagnostic.update(stage: .preparing, footprint: Self.footprint())
             let imageData = try Self.image(request.messages.flatMap(\.imagesBase64JPEG))
             let directory = try LocalModelManifest.runtimeDirectory()
-            try flag.check()
-            diagnostic.update(stage: .loading, vision: !imageData.isEmpty, footprint: Self.footprint())
-            hasUsedMLX = true
-            Memory.cacheLimit = 16 * 1_048_576
-            Memory.clearCache()
-            do {
-                if imageData.isEmpty {
-                    container = try await LLMModelFactory.shared.loadContainer(configuration: ModelConfiguration(directory: directory))
-                } else {
-                    container = try await VLMModelFactory.shared.loadContainer(configuration: ModelConfiguration(directory: directory))
-                }
-            } catch { throw imageData.isEmpty ? LocalMiloError.modelLoad : LocalMiloError.visionLoad }
-            try flag.check()
-            diagnostic.update(stage: .preparing, footprint: Self.footprint())
+            let input: InferenceInput
+            if imageData.isEmpty {
+                input = .rendered(rendered)
+            } else {
+                input = .vision(messages: try LocalMLXPolicy.visionMessages(rendered).map {
+                    guard let role = $0["role"], let content = $0["content"] else { throw LocalMiloError.malformedTool }
+                    return InferenceMessage(role: role, content: content)
+                }, jpeg: imageData)
+            }
             let limit = LocalMLXPolicy.outputLimit(request.maxTokens)
             let output = LocalOutput(continuation: continuation, flag: flag)
-            let result = try await container!.perform { context in
-                let input: LMInput
-                if imageData.isEmpty {
-                    input = LMInput(tokens: MLXArray(context.tokenizer.encode(text: rendered)))
-                } else {
-                    guard let image = CIImage(data: imageData) else { throw LocalMiloError.image }
-                    let messages: [[String: any Sendable]] = try LocalMLXPolicy.visionMessages(rendered).map { $0.mapValues { $0 as any Sendable } }
-                    let userInput = UserInput(messages: messages, images: [.ciImage(image)], additionalContext: ["enable_thinking": false])
-                    input = try await context.processor.prepare(input: userInput)
-                }
-                diagnostic.update(stage: .prefill, tokens: input.text.tokens.size, footprint: Self.footprint())
-                try LocalMLXPolicy.validate(input: input.text.tokens.size, output: limit)
-                try flag.check()
-                let generated = try MLXLMCommon.generate(input: input,
-                    parameters: GenerateParameters(maxTokens: limit, maxKVSize: LocalMLXPolicy.context,
-                        temperature: Float(request.temperature), prefillStepSize: 64), context: context) { tokens in
-                    diagnostic.update(stage: .decoding, footprint: Self.footprint())
-                    guard !flag.cancelled else { return .stop }
-                    // JSON and tools only execute after complete validation.
-                    if !request.jsonMode { output.replace(context.tokenizer.decode(tokens: tokens)) }
-                    return .more
-                }
-                return (generated.output, generated.promptTokenCount, generated.tokens.count)
-            }
+            let result = try await InferenceEngine.shared.generate(InferenceRequest(directory: directory,
+                input: input, budget: LocalMLXPolicy.budget, outputTokens: limit,
+                temperature: Float(request.temperature)), cancellation: flag.inference, onText: { text in
+                    if !request.jsonMode { output.replace(text) }
+                })
             try flag.check()
-            guard result.2 < limit else { throw CoachContextError.truncated }
-            if request.jsonMode { try LocalMLXPolicy.validateJSON(result.0) }
-            let response = try LocalPrompt.parse(result.0, tools: request.tools)
+            guard result.outputTokens < limit else { throw CoachContextError.truncated }
+            if request.jsonMode { try LocalMLXPolicy.validateJSON(result.text) }
+            let response = try LocalPrompt.parse(result.text, tools: request.tools)
             output.flush(response.content ?? "")
             for call in response.toolCalls { continuation.yield(.toolCall(id: call.id, name: call.name, argumentsJSON: call.argumentsJSON)) }
-            continuation.yield(.usage(LLMUsage(promptTokens: result.1, completionTokens: result.2, totalTokens: result.1 + result.2)))
+            continuation.yield(.usage(LLMUsage(promptTokens: result.inputTokens, completionTokens: result.outputTokens,
+                                              totalTokens: result.inputTokens + result.outputTokens)))
             continuation.yield(.finished(reason: response.toolCalls.isEmpty ? "stop" : "tool_calls"))
             continuation.finish()
         } catch {
             verified = false
-            if (error as? LocalMiloError) == .invalidFiles { await MainActor.run { LocalModelStore.shared.invalidate() } }
-            diagnostic.sample(footprint: Self.footprint())
-            let failure = flag.cancelled ? flag.failure : error
+            let execution = error as? InferenceExecutionError
+            let failure = flag.cancelled ? flag.failure : Self.appError(execution?.underlying ?? error)
+            if (failure as? LocalMiloError) == .invalidFiles { await MainActor.run { LocalModelStore.shared.invalidate() } }
             if (failure as? LocalMiloError) == .memoryPressure {
-                continuation.finish(throwing: LocalMemoryDiagnosticError(summary: diagnostic.summary))
-            } else {
-                continuation.finish(throwing: failure)
-            }
+                continuation.finish(throwing: LocalMemoryDiagnosticError(summary: execution?.diagnostic ?? diagnostic.summary))
+            } else { continuation.finish(throwing: failure) }
         }
     }
-    private static func footprint() -> UInt64? {
-        var info = task_vm_info_data_t()
-        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<integer_t>.size)
-        let status = withUnsafeMutablePointer(to: &info) { pointer in
-            pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
-                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), $0, &count)
-            }
+    private static func appError(_ error: Error) -> Error {
+        guard let failure = error as? InferenceFailure else { return error }
+        switch failure {
+        case .budget: return LocalMiloError.budget
+        case .modelLoad: return LocalMiloError.modelLoad
+        case .visionLoad: return LocalMiloError.visionLoad
+        case .image: return LocalMiloError.image
+        case .integrity: return LocalMiloError.invalidFiles
         }
-        return status == KERN_SUCCESS ? info.phys_footprint : nil
     }
     static func image(_ images: [String]) throws -> Data {
-        guard images.count <= 1 else { throw LocalMiloError.image }
-        guard let encoded = images.first else { return Data() }
-        guard encoded.utf8.count <= 28_000_000, let data = Data(base64Encoded: encoded),
-              let source = CGImageSourceCreateWithData(data as CFData, [kCGImageSourceShouldCache: false] as CFDictionary),
-              let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, [
-                kCGImageSourceCreateThumbnailFromImageAlways: true,
-                kCGImageSourceCreateThumbnailWithTransform: true,
-                kCGImageSourceThumbnailMaxPixelSize: 384,
-                kCGImageSourceShouldCacheImmediately: true
-              ] as CFDictionary) else { throw LocalMiloError.image }
-        let output = NSMutableData()
-        guard let target = CGImageDestinationCreateWithData(output, UTType.jpeg.identifier as CFString, 1, nil) else { throw LocalMiloError.image }
-        CGImageDestinationAddImage(target, thumbnail, [kCGImageDestinationLossyCompressionQuality: 0.8] as CFDictionary)
-        guard CGImageDestinationFinalize(target) else { throw LocalMiloError.image }
-        return output as Data
+        do { return try InferenceImage.prepare(images) }
+        catch { throw appError(error) }
     }
+
 }
 
-private final class LocalOutput {
+private final class LocalOutput: @unchecked Sendable {
     let continuation: AsyncThrowingStream<LLMStreamEvent, Error>.Continuation
     let flag: LocalCancellation
     var data = Data()

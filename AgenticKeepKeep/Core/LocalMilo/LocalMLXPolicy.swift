@@ -1,12 +1,16 @@
 import Foundation
+import MiloInferenceCore
 
 /// Actual tokenizer enforcement is separate from the coach's pruning estimate.
 enum LocalMLXPolicy {
-    static let context = 8192
+    static let context = 16_384
+    static var contextLabel: String { "\(context / 1024)K" }
     static let maximumOutput = 1024
+    static var budget: InferenceBudget { InferenceBudget(context: context, maximumOutput: maximumOutput) }
     static func outputLimit(_ requested: Int?) -> Int { min(maximumOutput, max(1, requested ?? maximumOutput)) }
     static func validate(input: Int, output: Int) throws {
-        guard input > 0, output > 0, output <= maximumOutput, input <= context - output else { throw LocalMiloError.budget }
+        do { try budget.validate(input: input, output: output) }
+        catch { throw LocalMiloError.budget }
     }
     /// The rendered ChatML has already escaped user-supplied control tokens.
     /// VLM applies its own chat template, so preserve roles instead of wrapping

@@ -1,5 +1,7 @@
 # MLX Swift 验证 checklist
 
+> 历史归档：独立 Milo Lab 已按用户要求退役，源码、工程和专属 CI 已删除。以下命令、测试与产物记录仅用于历史追溯；当前验证使用推理包测试与正式 App 回归，见[第 24 轮](../24-inference-package/checklist.md)。
+
 ## 需求与路线
 - [x] 新建独立分支 `feat/mlx-runtime-validation`，明确不替换现有生产引擎。
 - [x] 编写需求、验收与不支持范围。

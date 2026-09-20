@@ -18,6 +18,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 获取固定版本的私有推理包
+        uses: ./.github/actions/inference-dependency
+        with:
+          deploy-key: ${{ secrets.MILO_INFERENCE_DEPLOY_KEY }}
 
       - name: 安装 XcodeGen
         run: brew install xcodegen cmake
@@ -33,7 +39,7 @@ jobs:
       - name: 构建
         run: |
           set -o pipefail
-          xcodebuild build \
+          xcodebuild build -scmProvider system \
             -project AgenticKeepKeep.xcodeproj \
             -scheme AgenticKeepKeep \
             -destination 'generic/platform=iOS Simulator' \
@@ -48,7 +54,7 @@ jobs:
           set -o pipefail
           UDID=$(xcrun simctl list devices available --json | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; devs=[x for rt in d.values() for x in rt if x['name'].startswith('iPhone')]; print(devs[0]['udid'])")
           echo "使用模拟器: $UDID"
-          xcodebuild test \
+          xcodebuild test -scmProvider system \
             -project AgenticKeepKeep.xcodeproj \
             -scheme AgenticKeepKeep \
             -destination "platform=iOS Simulator,id=$UDID" \
@@ -71,6 +77,12 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 获取固定版本的私有推理包
+        uses: ./.github/actions/inference-dependency
+        with:
+          deploy-key: ${{ secrets.MILO_INFERENCE_DEPLOY_KEY }}
 
       - name: 安装 XcodeGen
         run: brew install xcodegen cmake
@@ -83,7 +95,7 @@ jobs:
 
       - name: Archive
         run: |
-          xcodebuild archive \
+          xcodebuild archive -scmProvider system \
             -project AgenticKeepKeep.xcodeproj \
             -scheme AgenticKeepKeep \
             -destination 'generic/platform=iOS' \

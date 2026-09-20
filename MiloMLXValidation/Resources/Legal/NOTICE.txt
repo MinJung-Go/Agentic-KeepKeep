@@ -1,7 +1,0 @@
-Milo Lab: independent MLX validation app.
-Runtime: Apple MLX Swift 0.31.3 and MLX Swift LM 2.31.3 (MIT); bundled licenses accompany this notice.
-Model: Qwen3.5-2B, Alibaba Qwen team (Apache-2.0); community MLX 4-bit conversion by mlx-community.
-Model source: https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit
-Pinned revision: ffa48c63955c56e22d76c1b2acd9b89e26310618
-Weights are downloaded separately, not bundled. This app is not affiliated with the model authors.
-Tokenizer dependencies are supplied by the upstream Swift packages and retain their respective notices.

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Run the same pure Swift XCTest cases on Linux; does not substitute for iOS CI."""
-import os, pathlib, shutil, subprocess, tempfile
+import os, pathlib, shutil, subprocess, tempfile, json
+from dependency import inference_dependency
 root = pathlib.Path(__file__).resolve().parents[2]
 files = ['Core/LLM/LLMTypes.swift','Core/LLM/JSONValue.swift','Core/LLM/LLMRequestTime.swift',
          'Core/LLM/FitnessSearchTopic.swift','Core/Agents/CoachToolResult.swift',
@@ -14,8 +15,9 @@ with tempfile.TemporaryDirectory(prefix='milo-tests-') as path:
         shutil.copy2(root/'AgenticKeepKeepTests/AgentTests'/name, test)
     (path/'Package.swift').write_text('''// swift-tools-version: 5.9
 import PackageDescription
-let package = Package(name: "LocalMiloChecks", platforms: [.macOS(.v14)], targets: [
- .target(name: "AgenticKeepKeep"), .testTarget(name: "LocalMiloTests", dependencies: ["AgenticKeepKeep"])
+let package = Package(name: "LocalMiloChecks", platforms: [.macOS(.v14)],
+ dependencies: [.package(url: __INFERENCE_URL__, revision: __INFERENCE_REVISION__)], targets: [
+ .target(name: "AgenticKeepKeep", dependencies: [.product(name: "MiloInferenceCore", package: "MiloInference")]), .testTarget(name: "LocalMiloTests", dependencies: ["AgenticKeepKeep"])
 ])
-''')
+'''.replace('__INFERENCE_URL__', json.dumps(inference_dependency()['url'])).replace('__INFERENCE_REVISION__', json.dumps(inference_dependency()['revision'])))
     subprocess.run([os.environ.get('SWIFT', 'swift'), 'test', '--package-path', str(path)], check=True)

@@ -85,3 +85,11 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 离线 Milo：验证 Qwen 图文小模型（当前候选 Qwen3.5-2B）的 iPhone 本地推理、图文记录、工具调用、模型下载及 App 内置浏览器搜索／阅读方案。现有 GLM 保留；本地运行时、下载、图文和浏览器已接入，Linux 模型冒烟与纯 Swift 测试已执行，iOS CI／真机和完整质量评测待完成。设计短片已放到 README 顶部。
 
 [需求](19-local-milo/requirements.md) · [验证清单](19-local-milo/checklist.md) · [下载 UI](19-local-milo/design.html)
+
+## 第 23 轮 · 本地上下文分阶段扩容
+
+默认 16K；32K 待真机验证及选择入口设计确认后开放。[需求](23-local-context/requirements.md) · [清单](23-local-context/checklist.md)。
+
+## 第 24 轮 · 推理核心独立包
+
+[需求](24-inference-package/requirements.md) · [清单](24-inference-package/checklist.md) · [私有包接入说明](24-inference-package/integration.md)。
