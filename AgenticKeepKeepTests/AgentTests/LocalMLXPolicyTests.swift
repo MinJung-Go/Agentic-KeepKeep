@@ -43,8 +43,14 @@ final class LocalMLXPolicyTests: XCTestCase {
     func testJSONRequiresCompleteObjectOrArray() throws {
         try LocalMLXPolicy.validateJSON("{\"records\":[]}")
         try LocalMLXPolicy.validateJSON("[]")
-        for text in ["{\"records\":[", "hello", "42", "\"saved\"", "```json\n{}\n```"] {
+        for text in ["{\"records\":[", "hello", "42", "\"saved\""] {
             XCTAssertThrowsError(try LocalMLXPolicy.validateJSON(text))
+        }
+    }
+    func testCompleteJSONFenceIsNormalizedWithoutRepairingInvalidOutput() throws {
+        XCTAssertEqual(try LocalMLXPolicy.normalizedJSON("```json\n{\"records\":[]}\n```"), "{\"records\":[]}")
+        for text in ["```json\n{}", "```json\n{\"records\":[}\n```", "{} {}", "<think>test</think>{}", "说明：{}", "```json\n```"] {
+            XCTAssertThrowsError(try LocalMLXPolicy.normalizedJSON(text))
         }
     }
     func testVisionMessagesRejectPartialTemplate() {

@@ -28,31 +28,63 @@ struct ParserAgent {
             messages.append(.user(trimmed))
         }
 
-        let request = LLMRequest(
+        let local = client.config.baseURL == "local://milo"
+        var request = LLMRequest(
             messages: messages,
             temperature: 0.1,
-            jsonMode: true
+            jsonMode: true,
+            thinkingEnabled: local ? false : nil
         )
 
-        let response = try await client.complete(request)
+        for attempt in 0...1 {
+            try Task.checkCancellation()
+            do {
+                let response = try await client.complete(request)
+                try Task.checkCancellation()
+                guard let content = response.content,
+                      !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+                    throw AgentError.emptyResponse
+                }
+                return try Self.decodeRecords(content)
+            } catch {
+                // A second local generation starts only after the first has cleaned up.
+                // Never retry cancellation, memory pressure, transport errors or empty records.
+                let formatFailure: Bool
+                if case AgentError.invalidJSON = error { formatFailure = true }
+                else { formatFailure = (error as? LocalMiloError) == .malformedTool }
+                guard local, attempt == 0, formatFailure else { throw error }
+                try Task.checkCancellation()
+                request.temperature = 0
+                request.messages[0].content += """
 
-        guard let content = response.content,
-              !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            throw AgentError.emptyResponse
+                上一次输出格式不符合记录协议。请重新读取本次原文和附件，只返回一个 JSON 对象：{"records":[...]}。
+                records 必须是数组，不是字符串或对象。每项用 type 标明类型，并把字段放在对应的 workout、meal、metric 对象里；随笔用 note 字符串。
+                例如随笔格式：{"records":[{"type":"note","note":"用户原文"}]}。示例不是用户事实，不要照抄。
+                数字用 JSON 数字；未知可选字段省略，不要编造。无法识别时返回 {"records":[]}。不要解释、思考标签或代码围栏。
+                """
+            }
         }
+        throw AgentError.invalidJSON("记录结构不符合要求")
+    }
 
-        // 兼容两种返回形态：{"records":[...]} 或直接 [...]
-        if let output = try? JSONExtractor.decode(ParserOutput.self, from: content) {
-            guard !output.records.isEmpty else { throw AgentError.emptyResult }
-            return output.records
-        }
-
+    private static func decodeRecords(_ content: String) throws -> [ParsedRecord] {
+        let data = try JSONExtractor.extract(from: content)
+        let value: Any
+        do { value = try JSONSerialization.jsonObject(with: data) }
+        catch { throw AgentError.invalidJSON("JSON 语法不完整或不正确") }
+        let records: [ParsedRecord]
         do {
-            let records = try JSONExtractor.decode([ParsedRecord].self, from: content)
-            guard !records.isEmpty else { throw AgentError.emptyResult }
-            return records
-        } catch {
-            throw AgentError.invalidJSON(String(describing: error))
+            if value is [String: Any] {
+                records = try JSONDecoder().decode(ParserOutput.self, from: data).records
+            } else if value is [Any] {
+                records = try JSONDecoder().decode([ParsedRecord].self, from: data)
+            } else {
+                throw AgentError.invalidJSON("顶层应为包含 records 数组的对象或记录数组")
+            }
+        } catch let error as DecodingError {
+            throw AgentError.invalidJSON(JSONExtractor.decodingDetail(error))
         }
+        guard !records.isEmpty else { throw AgentError.emptyResult }
+        return records
     }
 }

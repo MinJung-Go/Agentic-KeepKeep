@@ -40,9 +40,29 @@ enum JSONExtractor {
         let data = try extract(from: text)
         do {
             return try JSONDecoder().decode(type, from: data)
-        } catch {
-            throw AgentError.invalidJSON(error.localizedDescription)
+        } catch let error as DecodingError {
+            throw AgentError.invalidJSON(decodingDetail(error))
         }
+    }
+
+    /// Include schema paths, never response values or arbitrary decoder descriptions.
+    static func decodingDetail(_ error: DecodingError) -> String {
+        let path: [CodingKey]
+        let reason: String
+        switch error {
+        case .keyNotFound(let key, let context):
+            path = context.codingPath + [key]; reason = "缺少必填字段"
+        case .typeMismatch(_, let context):
+            path = context.codingPath; reason = "字段类型不符合记录结构"
+        case .valueNotFound(_, let context):
+            path = context.codingPath; reason = "必填字段不能为 null"
+        case .dataCorrupted(let context):
+            path = context.codingPath; reason = "JSON 内容不完整或格式不正确"
+        @unknown default:
+            return "JSON 格式不符合要求"
+        }
+        let location = path.map { $0.intValue.map { "[\($0)]" } ?? $0.stringValue }.joined(separator: ".")
+        return "\(location.isEmpty ? "根节点" : location)：\(reason)"
     }
 }
 

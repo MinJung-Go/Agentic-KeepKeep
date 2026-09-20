@@ -93,3 +93,7 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 ## 第 24 轮 · 推理核心独立包
 
 [需求](24-inference-package/requirements.md) · [清单](24-inference-package/checklist.md) · [私有包接入说明](24-inference-package/integration.md)。
+
+## 第 25 轮 · 记录 JSON 解析回归
+
+纯文字／照片记录格式恢复与安全错误诊断。[需求](25-record-json/requirements.md) · [清单](25-record-json/checklist.md)。

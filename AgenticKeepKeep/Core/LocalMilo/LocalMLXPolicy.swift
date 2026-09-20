@@ -33,6 +33,19 @@ enum LocalMLXPolicy {
         return messages
     }
     static func validateJSON(_ text: String) throws {
-        guard let value = JSONValue.parse(text), value.objectValue != nil || value.arrayValue != nil else { throw LocalMiloError.malformedTool }
+        _ = try normalizedJSON(text)
+    }
+    static func normalizedJSON(_ text: String) throws -> String {
+        var content = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if content.hasPrefix("```") {
+            guard let newline = content.firstIndex(of: "\n"), content.hasSuffix("```") else { throw LocalMiloError.malformedTool }
+            let opening = content[..<newline].trimmingCharacters(in: .whitespaces).lowercased()
+            guard opening == "```json" || opening == "```" else { throw LocalMiloError.malformedTool }
+            let body = content[content.index(after: newline)...]
+            guard body.count >= 3 else { throw LocalMiloError.malformedTool }
+            content = String(body.dropLast(3)).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        guard let value = JSONValue.parse(content), value.objectValue != nil || value.arrayValue != nil else { throw LocalMiloError.malformedTool }
+        return content
     }
 }

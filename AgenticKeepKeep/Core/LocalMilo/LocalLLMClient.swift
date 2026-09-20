@@ -97,8 +97,8 @@ final class LocalInferenceWorker: @unchecked Sendable {
                 })
             try flag.check()
             guard result.outputTokens < limit else { throw CoachContextError.truncated }
-            if request.jsonMode { try LocalMLXPolicy.validateJSON(result.text) }
-            let response = try LocalPrompt.parse(result.text, tools: request.tools)
+            let text = request.jsonMode ? try LocalMLXPolicy.normalizedJSON(result.text) : result.text
+            let response = try LocalPrompt.parse(text, tools: request.tools)
             output.flush(response.content ?? "")
             for call in response.toolCalls { continuation.yield(.toolCall(id: call.id, name: call.name, argumentsJSON: call.argumentsJSON)) }
             continuation.yield(.usage(LLMUsage(promptTokens: result.inputTokens, completionTokens: result.outputTokens,
