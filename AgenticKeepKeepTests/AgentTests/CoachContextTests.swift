@@ -95,7 +95,7 @@ final class CoachContextTests: XCTestCase {
         try settings.coachPolicy.validate(prepared.request)
         XCTAssertEqual(settings.coachPolicy.window, 16_384)
         XCTAssertTrue(Set(tools.definitions.map(\.name)).isSubset(of: Set(prepared.request.tools.map(\.name))))
-        XCTAssertEqual(prepared.request.maxTokens, 1024)
+        XCTAssertEqual(prepared.request.maxTokens, 2048)
     }
 
     func testShortChatHasNoSummaryAndThinkingReservesActualOutput() async throws {

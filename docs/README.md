@@ -97,3 +97,7 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 ## 第 25 轮 · 记录 JSON 解析回归
 
 纯文字／照片记录格式恢复与安全错误诊断。[需求](25-record-json/requirements.md) · [清单](25-record-json/checklist.md)。
+
+## 第 26 轮 · 本地输出上限 2048
+
+本地模型输出上限由 1024 提升至 2048 tokens，教练策略与引擎预算随动。[需求](26-output-2048/requirements.md) · [清单](26-output-2048/checklist.md)。

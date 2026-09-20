@@ -150,8 +150,8 @@ final class LocalModelInstallTests: XCTestCase {
         XCTAssertEqual(settings.coachPolicy.window, 16_384)
         XCTAssertEqual(settings.coachPolicy.window, LocalMLXPolicy.context)
         XCTAssertEqual(settings.coachPolicy.inputCap, LocalMLXPolicy.context)
-        XCTAssertEqual(try settings.coachPolicy.inputLimit(), 14_848)
-        XCTAssertEqual(settings.coachPolicy.outputReserve, 1024)
+        XCTAssertEqual(try settings.coachPolicy.inputLimit(), 13_824)
+        XCTAssertEqual(settings.coachPolicy.outputReserve, 2048)
         if !LocalModelManifest.isInstalled() {
             XCTAssertThrowsError(try settings.makeClient()) { XCTAssertTrue($0 is LocalMiloError) }
         } else {
