@@ -6,22 +6,22 @@ struct LocalModelFile: Codable, Equatable {
     let bytes: Int64
     let sha256: String
     var url: URL {
-        URL(string: "https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit/resolve/\(LocalModelManifest.modelScopeRevision)/\(name)")!
+        URL(string: "https://modelscope.cn/models/mlx-community/Qwen3.5-0.8B-4bit/resolve/\(LocalModelManifest.modelScopeRevision)/\(name)")!
     }
 }
 
 enum LocalModelManifest {
-    static let modelScopeRevision = "ffa48c63955c56e22d76c1b2acd9b89e26310618"
+    static let modelScopeRevision = "f607c492a6aeeb50ca73cca0b924c006331a02af"
     static let revision = "mlx-" + modelScopeRevision
     static let files = [
         LocalModelFile(name: "chat_template.jinja", bytes: 7755,
                        sha256: "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80"),
-        LocalModelFile(name: "config.json", bytes: 3113,
-                       sha256: "beb7fc5a6e0405fe332821cf1a8ef7b69bb390a8c8933171647de5579debf949"),
-        LocalModelFile(name: "model.safetensors", bytes: 1722271785,
-                       sha256: "713fe7e5d3c3965f7106b0d0ee17615f7869c23c8d327996df8c1196fbcf07d5"),
-        LocalModelFile(name: "model.safetensors.index.json", bytes: 81722,
-                       sha256: "8294c05cca7d53a6c33e3db2b379539bd296d054e0b689711b16b6ac93c7e49d"),
+        LocalModelFile(name: "config.json", bytes: 3112,
+                       sha256: "ba7770da23eae5ebd6827571f086e331956b33f4442a9e876fb4aa10969a6772"),
+        LocalModelFile(name: "model.safetensors", bytes: 625229487,
+                       sha256: "f5a0d9dd3efa73510542a8023d610ff26be2b4b020d181cfc4bedaa1fcc5dd9e"),
+        LocalModelFile(name: "model.safetensors.index.json", bytes: 71473,
+                       sha256: "6e48f2fa5d6f033a6d77bf833abfa9698ca24d1715ecea4c67447bcfaee44650"),
         LocalModelFile(name: "preprocessor_config.json", bytes: 390,
                        sha256: "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"),
         LocalModelFile(name: "processor_config.json", bytes: 1300,

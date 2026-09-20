@@ -1,8 +1,8 @@
 Moveliq local runtime: Apple MLX Swift 0.31.3 and MLX Swift LM 2.31.3 (MIT).
 See MLX-LICENSE.txt and MLXLM-LICENSE.txt for notices.
-Model: Qwen3.5-2B, Qwen team / Alibaba (Apache-2.0).
+Model: Qwen3.5-0.8B, Qwen team / Alibaba (Apache-2.0).
 MLX 4-bit conversion: mlx-community. See Qwen-LICENSE.txt.
-Download source: https://modelscope.cn/models/mlx-community/Qwen3.5-2B-4bit
-Revision: ffa48c63955c56e22d76c1b2acd9b89e26310618
+Download source: https://modelscope.cn/models/mlx-community/Qwen3.5-0.8B-4bit
+Revision: f607c492a6aeeb50ca73cca0b924c006331a02af
 Model weights are downloaded separately, not included in the IPA.
 Legacy GGUF files are not compatible with this runtime and are not automatically deleted.

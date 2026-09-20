@@ -62,6 +62,8 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
 
+当前分支已改用 **Qwen3.5-0.8B MLX 4bit**：从 ModelScope 下载约 **645 MB**，保持原有角色、历史与工具流程，8K 上下文。升级后需下载新模型；旧 2B 不会作为新版启用。[本轮修复与验证](docs/22-local-memory/checklist.md)。新 IPA 构建中，下方为上一版本。
+
 [MLX 正式接入 IPA · 0.5.0（21）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35380521646/artifacts/10562367633)：393 项 iOS 单测通过，正式 App 已接入 MLX 文字／单图推理与后台下载。默认从 ModelScope 下载约 1.74 GB 新模型，旧 GGUF 不兼容；图文真机性能与任务质量仍待验收。[需求与 checklist](docs/21-mlx-production/checklist.md) · [安装说明与验证边界](docs/21-mlx-production/validation.md)。
 
 仓库自带 GitHub Actions 流水线，打 tag 会自动构建并产出未签名 IPA：

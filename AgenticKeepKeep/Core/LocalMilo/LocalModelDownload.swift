@@ -29,8 +29,10 @@ final class LocalModelStore: ObservableObject {
     static let shared = LocalModelStore()
     static let sessionPrefix = "com.minjung.keepkeep.local-model.modelscope.v1"
     static let sessionIDs = [sessionPrefix + ".wifi", sessionPrefix + ".cellular"]
-    private static let generationKey = "localMilo.mlx.backgroundGeneration"
-    private static let activeKey = "localMilo.mlx.backgroundDownloadActive"
+    // Keep session IDs stable to reconnect and cancel obsolete transfers.
+    // Persist intent and identity per model revision: filenames alone are shared.
+    static let generationKey = "localMilo.mlx.backgroundGeneration.\(LocalModelManifest.revision)"
+    static let activeKey = "localMilo.mlx.backgroundDownloadActive.\(LocalModelManifest.revision)"
     enum Phase: Equatable { case absent, downloading, paused, checking, ready, failed(String) }
     @Published private(set) var phase: Phase
     @Published private(set) var progress = 0.0

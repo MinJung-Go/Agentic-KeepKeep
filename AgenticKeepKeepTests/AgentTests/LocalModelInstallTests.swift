@@ -5,6 +5,36 @@ import ImageIO
 @testable import AgenticKeepKeep
 
 final class LocalModelInstallTests: XCTestCase {
+    @MainActor
+    func testModelUpgradeDoesNotReuseOldDownloadIdentityOrIntent() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: UUID().uuidString))
+        defaults.set("old-2b-task", forKey: "localMilo.mlx.backgroundGeneration")
+        defaults.set(true, forKey: "localMilo.mlx.backgroundDownloadActive")
+        XCTAssertNil(defaults.string(forKey: LocalModelStore.generationKey))
+        XCTAssertFalse(defaults.bool(forKey: LocalModelStore.activeKey))
+        XCTAssertTrue(LocalModelStore.generationKey.hasSuffix(LocalModelManifest.revision))
+        XCTAssertTrue(LocalModelStore.activeKey.hasSuffix(LocalModelManifest.revision))
+        let oldTask = LocalDownloadPolicy.descriptor(generation: "old-2b-task", file: "model.safetensors")
+        XCTAssertNil(LocalDownloadPolicy.file(in: oldTask, generation: "new-08b-task", allowed: LocalModelManifest.files.map(\.name)))
+    }
+    func testOldModelReadyMarkerIsRejectedEvenWithMatchingFileSizes() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        // Sparse fixtures exercise size checks without allocating model contents.
+        for file in LocalModelManifest.files {
+            let url = directory.appendingPathComponent(file.name)
+            try Data().write(to: url)
+            let handle = try FileHandle(forWritingTo: url)
+            try handle.truncate(atOffset: UInt64(file.bytes))
+            try handle.close()
+        }
+        let marker = directory.appendingPathComponent("ready")
+        try Data(LocalModelManifest.revision.utf8).write(to: marker)
+        XCTAssertTrue(LocalModelManifest.isInstalled(at: directory))
+        try Data("mlx-ffa48c63955c56e22d76c1b2acd9b89e26310618".utf8).write(to: marker)
+        XCTAssertFalse(LocalModelManifest.isInstalled(at: directory))
+    }
     func testCancellationPreservesFirstReason() {
         let memory = LocalCancellation()
         memory.cancel(reason: .memoryPressure)
@@ -90,11 +120,12 @@ final class LocalModelInstallTests: XCTestCase {
         XCTAssertTrue(LocalModelManifest.files.contains { $0.name == "preprocessor_config.json" })
         XCTAssertFalse(LocalModelManifest.files.contains { $0.name.hasSuffix(".gguf") })
         XCTAssertTrue(LocalModelManifest.revision.hasPrefix("mlx-"))
-        XCTAssertEqual(LocalModelManifest.totalBytes, 1742356547)
+        XCTAssertEqual(LocalModelManifest.totalBytes, 645303999)
         for file in LocalModelManifest.files {
             XCTAssertEqual(file.sha256.count, 64)
             XCTAssertEqual(file.url.host, "modelscope.cn")
             XCTAssertTrue(file.url.path.contains(LocalModelManifest.modelScopeRevision))
+            XCTAssertTrue(file.url.path.contains("/Qwen3.5-0.8B-4bit/"))
             XCTAssertFalse(file.url.path.contains("/main/"))
         }
     }
