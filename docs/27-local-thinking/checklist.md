@@ -10,8 +10,8 @@
 - [x] 降级重试：同请求 `thinkingEnabled=false` 重发一次，换新取消旗标并登记，防止 unload 期间误重试与已终止消费者的无效生成；首因保留。
 - [x] 测试：`LocalMiloTests` 更新思考剥离期望并新增开块渲染／工具前思考剥离；新增 `LocalThinkingStreamTests`（7 项：分相流式、尾部防截断、溢出一次性、标签防截断、answerText、flush、非思考纯流式）。
 - [x] 更新 [docs/README.md](../README.md) 轮次索引。
-- [ ] 本地 portable 测试：本环境无 Swift 工具链，未执行；以 iOS CI 结果为准（如实记录）。
-- [ ] iOS 单测与编译：push 后 GitHub Actions（记录提交号与单测数量）。
+- [x] 本地 portable 测试：本环境无 Swift 工具链，未执行；以 iOS CI 结果为准（如实记录）。
+- [x] iOS 单测与编译：CI [35508236676](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35508236676)，提交 `cc45429`，**420 项 XCTest，0 失败**（较 411 新增 9 项：思考流式 7 项 + 渲染／剥离 2 项）。
 - [ ] 真机验证：首字等待、思考循环发生率、格式正确率（开关开 vs 关）；官方警告 0.8B 易循环，未验证前不宣称稳定。
 
 ## 已知简化（记录在案）
