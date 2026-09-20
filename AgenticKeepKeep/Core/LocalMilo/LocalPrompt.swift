@@ -85,17 +85,21 @@ enum LocalPrompt {
             }
             result += "<|im_end|>\n"
         }
-        result += "<|im_start|>assistant\n<think>\n\n</think>\n\n"
+        // 开启思考时末位 assistant 用开块让模型继续思考；历史回合保留空闭合块
+        //（历史消息存的是正文，不存思考内容）。
+        let thinking = request.thinkingEnabled == true
+        result += "<|im_start|>assistant\n" + (thinking ? "<think>\n" : "<think>\n\n</think>\n\n")
         guard result.utf8.count <= 131_072 else { throw LocalMiloError.budget }
         return result
     }
     static func parse(_ output: String, tools: [LLMTool]) throws -> LLMResponse {
-        guard !output.contains("<think>"), !output.contains("</think>") else { throw LocalMiloError.malformedTool }
-        guard let first = output.range(of: "<tool_call>") else {
-            if output.contains("<tool_") { throw LocalMiloError.malformedTool }
-            return .text(output)
+        let answer = answerOnly(output)
+        guard !answer.contains("<think>"), !answer.contains("</think>") else { throw LocalMiloError.malformedTool }
+        guard let first = answer.range(of: "<tool_call>") else {
+            if answer.contains("<tool_") { throw LocalMiloError.malformedTool }
+            return .text(answer)
         }
-        var remaining = String(output[first.lowerBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        var remaining = String(answer[first.lowerBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
         var calls: [LLMToolCall] = []
         while !remaining.isEmpty {
             guard calls.count < 8, remaining.hasPrefix("<tool_call>"),
@@ -125,7 +129,13 @@ enum LocalPrompt {
             calls.append(LLMToolCall(id: UUID().uuidString, name: name, argumentsJSON: String(decoding: json, as: UTF8.self)))
             remaining = String(remaining[end.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return .calls(calls, content: String(output[..<first.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines))
+        return .calls(calls, content: String(answer[..<first.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+    /// 取首个 `</think>` 之后的正文；未闭合时原样返回，由调用方按思考未收敛处理。
+    /// 注意：正文中模型若原样引用 `</think>`，会被误判为结束标记，概率低，可接受。
+    private static func answerOnly(_ output: String) -> String {
+        guard let end = output.range(of: "</think>") else { return output }
+        return String(output[end.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
     }
     static func valid(_ value: JSONValue, schema: JSONValue) -> Bool {
         guard let spec = schema.objectValue else { return false }

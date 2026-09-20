@@ -6,6 +6,10 @@ enum LocalMLXPolicy {
     static let context = 16_384
     static var contextLabel: String { "\(context / 1024)K" }
     static let maximumOutput = 2048
+    /// 思考请求的过渡采样温度（官方防循环参数需改包暴露，真机验证后再调）。
+    static let thinkingTemperature: Float = 0.6
+    /// 思考软子预算：按字符数近似 tokens，中文 1 字 ≈ 1 token。超过即中止并降级重试。
+    static let thinkingBudget = 1_024
     static var budget: InferenceBudget { InferenceBudget(context: context, maximumOutput: maximumOutput) }
     static func outputLimit(_ requested: Int?) -> Int { min(maximumOutput, max(1, requested ?? maximumOutput)) }
     static func validate(input: Int, output: Int) throws {

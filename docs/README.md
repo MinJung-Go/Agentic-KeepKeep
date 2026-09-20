@@ -101,3 +101,7 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 ## 第 26 轮 · 本地输出上限 2048
 
 本地模型输出上限由 1024 提升至 2048 tokens，教练策略与引擎预算随动。[需求](26-output-2048/requirements.md) · [清单](26-output-2048/checklist.md)。
+
+## 第 27 轮 · 本地思考模式与撞顶保护
+
+本地思考接入「深度思考」开关（默认开），思考超子预算即中止并自动降级重试。[需求](27-local-thinking/requirements.md) · [清单](27-local-thinking/checklist.md)。

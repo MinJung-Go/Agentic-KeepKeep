@@ -4,6 +4,7 @@ enum LocalMiloError: LocalizedError, Equatable {
     case notReady, invalidFiles, insufficientSpace, runtime, image, budget, malformedTool
     case modelLoad, contextLoad, visionLoad, evaluation
     case memoryPressure, backgrounded
+    case thinkingUnconverged
     static func native(_ code: Int32) -> LocalMiloError {
         switch code {
         case -10: return .modelLoad
@@ -30,6 +31,7 @@ enum LocalMiloError: LocalizedError, Equatable {
         case .image: return "这张照片暂时无法处理，请换一张或先用文字记录。"
         case .budget: return "这次内容超过本机模型容量，请缩短文字或减少图片。"
         case .malformedTool: return "模型未能生成完整有效的操作，尚未执行，请重试。"
+        case .thinkingUnconverged: return "本地思考未在预算内结束，已自动改用直接回答重试。"
         }
     }
 }

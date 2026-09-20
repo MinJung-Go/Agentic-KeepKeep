@@ -40,7 +40,21 @@ final class LocalMiloTests: XCTestCase {
     func testTruncationAndSuffixCannotExecuteTools() {
         XCTAssertThrowsError(try LocalPrompt.parse(String(xml().dropLast(5)), tools: [tool]))
         XCTAssertThrowsError(try LocalPrompt.parse(xml() + "偷偷执行", tools: [tool]))
-        XCTAssertThrowsError(try LocalPrompt.parse("<think>秘密</think>正文", tools: [tool]))
+        // 已闭合的思考被剥离，正文保留；未闭合的思考仍拒绝
+        XCTAssertEqual(try LocalPrompt.parse("<think>秘密</think>正文", tools: [tool]).content, "正文")
+        XCTAssertThrowsError(try LocalPrompt.parse("<think>没说完", tools: [tool]))
+    }
+    func testThinkingToggleRendersOpenOrClosedThinkBlock() throws {
+        let plain = LLMRequest(messages: [.user("你好")])
+        let thinking = LLMRequest(messages: [.user("你好")], thinkingEnabled: true)
+        XCTAssertTrue(try LocalPrompt.render(plain).hasSuffix("<|im_start|>assistant\n<think>\n\n</think>\n\n"))
+        XCTAssertTrue(try LocalPrompt.render(thinking).hasSuffix("<|im_start|>assistant\n<think>\n"))
+        XCTAssertFalse(try LocalPrompt.render(thinking).contains("</think>\n\n</think>"))
+    }
+    func testThinkingBeforeToolCallIsStripped() throws {
+        let result = try LocalPrompt.parse("<think>先想一下</think>\n" + xml(), tools: [tool])
+        XCTAssertEqual(result.toolCalls.count, 1)
+        XCTAssertEqual(result.toolCalls.first?.arguments?.objectValue?["kind"], .string("health"))
     }
     func testToolLimit() {
         XCTAssertThrowsError(try LocalPrompt.parse(String(repeating: xml(), count: 9), tools: [tool]))
