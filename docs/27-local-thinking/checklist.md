@@ -12,7 +12,15 @@
 - [x] 更新 [docs/README.md](../README.md) 轮次索引。
 - [x] 本地 portable 测试：本环境无 Swift 工具链，未执行；以 iOS CI 结果为准（如实记录）。
 - [x] iOS 单测与编译：CI [35508236676](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35508236676)，提交 `cc45429`，**420 项 XCTest，0 失败**（较 411 新增 9 项：思考流式 7 项 + 渲染／剥离 2 项）。
+- [x] 打包 0.5.4 (25)：CI [35551150850](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35551150850)，提交 `06168e5`，420 项 XCTest 0 失败；产物核验见下。
 - [ ] 真机验证：首字等待、思考循环发生率、格式正确率（开关开 vs 关）；官方警告 0.8B 易循环，未验证前不宣称稳定。
+
+## IPA · 0.5.4（27）
+
+- [下载未签名 IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35551150850/artifacts/10619305237)，使用原侧载方式重签安装。
+- 已下载产物核验：Bundle ID `com.minjung.keepkeep`，版本 `0.5.4` / build `25`，iOS 17.0+；含 MLX Metal 库（3,814,924 字节）与 Widget、Qwen／MLX／MLXLM 许可与 LocalMilo NOTICE；无 GGUF／safetensors 权重。
+- IPA：8,758,634 字节；SHA-256：`b3b17db4614502d0468840a55fef19306b5bf94a860f798efc620fc2c51ff564`。
+- 内容：本地思考模式（默认开，仅教练对话）+ 思考子预算中止与自动降级重试 + 本地输出上限 2048。
 
 ## 已知简化（记录在案）
 
