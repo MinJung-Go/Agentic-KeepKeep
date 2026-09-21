@@ -74,5 +74,6 @@ Features/ (SwiftUI UI)  →  Core/Agents/  →  Core/LLM/ (BYOK 协议抽象)  �
 - 一轮工作 = 建分支 → 写需求文档 → 列 checklist → 涉及 UI 时先出设计稿并经用户确认 → 按 checklist 分批实现（每批 push 后等 CI 绿）→ 开 PR → 合并回 main → 打 tag 出 IPA
 - 敏感配置（API Key 等）不进库；`.claude/` 已 gitignore
 - commit / push 需用户明确要求
+- commit 信息不带任何 Claude 协作者署名（Co-Authored-By 等 AI 署名行），提交作者身份保持用户本人
 - 真机才能验证的改动（相机、健康数据、通知、签名相关）要在报告里明确标注，不要声称已验证
 - 改动完成后如实报告改了什么、没改什么，不夸大
