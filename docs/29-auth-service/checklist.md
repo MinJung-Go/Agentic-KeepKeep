@@ -43,10 +43,10 @@
 - [x] 服务真实 PostgreSQL 事务测试：2026-09-22 在服务器独立 PostgreSQL 17 测试库运行，9/9 通过，包含并发抢码、回滚、唯一性、逐层发码与重试。
 - [x] 服务 API 测试：认证、撤销、限流、上游错误／取消／流式与密钥隔离（mock 上游）。
 - [x] App 认证解码、输入策略、个人偏好隔离：可移植 XCTest 6 项通过（新增 HTTP 地址白名单）。
-- [x] 编写 App 认证 HTTP 3 项测试，并调整 3 项现有模型路由／预算测试；需 iOS CI 执行。
+- [x] 编写 App 认证 HTTP 3 项测试，并调整现有模型路由／预算测试；已随 iOS CI 通过。
 - [ ] SwiftData 旧记录关联、分库、Keychain 与 Widget 的 iOS 集成验收。
-- [x] Swift 6 语法检查 163 个文件；构建 YAML、Info.plist 与 `git diff --check` 通过。
-- [ ] iOS CI 构建／全量单测（需推送后执行），记录提交与测试数。
+- [x] Swift 6 语法检查 164 个文件；构建 YAML、Info.plist 与 `git diff --check` 通过。
+- [x] iOS CI 构建／全量单测：`e0cc02c`，429 项通过、0 失败，[运行记录](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35724014924)。
 - [ ] 真机登录、Keychain、Widget、后台下载停用与流式回归（未执行不宣称通过）。
 
 ## 设计依据
@@ -55,28 +55,28 @@
 
 ## 当前验证记录（2026-09-22）
 
-- App：`feat/account-auth-service`，本轮尚未提交；CI 提交号：无，iOS CI 测试数：未执行。
+- App：`feat/account-auth-service` 已推送；代码提交 `e0cc02c` 已通过 Apple 编译和 **429/429** 单测。后续仅回填文档记录。
 - 独立服务：同名分支已推送 `cb2b880`；PGlite＋mock HTTP 测试 **9/9** 通过。
 - 服务本地事务测试覆盖重试、逐层发码、用户名冲突与发码中途失败回滚；PGlite 单连接串行测试，该本地结果不证明真实并发；后续已在服务器独立 PostgreSQL 17 测试库通过多连接测试，服务 CI 状态仍未确认。
-- Swift 可移植测试 **6/6**；其余新认证 HTTP 测试与更新的本地模型停用测试已编写，等待 Apple SDK。
-- Swift 全文件语法检查不包含 Apple SDK 类型检查、链接或运行，不等于 App 编译通过。
-- 已在自有服务器部署独立服务与真实 PostgreSQL；模型 Key 和公网 HTTPS 域名未配置，未调用真实供应商、未发布 IPA。
+- Swift 可移植测试 **6/6**；新认证 HTTP 测试与更新的本地模型停用／预算测试亦随 Apple CI 通过。
+- 本地 Swift 语法检查之外，已由上述 macOS CI 完成 Apple SDK 编译、链接及模拟器单测；不代表真机验收。
+- 已在自有服务器部署独立服务与真实 PostgreSQL；GLM 环境变量已配置，真实文本／鉴权流式调用通过；公网 HTTPS 未配置，未发布 IPA。
 - 管理员 CLI、环境配置、Vercel／Docker 说明在独立仓库 README；App 接入见 [integration.md](integration.md)。
 
-## 上线前剩余顺序
+## 剩余验收
 
-1. 独立 GitHub 私有仓库已发布；App 功能分支尚未提交／推送，按仓库约定由用户明确要求。
-2. 运行服务 PostgreSQL CI 与 App iOS CI，修复失败后记录提交号和数量。
-3. 配置并部署数据库与 HTTPS 服务，生成种子邀请码；在 App Actions Variables 设置 `MOVELIQ_SERVICE_URL`。
-4. 重新构建并真机验收登录、邀请、旧记录归属、账号切换、Widget、后台下载停用、AI 图片／流式／工具与网页检索。
+1. 配置 HTTPS 域名后覆盖 `MOVELIQ_SERVICE_URL`，移除临时 HTTP 例外；当前默认 IP:8080 可用于用户指定的临时接入。
+2. 真机验收登录、邀请、旧记录归属、账号切换、Widget、后台下载停用、AI 图片／工具与流式。
+3. 如需网页检索，开启服务端搜索配置并联调；本轮不自动启用。
+4. 合并／发布 IPA 尚未执行。
 
-- 自有服务器部署与验收详见 [integration.md](integration.md#自有服务器部署记录2026-09-22)；公网 HTTPS／模型配置待完成。
+自有服务器部署与验收详见 [integration.md](integration.md)。
 
 ## App 接入与推送追加
 
 - [x] 用户授权适配 App 后提交／推送；默认服务 `http://47.100.234.212:8080`，CI 同默认。
 - [x] HTTP 仅允许该精确地址，其他 HTTP 被拒绝；ATS 仅对该 IP 配置例外。
 - [x] GLM Key 配置于服务器受限权限环境文件；`glm-5.3-flash` 真实文本请求 200／OK。
-- [ ] 当前提交的 iOS CI 构建和测试结果（推送后回填）。
+- [x] `e0cc02c` iOS CI 构建成功，429 项单测全部通过。
 
 - 首轮 Apple 编译发现已移除 API Key 控件仍残留 `isKeyVisible` 回调；已删除该回调并重新运行 CI。真实服务注册→3 个邀请码→GLM SSE→退出撤销已联调通过。

@@ -4,7 +4,7 @@
 
 - App：`Agentic-KeepKeep`，分支 `feat/account-auth-service`。
 - 独立服务：`/zhangaimin/Moveliq-Service`，同名功能分支。源码、迁移、测试、Docker 和服务 README 均位于该仓库。
-- GitHub 私有仓库 [MinJung-Go/Moveliq-Service](https://github.com/MinJung-Go/Moveliq-Service) 已创建；服务分支首推 `cb2b880`。App 本轮改动已获授权提交／推送，提交与 CI 结果见 checklist。
+- GitHub 私有仓库 [MinJung-Go/Moveliq-Service](https://github.com/MinJung-Go/Moveliq-Service) 已创建；服务分支首推 `cb2b880`。App 分支已推送，`e0cc02c` 通过 Apple 构建与 429 项单测，详见 checklist。
 
 ## 接入顺序
 
@@ -49,7 +49,7 @@ HealthKit 的系统权限属于设备，不属于服务账号；其他账号仍�
 
 ## 验证边界
 
-本地可运行 `python3 scripts/test_auth_portable.py`（需 Swift 5.9+）验证输入、协议与个人偏好隔离。服务测试在独立仓库运行 `npm test`。本轮 Linux 环境没有 Apple SDK，Swift 语法检查不等于 iOS 编译通过；iOS CI、SwiftData／Keychain／Widget 与后台下载真机验收见 checklist。
+本地可运行 `python3 scripts/test_auth_portable.py`（需 Swift 5.9+）验证输入、协议与个人偏好隔离。服务测试在独立仓库运行 `npm test`。本地 Linux 语法检查不替代 Apple 编译；远程 iOS CI 已通过（`e0cc02c`，429 项单测），SwiftData／Keychain／Widget 与后台下载真机验收见 checklist。
 
 ## 自有服务器部署记录（2026-09-22）
 
