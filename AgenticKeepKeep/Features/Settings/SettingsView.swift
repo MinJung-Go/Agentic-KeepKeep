@@ -94,9 +94,6 @@ struct SettingsView: View {
                 }
                 .navigationTitle(page.rawValue)
                 .navigationBarTitleDisplayMode(.inline)
-                .onDisappear {
-                    if page == .model { isKeyVisible = false }
-                }
             }
         }
     }
