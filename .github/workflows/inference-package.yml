@@ -1,0 +1,40 @@
+name: Shared inference package
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/local-milo/**'
+      - '.github/actions/inference-dependency/**'
+      - 'AgenticKeepKeep/Core/LocalMilo/**'
+      - 'project.yml'
+      - '.github/workflows/inference-package.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/local-milo/**'
+      - '.github/actions/inference-dependency/**'
+      - 'AgenticKeepKeep/Core/LocalMilo/**'
+      - 'project.yml'
+      - '.github/workflows/inference-package.yml'
+permissions:
+  contents: read
+jobs:
+  package-tests:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/inference-dependency
+        with:
+          deploy-key: ${{ secrets.MILO_INFERENCE_DEPLOY_KEY }}
+      - name: Package tests (including Apple backend compilation)
+        run: |
+          set -o pipefail
+          swift test --package-path .inference/MiloInference 2>&1 | tee inference-package.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-inference-log
+          path: inference-package.log

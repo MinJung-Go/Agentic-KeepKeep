@@ -1,0 +1,13 @@
+{
+  "bundle_id": "com.minjung.keepkeep",
+  "version": "0.4.11",
+  "build": "17",
+  "minimum_os": "17.0",
+  "runtime_bytes": 8140768,
+  "ipa_bytes": 5182144,
+  "weights_bundled": false,
+  "license_notices_present": true,
+  "sha256": "ce746dee6084f2be3af564840d1accd34c37eec9fe521c24d41d120e2b682ed9",
+  "source_commit": "06135e6cd42092fb03f6800a87010ae033bc52f7",
+  "ci_run": "https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35312358728"
+}

@@ -1,0 +1,61 @@
+{
+  "environment": "Linux CPU; not iPhone or Metal",
+  "load_seconds": 1.4022755324840546,
+  "cases": [
+    {
+      "name": "identity",
+      "status": 0,
+      "input_tokens": 41,
+      "output_tokens": 3,
+      "first_piece_seconds": 0.5197339989244938,
+      "elapsed_seconds": 0.6706893965601921,
+      "text": "我叫 Milo。",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "json",
+      "status": 0,
+      "input_tokens": 48,
+      "output_tokens": 38,
+      "first_piece_seconds": 0.6154152452945709,
+      "elapsed_seconds": 2.5001295916736126,
+      "text": "{\n  \"exercise\": \"深蹲\",\n  \"kg\": 100,\n  \"sets\": 5,\n  \"reps\": 5\n}",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "app-tools",
+      "status": 0,
+      "input_tokens": 1756,
+      "output_tokens": 79,
+      "first_piece_seconds": 20.788882791996002,
+      "elapsed_seconds": 25.254098635166883,
+      "text": "<tool_call>\n<function=query_local_records>\n<parameter=end_date>\n2026-09-18\n</parameter>\n<parameter=exercise>\n\n</parameter>\n<parameter=kind>\nhealth\n</parameter>\n<parameter=start_date>\n2026-09-18\n</parameter>\n</function>\n</tool_call>",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "app-followup",
+      "status": 0,
+      "input_tokens": 1879,
+      "output_tokens": 93,
+      "first_piece_seconds": 22.356749076396227,
+      "elapsed_seconds": 27.60943788662553,
+      "text": "今天步数是 **4,321** 步。\n\n这属于中等偏低的日常活动量。如果近期没有进行专门的有氧训练，这个数值比较符合“居家休息”或“轻度通勤”的状态。\n\n结合你之前的训练计划，如果今天没有安排任何训练，这个步数说明你目前处于**恢复期**，身体没有额外的消耗压力。\n\n你今天的状态是放松的，还是有什么特别想做的运动？",
+      "smoke_assertions_passed": true
+    },
+    {
+      "name": "vision",
+      "status": 0,
+      "input_tokens": 292,
+      "output_tokens": 34,
+      "first_piece_seconds": 8.056049950420856,
+      "elapsed_seconds": 9.912034191191196,
+      "text": "Nutrition facts\nEnergy: 250 kcal\nProtein: 12 g\nCarbohydrate: 30 g\nFat: 9 g",
+      "smoke_assertions_passed": true
+    }
+  ],
+  "runtime_revision": "972d2313bc0bf0a45f634f77d95c9fb03aeab12c",
+  "model_revision": "f6d5376be1edb4d416d56da11e5397a961aca8ae",
+  "evaluation_scope": "Raw model/C bridge smoke; not App E2E or iPhone performance",
+  "manual_quality_passed": false,
+  "manual_issue": "Followup invented recovery state and previous plan context not present in fixture."
+}

@@ -1,0 +1,25 @@
+{
+  "environment": "Linux CPU, real weights; not iPhone/Metal",
+  "cases": [
+    {
+      "case": "missing-language",
+      "code": -10,
+      "passed": true
+    },
+    {
+      "case": "text-without-vision",
+      "code": 0,
+      "passed": true
+    },
+    {
+      "case": "image-missing-vision",
+      "code": -12,
+      "passed": true
+    },
+    {
+      "case": "text-after-vision-failure",
+      "code": 0,
+      "passed": true
+    }
+  ]
+}

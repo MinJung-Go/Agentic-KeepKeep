@@ -58,6 +58,7 @@ enum DataExporter {
     }
 
     struct NoteDTO: Encodable {
+        var photoData: Data? = nil
         var date: Date
         var text: String
         var status: String
@@ -174,7 +175,7 @@ enum DataExporter {
                 MetricDTO(date: $0.date, kind: $0.kind.rawValue, value: $0.value)
             },
             bodyNotes: notes.map {
-                NoteDTO(date: $0.date, text: $0.text, status: $0.status.rawValue)
+                NoteDTO(photoData: $0.photoData, date: $0.date, text: $0.text, status: $0.status.rawValue)
             },
             healthSnapshots: snapshots.map {
                 SnapshotDTO(

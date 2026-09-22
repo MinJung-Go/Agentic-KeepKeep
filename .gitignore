@@ -71,3 +71,13 @@ docs/05-exercise-illustrations/preview/*.png
 # Legacy third-party media (removed; guard against local leftovers)
 AgenticKeepKeep/Resources/ExerciseMedia/*.gif
 AgenticKeepKeep/Resources/ExerciseMedia/*.tmp
+
+# Built locally from pinned llama.cpp source
+Vendor/
+
+# Private inference dependency checkout for CI (never vendor its source)
+.inference/
+
+# Python helper caches
+__pycache__/
+*.py[cod]

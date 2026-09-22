@@ -1,0 +1,56 @@
+{
+  "environment": "Linux CPU, six concurrent workers; timings not iPhone performance",
+  "scope": "First-turn generations only. No SwiftData execution, confirmation, full tool loops or final-fact scoring. Synthetic diagrams are not real meal photos.",
+  "parameters": {
+    "temperature": 0.1,
+    "seed": 42,
+    "output_limit": 1024,
+    "context": 8192,
+    "repetitions": 3
+  },
+  "independence": "Repeated fixed-seed outputs are not independent statistical samples.",
+  "counts": {
+    "chat": {
+      "runs": 60,
+      "completed_generation": 60,
+      "tool_format_rejections": 0
+    },
+    "edge": {
+      "runs": 30,
+      "completed_generation": 30,
+      "tool_format_rejections": 0
+    },
+    "parse": {
+      "runs": 90,
+      "completed_generation": 90,
+      "tool_format_rejections": 0,
+      "valid_json": 90,
+      "key_fields_and_no_extra_record_or_rpe": 39
+    },
+    "plan": {
+      "runs": 60,
+      "completed_generation": 60,
+      "tool_format_rejections": 3
+    },
+    "query": {
+      "runs": 60,
+      "completed_generation": 60,
+      "tool_format_rejections": 0,
+      "past_or_today_parameter_checks": 45,
+      "correct_parameters": 12
+    },
+    "vision": {
+      "runs": 90,
+      "completed_generation": 90,
+      "tool_format_rejections": 0,
+      "valid_json": 90
+    }
+  },
+  "manual_quality_gate": "NOT PASSED; known missing-data, identity, fabricated fields and date errors.",
+  "examples_requiring_review": [
+    "chat-05 interprets no records as no activity",
+    "chat-11 invents personal training weaknesses",
+    "chat-12 calls user Milo",
+    "query-02 yesterday range includes today"
+  ]
+}

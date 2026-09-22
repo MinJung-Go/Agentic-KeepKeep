@@ -14,6 +14,8 @@
 | 08-coach-context | AI 教练超长上下文管理 | [需求](08-coach-context/requirements.md) · [清单](08-coach-context/checklist.md) |
 | 09-ui-refinement | UI 专项：操作可见性、首页层级、对比、教练卡片与图表 | [需求](09-ui-refinement/requirements.md) · [清单](09-ui-refinement/checklist.md) · [新版 HTML](09-ui-refinement/design.html) · [Figma 主稿](09-ui-refinement/figma.md) |
 | 10-healthkit-sideload | HealthKit 侧载签名声明与授权重试修复 | [清单](10-healthkit-sideload/checklist.md) |
+| 20-mlx-validation | MLX Swift 独立验证 App | [需求](20-mlx-validation/requirements.md) · [清单](20-mlx-validation/checklist.md) · [设计稿](20-mlx-validation/design.html) · [验证说明](20-mlx-validation/validation.md) |
+| 21-mlx-production | 正式 App 迁移 MLX，含图文 | [需求](21-mlx-production/requirements.md) · [清单](21-mlx-production/checklist.md) |
 
 ## 候选需求（尚未立轮次）
 
@@ -77,3 +79,29 @@ Milo 运动伙伴：先记录可选择的角色与相处方式，默认大姐姐
 Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 
 [需求](18-milo-home/requirements.md) · [清单](18-milo-home/checklist.md) · [四屏交互稿](18-milo-home/design.html)
+
+## 第 19 轮（实现与验证中）
+
+离线 Milo：验证 Qwen 图文小模型（当前候选 Qwen3.5-2B）的 iPhone 本地推理、图文记录、工具调用、模型下载及 App 内置浏览器搜索／阅读方案。现有 GLM 保留；本地运行时、下载、图文和浏览器已接入，Linux 模型冒烟与纯 Swift 测试已执行，iOS CI／真机和完整质量评测待完成。设计短片已放到 README 顶部。
+
+[需求](19-local-milo/requirements.md) · [验证清单](19-local-milo/checklist.md) · [下载 UI](19-local-milo/design.html)
+
+## 第 23 轮 · 本地上下文分阶段扩容
+
+默认 16K；32K 待真机验证及选择入口设计确认后开放。[需求](23-local-context/requirements.md) · [清单](23-local-context/checklist.md)。
+
+## 第 24 轮 · 推理核心独立包
+
+[需求](24-inference-package/requirements.md) · [清单](24-inference-package/checklist.md) · [私有包接入说明](24-inference-package/integration.md)。
+
+## 第 25 轮 · 记录 JSON 解析回归
+
+纯文字／照片记录格式恢复与安全错误诊断。[需求](25-record-json/requirements.md) · [清单](25-record-json/checklist.md)。
+
+## 第 26 轮 · 本地输出上限 2048
+
+本地模型输出上限由 1024 提升至 2048 tokens，教练策略与引擎预算随动。[需求](26-output-2048/requirements.md) · [清单](26-output-2048/checklist.md)。
+
+## 第 27 轮 · 本地思考模式与撞顶保护
+
+本地思考接入「深度思考」开关（默认开），思考超子预算即中止并自动降级重试。[需求](27-local-thinking/requirements.md) · [清单](27-local-thinking/checklist.md)。

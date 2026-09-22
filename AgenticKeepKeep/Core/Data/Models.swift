@@ -432,6 +432,7 @@ final class HealthWorkout {
 /// 自然语言原文。解析失败也会留存，绝不丢用户数据
 @Model
 final class RawNote {
+    @Attribute(.externalStorage) var photoData: Data?
     var uuid: UUID = UUID()
     var text: String = ""
     var date: Date = Date()

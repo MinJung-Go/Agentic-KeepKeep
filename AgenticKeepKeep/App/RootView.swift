@@ -16,7 +16,7 @@ struct RootView: View {
         let draft = pending?.pendingPlanJSON.flatMap { try? JSONDecoder().decode(PlanDraft.self, from: Data($0.utf8)) }
         return Array(Set(saved + (draft?.days.flatMap { $0.exercises.map(\.name) } ?? []))).sorted()
     }
-    private var tutorialTaskID: String { tutorialNames.joined(separator: "|") + "|\(llmSettings.webSearchEnabled)|\(llmSettings.supportsWebSearch)|\(llmSettings.isConfigured)" }
+    private var tutorialTaskID: String { tutorialNames.joined(separator: "|") + "|\(llmSettings.useLocalModel)|\(llmSettings.webSearchEnabled)|\(llmSettings.supportsWebSearch)|\(llmSettings.isConfigured)" }
 
     @AppStorage(MiloPersona.nameKey) private var miloName = "Milo"
 
@@ -62,7 +62,7 @@ struct RootView: View {
                 .tabItem { Label("设置", systemImage: "slider.horizontal.3") }
         }
         .task(id: tutorialTaskID) {
-            if !llmSettings.webSearchEnabled || !llmSettings.supportsWebSearch || !llmSettings.isConfigured { ExerciseTutorialStore.shared.stopAll() }
+            if llmSettings.useLocalModel || !llmSettings.webSearchEnabled || !llmSettings.supportsWebSearch || !llmSettings.isConfigured { ExerciseTutorialStore.shared.stopAll() }
             await ExerciseTutorialStore.shared.enrich(names: tutorialNames, context: context)
         }
         .tint(Theme.accent)

@@ -1,0 +1,40 @@
+{
+  "environment": "Linux CPU; actual native bridge and model, not iOS",
+  "cases": [
+    {
+      "name": "oversized-context",
+      "status": -2,
+      "passed": true,
+      "seconds": 0.03649609535932541,
+      "pieces": 0
+    },
+    {
+      "name": "cancel-before-generate",
+      "status": -3,
+      "passed": true,
+      "seconds": 0.009808540344238281,
+      "pieces": 0
+    },
+    {
+      "name": "invalid-image",
+      "status": -4,
+      "passed": true,
+      "seconds": 0.40911196172237396,
+      "pieces": 0
+    },
+    {
+      "name": "cancel-during-output",
+      "status": -3,
+      "passed": true,
+      "seconds": 0.22504489123821259,
+      "pieces": 1
+    },
+    {
+      "name": "retry-after-cancel",
+      "status": 0,
+      "passed": true,
+      "seconds": 0.6658788397908211,
+      "pieces": 8
+    }
+  ]
+}

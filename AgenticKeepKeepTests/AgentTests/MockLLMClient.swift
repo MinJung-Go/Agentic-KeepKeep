@@ -4,7 +4,7 @@ import Foundation
 /// 测试用 LLM 客户端：按队列返回预设响应，并记录收到的请求
 final class MockLLMClient: LLMClient {
 
-    let config = LLMClientConfig(baseURL: "https://mock.local/v1", apiKey: "test-key", model: "mock-model")
+    var config = LLMClientConfig(baseURL: "https://mock.local/v1", apiKey: "test-key", model: "mock-model")
 
     private var queued: [Result<LLMResponse, Error>]
     private(set) var requests: [LLMRequest] = []

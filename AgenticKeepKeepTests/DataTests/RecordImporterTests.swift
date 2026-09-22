@@ -10,6 +10,19 @@ final class RecordImporterTests: XCTestCase {
         return ModelContext(container)
     }
 
+    func testFailedPhotoIsPersistedWithTextAndExported() throws {
+        let context = try makeContext()
+        let photo = Data([1, 2, 3, 4])
+        RecordImporter.storeRawNote("营养标签", failureReason: "cancelled", to: context, photoData: photo)
+        let note = try XCTUnwrap(context.fetch(FetchDescriptor<RawNote>()).first)
+        XCTAssertEqual(note.text, "营养标签")
+        XCTAssertEqual(note.photoData, photo)
+        XCTAssertEqual(note.status, .pending)
+        let payload = try DataExporter.makePayload(context: context)
+        XCTAssertEqual(payload.bodyNotes.first?.photoData, photo)
+        XCTAssertTrue(try context.fetch(FetchDescriptor<MealEntry>()).isEmpty)
+    }
+
     func testImportsWorkout() throws {
         let context = try makeContext()
 

@@ -1,0 +1,35 @@
+name: Resolve private inference dependency
+description: Check out the exact XcodeGen pin using a repository-scoped read-only deploy key
+inputs:
+  deploy-key:
+    description: Read-only MiloInference deploy key
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Check credential and read pinned revision
+      id: pin
+      shell: bash
+      env:
+        MILO_DEPLOY_KEY: ${{ inputs.deploy-key }}
+      run: |
+        if [[ -z "$MILO_DEPLOY_KEY" ]]; then
+          echo "::error::Missing MILO_INFERENCE_DEPLOY_KEY; private inference dependency requires repository access."
+          exit 1
+        fi
+        python3 scripts/local-milo/dependency.py --github-output
+    - uses: actions/checkout@v4
+      with:
+        repository: MinJung-Go/MiloInference
+        ref: ${{ steps.pin.outputs.revision }}
+        path: .inference/MiloInference
+        ssh-key: ${{ inputs.deploy-key }}
+        persist-credentials: false
+    - name: Provide pinned Git mirror to SwiftPM
+      shell: bash
+      env:
+        INFERENCE_REVISION: ${{ steps.pin.outputs.revision }}
+      run: |
+        test "$(git -C .inference/MiloInference rev-parse HEAD)" = "$INFERENCE_REVISION"
+        git -C .inference/MiloInference branch --force dependency-pin "$INFERENCE_REVISION"
+        git config --global url."file://$GITHUB_WORKSPACE/.inference/MiloInference".insteadOf https://github.com/MinJung-Go/MiloInference.git

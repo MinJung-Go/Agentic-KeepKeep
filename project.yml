@@ -6,6 +6,11 @@ options:
   bundleIdPrefix: com.minjung
   createIntermediateGroups: true
 
+packages:
+  MiloInference:
+    url: https://github.com/MinJung-Go/MiloInference.git
+    revision: 5c94a02bf00d68a1bb3f5a7b2a104bbedd977888
+
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -23,20 +28,31 @@ targets:
           - "Resources/Info.plist"
           - "Resources/ExerciseMedia"
           - "Resources/ExerciseCatalog.json"
+          - "Core/LocalMilo/MiloNative.cpp"
+          - "Core/LocalMilo/MiloNative.h"
+          - "Resources/Legal/llama-LICENSE.txt"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep
         PRODUCT_NAME: KeepKeep
         PRODUCT_MODULE_NAME: AgenticKeepKeep
+        CLANG_CXX_LANGUAGE_STANDARD: c++17
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.4.10"
-        CURRENT_PROJECT_VERSION: "14"
+        MARKETING_VERSION: "0.5.4"
+        CURRENT_PROJECT_VERSION: "25"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeep/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeep/Resources/KeepKeep.entitlements
     dependencies:
+      - package: MiloInference
+        product: MiloInference
+      - package: MiloInference
+        product: MiloInferenceCore
+      - sdk: Accelerate.framework
+      - sdk: Metal.framework
+      - sdk: libc++.tbd
       - sdk: HealthKit.framework
       - target: KeepKeepWidget
 
@@ -60,8 +76,8 @@ targets:
         PRODUCT_NAME: KeepKeepWidget
         PRODUCT_MODULE_NAME: KeepKeepWidget
         TARGETED_DEVICE_FAMILY: "1"
-        MARKETING_VERSION: "0.4.10"
-        CURRENT_PROJECT_VERSION: "14"
+        MARKETING_VERSION: "0.5.4"
+        CURRENT_PROJECT_VERSION: "25"
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: AgenticKeepKeepWidget/Info.plist
         CODE_SIGN_ENTITLEMENTS: AgenticKeepKeepWidget/KeepKeepWidget.entitlements
