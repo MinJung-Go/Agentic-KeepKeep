@@ -20,6 +20,8 @@ App 仓库 Secret `MILO_INFERENCE_DEPLOY_KEY` 对应引擎仓库的只读 deploy
 
 ## 当前验证状态
 
-只读 SSH 访问已验证；App 31 项 portable XCTest 已使用私有远端固定提交通过。Apple 编译、4 项 Apple 包测试和完整 iOS 单测仍待提交后 CI。引擎仓库自身 Actions 曾因账号账单／额度未启动，不能视为代码测试结果；本轮未更改账单。
+App 已完成远端依赖迁移并通过 PR #4 合入 main。0.5.4 (25) 的 [iOS CI 35551150850](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35551150850) 对应提交 `06168e5`，记录为 420 项 XCTest、0 失败，并已产出和核验 IPA，详见 [第 27 轮清单](../27-local-thinking/checklist.md)。这是历史版本的验证结果，后续改动以对应提交的 CI 为准；真机图文、长上下文与思考模式回归仍待完成。
 
-如需轮换密钥：为引擎库创建新的只读部署密钥，更新 App 的同名 Secret，验证构建后删除旧公钥。不要把私钥放入源码。当前 App 侧配置和拆分改动尚未提交、推送或打包。
+旧 llama.cpp 桥接、构建、native 验证与旧语料评估执行脚本在 [第 28 轮](../28-inference-cleanup/requirements.md) 清理。历史轮次中的旧脚本命令和 GGUF 验证结果仅作迁移记录，不适用于当前 MLX 运行时。
+
+如需轮换密钥：为引擎库创建新的只读部署密钥，更新 App 的同名 Secret，验证构建后删除旧公钥。不要把私钥放入源码。

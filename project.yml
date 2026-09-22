@@ -28,9 +28,6 @@ targets:
           - "Resources/Info.plist"
           - "Resources/ExerciseMedia"
           - "Resources/ExerciseCatalog.json"
-          - "Core/LocalMilo/MiloNative.cpp"
-          - "Core/LocalMilo/MiloNative.h"
-          - "Resources/Legal/llama-LICENSE.txt"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep

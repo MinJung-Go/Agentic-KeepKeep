@@ -72,7 +72,7 @@ docs/05-exercise-illustrations/preview/*.png
 AgenticKeepKeep/Resources/ExerciseMedia/*.gif
 AgenticKeepKeep/Resources/ExerciseMedia/*.tmp
 
-# Built locally from pinned llama.cpp source
+# Retired runtime artifacts: keep local leftovers out of version control
 Vendor/
 
 # Private inference dependency checkout for CI (never vendor its source)

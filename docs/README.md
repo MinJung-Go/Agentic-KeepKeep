@@ -105,3 +105,7 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 ## 第 27 轮 · 本地思考模式与撞顶保护
 
 本地思考接入「深度思考」开关（默认开），思考超子预算即中止并自动降级重试。[需求](27-local-thinking/requirements.md) · [清单](27-local-thinking/checklist.md)。
+
+## 第 28 轮 · 推理迁移遗留清理
+
+删除旧 llama.cpp 桥接与工具，更新当前构建说明；历史轮次的旧运行时命令仅供追溯，不再作为现行入口。[需求](28-inference-cleanup/requirements.md) · [清单](28-inference-cleanup/checklist.md)。
