@@ -1,5 +1,8 @@
 # App 接入独立推理包
 
+> 第 29 轮起本地推理已停用：App 保留本接入及依赖，不再展示下载入口、恢复下载或加载运行时。当前请求走独立鉴权服务，见 [服务接入](../29-auth-service/integration.md)。下述内容供引擎维护与将来恢复使用。
+
+
 引擎仓库：[MinJung-Go/MiloInference](https://github.com/MinJung-Go/MiloInference)，私有。
 
 `project.yml` 是依赖版本的唯一配置来源：HTTPS URL，固定 revision `5c94a02bf00d68a1bb3f5a7b2a104bbedd977888`。App 使用 `MiloInference` 与 `MiloInferenceCore` 产品；已移除本地 `Packages/MiloInference` 副本。引擎改动应在独立仓库完成，再更新 App 的 revision 并验证。

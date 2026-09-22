@@ -191,6 +191,13 @@ final class HealthKitService: ObservableObject {
         return lastError == nil
     }
 
+    private var accountGeneration = UUID()
+    func reloadAccountMetadata() {
+        accountGeneration = UUID()
+        lastSyncDate = defaults.object(forKey: Self.lastSyncKey) as? Date
+        lastError = nil
+    }
+
     // MARK: - 同步
 
     /// 同步最近若干天的数据（幂等：同一天/同一运动重复同步只更新）
@@ -201,6 +208,7 @@ final class HealthKitService: ObservableObject {
         }
         guard !isSyncing, !isAuthorizing, authorizationState == .requested else { return }
 
+        let accountMarker = accountGeneration
         isSyncing = true
         lastError = nil
         defer { isSyncing = false }
@@ -256,9 +264,11 @@ final class HealthKitService: ObservableObject {
 
             try context.save()
 
+            guard accountMarker == accountGeneration else { return }
             lastSyncDate = .now
             defaults.set(lastSyncDate, forKey: Self.lastSyncKey)
         } catch {
+            guard accountMarker == accountGeneration else { return }
             lastError = "同步失败：\(error.localizedDescription)"
         }
     }

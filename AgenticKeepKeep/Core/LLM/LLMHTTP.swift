@@ -33,6 +33,7 @@ enum LLMHTTP {
                 }
 
                 guard (200...299).contains(http.statusCode) else {
+                    if http.statusCode == 401, ServiceEndpoint.isProxy(config.baseURL) { ServiceTransport.unauthorized(token: config.apiKey) }
                     let error = LLMError.http(status: http.statusCode, body: llmShortBody(data))
                     // 5xx 可重试
                     if http.statusCode >= 500, attempt <= config.maxRetries {

@@ -109,3 +109,7 @@ Moveliq 品牌统一、Milo 默认首页与统一记录／聊天入口。
 ## 第 28 轮 · 推理迁移遗留清理
 
 删除旧 llama.cpp 桥接与工具，更新当前构建说明；历史轮次的旧运行时命令仅供追溯，不再作为现行入口。[需求](28-inference-cleanup/requirements.md) · [清单](28-inference-cleanup/checklist.md)。
+
+## 第 29 轮 · 独立鉴权服务与 App 登录（需求整理中）
+
+停用本地模型，独立鉴权与模型代理服务；用户名密码登录、邀请码注册，每次注册后发放 3 个子邀请码并逐层延续。[需求](29-auth-service/requirements.md) · [清单](29-auth-service/checklist.md)。

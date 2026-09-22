@@ -41,18 +41,21 @@ struct GLMWebReader {
     }
 
     func read(url: URL) async throws -> CoachToolResult {
-        guard GLMWebSearch.isOfficialEndpoint(config.baseURL), !config.apiKey.isEmpty else {
+        guard (ServiceEndpoint.isProxy(config.baseURL) || GLMWebSearch.isOfficialEndpoint(config.baseURL)), !config.apiKey.isEmpty else {
             throw LLMError.invalidEndpoint("网页阅读仅支持智谱官方 API")
         }
-        var request = URLRequest(url: URL(string: "https://open.bigmodel.cn/api/paas/v4/reader")!)
+        let proxy = ServiceEndpoint.isProxy(config.baseURL)
+        let endpoint = proxy ? try ServiceEndpoint.url("/reader") : URL(string: "https://open.bigmodel.cn/api/paas/v4/reader")!
+        var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.timeoutInterval = 25
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try Self.requestBody(url: url)
-        let session = injectedSession ?? URLSession(configuration: .ephemeral, delegate: GLMToolNoRedirects(), delegateQueue: nil)
-        defer { if injectedSession == nil { session.invalidateAndCancel() } }
+        let session = injectedSession ?? (proxy ? ServiceTransport.shared.session : URLSession(configuration: .ephemeral, delegate: GLMToolNoRedirects(), delegateQueue: nil))
+        defer { if injectedSession == nil && !proxy { session.invalidateAndCancel() } }
         let (bytes, response) = try await session.bytes(for: request)
+        if (response as? HTTPURLResponse)?.statusCode == 401, proxy { ServiceTransport.unauthorized(token: config.apiKey) }
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             return CoachToolResult(content: "网页阅读失败，未取得正文。可使用搜索摘要，但不能声称已阅读全文。", failed: true)
         }

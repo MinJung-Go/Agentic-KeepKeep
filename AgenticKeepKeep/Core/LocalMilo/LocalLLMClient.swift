@@ -79,6 +79,7 @@ final class LocalInferenceWorker: @unchecked Sendable {
         let diagnostic = LocalInferenceDiagnostic()
         diagnostic.update(stage: .checking, vision: request.messages.contains { !$0.imagesBase64JPEG.isEmpty }, footprint: nil)
         do {
+            guard LocalModelAvailability.enabled else { throw LocalMiloError.notReady }
             try flag.check()
             guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
             if !verified {

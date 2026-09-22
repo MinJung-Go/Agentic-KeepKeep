@@ -231,7 +231,7 @@ struct QuickLogSheet: View {
                         .foregroundStyle(Theme.warning)
                     VStack(alignment: .leading, spacing: Theme.Spacing.xs) {
                         Text("尚未配置 AI").font(Theme.Font.subheadline.weight(.semibold))
-                        Text("去「设置 → AI 模型」填入 API Key 即可用一句话记录；也可以直接手动记录。")
+                        Text("请确认已登录且云端服务可用；也可以直接手动记录。")
                             .font(Theme.Font.footnote)
                             .foregroundStyle(Theme.secondaryLabel)
                             .fixedSize(horizontal: false, vertical: true)

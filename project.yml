@@ -30,6 +30,7 @@ targets:
           - "Resources/ExerciseCatalog.json"
     settings:
       base:
+        MOVELIQ_SERVICE_URL: "http://47.100.234.212:8080"
         PRODUCT_BUNDLE_IDENTIFIER: com.minjung.keepkeep
         PRODUCT_NAME: KeepKeep
         PRODUCT_MODULE_NAME: AgenticKeepKeep

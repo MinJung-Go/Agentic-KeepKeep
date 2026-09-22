@@ -69,10 +69,10 @@ final class LoggingViewModel: ObservableObject {
         inputText = ""
 
         guard settings.isConfigured else {
-            RecordImporter.storeRawNote(text, failureReason: settings.useLocalModel ? "离线模型未就绪" : "未配置 API Key", to: context, photoData: photo)
+            RecordImporter.storeRawNote(text, failureReason: settings.useLocalModel ? "离线模型未就绪" : "云端服务尚未就绪", to: context, photoData: photo)
             turns.append(LogTurn(
                 kind: .failure,
-                text: settings.useLocalModel ? "离线模型还没准备好。下载完成后可以重新处理，也可以先手动记录。" : "尚未配置 AI，这次没能解析。下载离线模型或配置云端 AI 后可以重新处理。"
+                text: settings.useLocalModel ? "离线模型还没准备好。下载完成后可以重新处理，也可以先手动记录。" : "云端服务暂不可用，原文已保留。重新登录或服务恢复后可以重新处理。"
             ))
             return
         }
@@ -154,7 +154,7 @@ final class LoggingViewModel: ObservableObject {
             case 400, 404, 415, 422:
                 return "当前模型似乎不支持图片输入（HTTP \(status)）。请在「设置 → 模型」换用支持视觉的模型，或改用文字记录。\n服务返回：\(body)"
             case 401, 403:
-                return "API Key 无效或没有该模型权限（HTTP \(status)）。请在设置里检查。"
+                return "登录或服务权限异常（HTTP \(status)）。请重新登录，或联系管理员。"
             case 429:
                 return "请求过于频繁或额度不足（HTTP 429），稍后再试。"
             default:

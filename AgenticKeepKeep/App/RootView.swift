@@ -4,7 +4,11 @@ import SwiftUI
 /// 底部 5 Tab：今日 / 记录 / 课程表 / 洞察 / 设置
 struct RootView: View {
 
-    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage private var hasCompletedOnboarding: Bool
+
+    init(accountKey: String = "preview") {
+        _hasCompletedOnboarding = AppStorage(wrappedValue: false, "onboarding." + accountKey)
+    }
     @Environment(\.modelContext) private var context
 
     @Query private var tutorialPlans: [Plan]
