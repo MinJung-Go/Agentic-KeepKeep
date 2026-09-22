@@ -140,7 +140,8 @@ final class LLMSettings: ObservableObject {
     }
 
     private var coachWindowKey: String {
-        let identifier = baseURL + "\n" + modelName
+        let legacyEndpoint = preset == .custom ? customBaseURL : preset.defaultBaseURL
+        let identifier = legacyEndpoint + "\n" + modelName
         return "coach.window." + SHA256.hash(data: Data(identifier.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
