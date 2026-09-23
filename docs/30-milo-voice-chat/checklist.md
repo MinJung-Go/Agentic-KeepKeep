@@ -11,7 +11,7 @@
 - [x] 接入聊天页面，保留草稿及现有工具确认行为。
 - [x] 更新数据使用和系统权限说明。
 - [x] 新增并通过 14 项语音状态／朗读文本测试（Linux、音频 API 替身）。
-- [ ] iOS 构建与完整回归测试。
+- [x] iOS 构建与完整回归测试：444 项通过、0 失败（含 14 项语音测试）。
 - [ ] 真机验证权限、识别、音频路由与中断恢复。
 
 ## 验证记录
@@ -19,7 +19,8 @@
 - 设计阶段：Chromium 验证字幕、异常说明、静音、打断、正常对话循环、首次说明、结束返回和 390px 窄屏；浅深色截图见 design.light.png / design.dark.png。
 - 实现阶段：Swift 6.0.3（Swift 5 模式）运行 `VoiceConversationTests`，14 项通过、0 失败。使用实际协调器、文本处理及测试文件；识别／朗读注入测试替身，Linux 的 AVFoundation／Combine 桩仅用于运行状态测试，不代表 Apple SDK 验证。
 - 已执行全部修改 Swift 文件的语法解析、Info.plist 格式检查和 diff 空白检查。
-- CI 提交号：无，本轮尚未提交／推送。此环境没有 Xcode，未完成 iOS 构建、SwiftUI 真机展示及真实录音／播放验证。
+- CI 提交号：`d0b2de90e5a7608452706357a71bfeef3c7df0a6`；[iOS CI](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35857434790) 已通过构建和 444 项单测。SwiftUI 真机展示及真实录音／播放仍待装机验证。
+- IPA：0.5.6（27）归档完成，[下载产物](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35857434790/artifacts/10750037343)。已下载校验包完整性、版本号与语音权限声明；大小 8,779,366 字节，SHA-256 `cf782b490f3a0c21ac1a12e2656b1668b71f70ea30fc51d818fc5fa354689fb9`。需要 AltStore／Sideloadly 重签名安装。
 - 真机重点：首次权限与拒绝后重试、连续中文收音、系统音色、扬声器／蓝牙切换、来电／后台暂停、两处入口退出及课程确认后继续。
 
 ## 多入口追加
