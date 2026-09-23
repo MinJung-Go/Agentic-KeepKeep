@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 import SwiftData
@@ -7,6 +8,10 @@ struct CoachChatView: View {
     var initialMessage: String = ""
     var onMessageSubmitted: (() -> Void)? = nil
     @State private var consumedInitialMessage = false
+
+    @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var voice = VoiceConversation()
+    @State private var showsVoice = false
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -110,7 +115,18 @@ struct CoachChatView: View {
                 return .handled
             })
             .sheet(isPresented: $browser.isPresented) { LocalBrowserView(browser: browser) }
-            .onDisappear { stopStreaming(); browser.cancel() }
+            .onDisappear { voice.end(); stopStreaming(); _ = memoryStore.begin(); browser.cancel() }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { voice.pause() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { note in
+                if let type = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
+                   type == AVAudioSession.InterruptionType.began.rawValue { voice.pause() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)) { note in
+                if let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                   reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue { voice.pause() }
+            }
             .toolbar {
                 ToolbarItem(placement: .principal) {
                     HStack(spacing: 6) {
@@ -143,6 +159,36 @@ struct CoachChatView: View {
                 }
             }
         }
+        .accessibilityHidden(showsVoice)
+        .overlay {
+            if showsVoice {
+                VoiceCallView(voice: voice, name: displayName, onEnd: {
+                    voice.end()
+                    showsVoice = false
+                }, onReview: { showsVoice = false })
+            }
+        }
+    }
+
+    private func openVoice() {
+        isInputFocused = false
+        voice.onSubmit = { text, id in
+            guard !isSending else {
+                voice.complete(id: id, text: "", needsReview: false, error: "上一条回复尚未结束，请稍后继续。")
+                return
+            }
+            isSending = true
+            streamTask = Task { await send(voiceText: text, voiceTurn: id) }
+        }
+        voice.onCancel = {
+            let task = streamTask
+            task?.cancel()
+            return task
+        }
+        showsVoice = true
+        if voice.phase == .review {
+            if !messages.contains(where: { $0.hasPendingPlan || $0.hasPendingAdjustment }) { voice.begin() }
+        } else { voice.open() }
     }
 
     private var pendingPlan: ChatMessage? {
@@ -342,6 +388,13 @@ struct CoachChatView: View {
                 .accessibilityIdentifier("coach.dismissKeyboard")
             }
 
+            Button(action: openVoice) {
+                Image(systemName: "waveform").font(.title3).frame(width: 44, height: 44)
+            }
+            .disabled(isSending)
+            .accessibilityLabel(voice.phase == .review ? "继续语音对话" : "开始语音对话")
+            .accessibilityIdentifier("coach.voiceCall")
+
             ChatSendButton(
                 isBusy: isSending,
                 canSend: canSend,
@@ -374,22 +427,31 @@ struct CoachChatView: View {
         streamTask = nil
     }
 
-    private func send() async {
-        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+    private func send(voiceText: String? = nil, voiceTurn: UUID? = nil) async {
+        var spokenReply = ""
+        var needsReview = false
+        var voiceError: String? = "这次没有收到回复。"
+        defer {
+            if let id = voiceTurn, !Task.isCancelled {
+                voice.complete(id: id, text: spokenReply, needsReview: needsReview, error: voiceError)
+            }
+        }
+        let text = (voiceText ?? inputText).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { isSending = false; return }
 
         guard settings.isConfigured else {
             errorText = settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请先登录并确认云端服务已就绪"
+            voiceError = errorText
             isSending = false
             return
         }
 
-        onMessageSubmitted?()
+        if voiceText == nil { onMessageSubmitted?() }
         let generation = memoryStore.begin()
         let history = CoachHistoryBuilder.turns(messages)
         let memory = memoryStore.load(messages)
 
-        inputText = ""
+        if voiceText == nil { inputText = "" }
         errorText = nil
         isSending = true
         streamingText = ""
@@ -401,7 +463,8 @@ struct CoachChatView: View {
         do { try context.save() }
         catch {
             context.delete(userMessage)
-            inputText = text
+            if voiceText == nil { inputText = text }
+            voiceError = "保存消息失败，请重新说。"
             isSending = false
             errorText = "保存消息失败，请重试"
             return
@@ -429,6 +492,8 @@ struct CoachChatView: View {
                     toolActivities.append(activity)
                 }
             }) { call in
+                try Task.checkCancellation()
+                guard memoryStore.generation == generation else { throw CancellationError() }
                 if call.name == CoachTools.records.name {
                     guard let query = CoachAgent.decodeArguments(CoachRecordQuery.self, from: call) else {
                         return CoachToolResult(content: "查询参数无效，请提供类型和 yyyy-MM-dd 日期范围。", failed: true)
@@ -474,6 +539,8 @@ struct CoachChatView: View {
             )
 
             for try await event in stream {
+                try Task.checkCancellation()
+                guard memoryStore.generation == generation else { return }
                 switch event {
                 case .reasoning(let chunk):
                     accumulatedReasoning += chunk
@@ -486,6 +553,7 @@ struct CoachChatView: View {
                 }
             }
 
+            try Task.checkCancellation()
             // 补上落在窗口中间、还没显示的最后一段 —— 否则最后一个字看不到
             if throttle.flush() {
                 streamingText = accumulatedText
@@ -493,7 +561,7 @@ struct CoachChatView: View {
             }
         } catch {
             guard memoryStore.generation == generation else { return }
-            if !Task.isCancelled && accumulatedText.isEmpty && accumulatedReasoning.isEmpty && inputText.isEmpty {
+            if voiceText == nil && !Task.isCancelled && accumulatedText.isEmpty && accumulatedReasoning.isEmpty && inputText.isEmpty {
                 inputText = text
             }
             // 中断或失败：已收到的内容照样保留
@@ -522,7 +590,7 @@ struct CoachChatView: View {
             || reply?.adjustmentArgumentsJSON != nil
             || !toolActivities.isEmpty
 
-        guard hasContent else { return }
+        guard hasContent else { voiceError = errorText ?? "这次没有收到回复。"; return }
 
         // 优先用流式过程中收到的思考内容；没收到时退回 reply 里带出来的
         let finalReasoning = accumulatedReasoning.isEmpty ? (reply?.reasoning ?? "") : accumulatedReasoning
@@ -539,7 +607,12 @@ struct CoachChatView: View {
             assistant.toolActivityJSON = String(data: data, encoding: .utf8)
         }
         context.insert(assistant)
-        try? context.save()
+        do {
+            try context.save()
+            spokenReply = finalText ?? ""
+            needsReview = reply?.planArgumentsJSON != nil || reply?.adjustmentArgumentsJSON != nil
+            voiceError = errorText
+        } catch { voiceError = "回复未能保存，请返回聊天查看。" }
     }
 
     private func loadProfile() {
@@ -578,6 +651,8 @@ struct CoachChatView: View {
     }
 
     private func clearHistory() {
+        voice.end()
+        showsVoice = false
         stopStreaming()
         toolActivities = []
         isSending = false
