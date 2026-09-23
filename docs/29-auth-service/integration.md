@@ -3,7 +3,7 @@
 ## 仓库边界
 
 - App：`Agentic-KeepKeep`，分支 `feat/account-auth-service`。
-- 独立服务：`/zhangaimin/Moveliq-Service`，同名功能分支。源码、迁移、测试、Docker 和服务 README 均位于该仓库。
+- 独立服务：`/zhangaimin/Agentic-KeepKeep/Moveliq-Service`，同名功能分支。源码、迁移、测试、Docker 和服务 README 均位于该仓库。
 - GitHub 私有仓库 [MinJung-Go/Moveliq-Service](https://github.com/MinJung-Go/Moveliq-Service) 已创建；服务分支首推 `cb2b880`。App 分支已推送，`e0cc02c` 通过 Apple 构建与 429 项单测，详见 checklist。
 
 ## 接入顺序

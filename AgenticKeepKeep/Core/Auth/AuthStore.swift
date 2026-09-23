@@ -48,7 +48,7 @@ final class AuthStore: ObservableObject {
         defer { if marker == generation { busy = false } }
         do {
             var body = ["username": AuthInputPolicy.username(username), "password": password]
-            if let invite { body["inviteCode"] = invite.trimmingCharacters(in: .whitespacesAndNewlines) }
+            if let invite { body["inviteCode"] = AuthInputPolicy.inviteCode(invite) }
             let data = try await AuthAPI.request(invite == nil ? "/auth/login" : "/auth/register", method: "POST", body: body)
             let session = try JSONDecoder().decode(ServiceSession.self, from: data)
             guard UUID(uuidString: session.user.id) != nil else { throw AuthServiceError(status: 0, message: "账号标识无效。") }

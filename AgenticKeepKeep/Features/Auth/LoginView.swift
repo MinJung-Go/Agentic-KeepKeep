@@ -24,7 +24,7 @@ struct LoginView: View {
                     .foregroundStyle(.secondary)
                 if registration {
                     field("邀请码") {
-                        TextField("输入邀请人提供的邀请码", text: $invite).textContentType(.none)
+                        TextField("例如 K7MP-9X4R（旧码也可用）", text: $invite).textContentType(.none)
                     }
                 }
                 field("用户名") {
@@ -93,7 +93,7 @@ struct LoginView: View {
             validation = "用户名需为 4–24 位字母、数字或下划线，密码为 12–128 位。"; return
         }
         if registration {
-            guard !invite.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { validation = "请输入邀请码。"; return }
+            guard !AuthInputPolicy.inviteCode(invite).isEmpty else { validation = "请输入邀请码。"; return }
             guard password == confirmation else { validation = "两次输入的密码不一致。"; return }
             guard consent else { validation = "请先阅读并同意服务与隐私说明。"; return }
         }

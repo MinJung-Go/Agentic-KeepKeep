@@ -1,6 +1,9 @@
 import Foundation
 
 enum AuthInputPolicy {
+    static func inviteCode(_ value: String) -> String {
+        value.components(separatedBy: CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "-"))).joined().uppercased()
+    }
     static func username(_ value: String) -> String { value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
     static func validUsername(_ value: String) -> Bool {
         username(value).range(of: "^[a-z0-9_]{4,24}$", options: .regularExpression) != nil

@@ -4,7 +4,7 @@
 
 - [x] 用户确认用户名＋密码＋邀请码交互稿，并要求在新分支开发。
 - [x] App 分支：`feat/account-auth-service`，保留此前未提交的公共规则整理。
-- [x] 独立服务本地仓库：`/zhangaimin/Moveliq-Service`，同名功能分支；服务源码不进入 App 仓库。
+- [x] 独立服务本地仓库：`/zhangaimin/Agentic-KeepKeep/Moveliq-Service`，同名功能分支；服务源码不进入 App 仓库。
 - [x] GitHub 私有仓库 [MinJung-Go/Moveliq-Service](https://github.com/MinJung-Go/Moveliq-Service) 已创建；`feat/account-auth-service` 首推提交 `cb2b880`。
 
 ## 服务端
@@ -80,3 +80,10 @@
 - [x] `e0cc02c` iOS CI 构建成功，429 项单测全部通过。
 
 - 首轮 Apple 编译发现已移除 API Key 控件仍残留 `isKeyVisible` 回调；已删除该回调并重新运行 CI。真实服务注册→3 个邀请码→GLM SSE→退出撤销已联调通过。
+
+## 短邀请码追加
+
+- [x] 用户确认 8 位分组短码方案，同步需求和设计示例。
+- [x] 新码生成、格式归一化、旧码兼容、冲突重试与验证：Service `b5d06bd`，18 项服务测试／14 项浏览器检查通过。
+- [x] App 输入归一化和提示更新；Swift 可移植认证测试 7/7 通过。版本 0.5.5（26）。
+- [ ] 更新 App 输入提示和提交规则；主仓库 push／IPA，服务 push／部署（不运行 Service Actions）。

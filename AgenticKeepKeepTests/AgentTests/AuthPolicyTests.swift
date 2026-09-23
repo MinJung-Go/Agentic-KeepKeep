@@ -12,6 +12,12 @@ final class AuthPolicyTests: XCTestCase {
         }
         XCTAssertNoThrow(try ServiceEndpoint.url("/auth/me", baseURL: "https://example.com"))
     }
+    func testInvitationInputAcceptsGroupedShortAndLegacyCodes() {
+        XCTAssertEqual(AuthInputPolicy.inviteCode(" k7mp-9x4r\n"), "K7MP9X4R")
+        XCTAssertEqual(AuthInputPolicy.inviteCode("K7 MP\t9X4R"), "K7MP9X4R")
+        XCTAssertEqual(AuthInputPolicy.inviteCode("a10f92b86d44c903e718002a"), "A10F92B86D44C903E718002A")
+        XCTAssertEqual(AuthInputPolicy.inviteCode(" - "), "")
+    }
     func testUsernameNormalizationAndBounds() {
         XCTAssertEqual(AuthInputPolicy.username("  Alice_01\n"), "alice_01")
         for value in ["user", String(repeating: "a", count: 24)] { XCTAssertTrue(AuthInputPolicy.validUsername(value)) }
