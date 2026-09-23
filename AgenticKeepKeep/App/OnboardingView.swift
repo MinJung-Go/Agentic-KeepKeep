@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// 首次启动引导：欢迎 → HealthKit 授权 → API Key（均可跳过）
+/// 首次启动引导：欢迎 → HealthKit 授权（均可跳过）
 struct OnboardingView: View {
 
     var onFinish: () -> Void
 
     @State private var step = 0
     @State private var isRequestingHealth = false
-    @ObservedObject private var settings = LLMSettings.shared
     @ObservedObject private var health = HealthKitService.shared
 
     var body: some View {
@@ -15,7 +14,6 @@ struct OnboardingView: View {
             TabView(selection: $step) {
                 welcomePage.tag(0)
                 healthPage.tag(1)
-                keyPage.tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
@@ -26,7 +24,7 @@ struct OnboardingView: View {
         .task { await NetworkAccessBootstrap.shared.requestOnce() }
     }
 
-    // MARK: - 三页
+    // MARK: - 引导页
 
     private var welcomePage: some View {
         ScrollView {
@@ -43,7 +41,7 @@ struct OnboardingView: View {
                 VStack(alignment: .leading, spacing: Theme.Spacing.l) {
                     Label("「深蹲 100kg 5×5」→ 整理后确认保存", systemImage: "dumbbell")
                     Label("文字、照片、语音，随手记录", systemImage: "camera")
-                    Label("数据本机保存，使用自己的模型服务", systemImage: "lock.shield")
+                    Label("记录本机保存，AI 由 Moveliq 云端服务提供", systemImage: "lock.shield")
                 }
                 .font(Theme.Font.subheadline)
                 .card()
@@ -64,47 +62,6 @@ struct OnboardingView: View {
                 "跳过也没关系，随时可以在设置里开启"
             ]
         )
-    }
-
-    private var keyPage: some View {
-        VStack(spacing: Theme.Spacing.xl) {
-            Spacer()
-
-            Image(systemName: "key.fill")
-                .font(.system(size: 44, weight: .regular))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Theme.accent)
-            Text("配置你的 AI")
-                .font(Theme.Font.title)
-            Text("填入自己的 API Key（默认支持智谱 GLM，也可切换 OpenAI / Claude / 任意兼容端点）。\nKey 保存在系统钥匙串，只用于你自己的设备。")
-                .font(Theme.Font.subheadline)
-                .foregroundStyle(Theme.secondaryLabel)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, Theme.Spacing.xxl)
-
-            VStack(spacing: Theme.Spacing.s) {
-                SecureField("API Key", text: $settings.apiKey)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .padding(Theme.Spacing.m)
-                    .background(
-                        Theme.cardNested,
-                        in: RoundedRectangle(cornerRadius: Theme.Radius.inner, style: .continuous)
-                    )
-
-                TextField("模型（默认 \(settings.preset.defaultModel)）", text: $settings.modelName)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .padding(Theme.Spacing.m)
-                    .background(
-                        Theme.cardNested,
-                        in: RoundedRectangle(cornerRadius: Theme.Radius.inner, style: .continuous)
-                    )
-            }
-            .padding(.horizontal, Theme.Spacing.xxl)
-
-            Spacer()
-        }
     }
 
     private func page(symbol: String, tint: Color, title: String, lines: [String]) -> some View {
@@ -147,7 +104,7 @@ struct OnboardingView: View {
                         isRequestingHealth = true
                         await health.requestAuthorization()
                         isRequestingHealth = false
-                        step = 2
+                        onFinish()
                     }
                 } label: {
                     HStack(spacing: Theme.Spacing.s) {
@@ -159,8 +116,8 @@ struct OnboardingView: View {
                 .disabled(isRequestingHealth)
             }
 
-            Button(step == 2 ? "开始使用" : "继续") {
-                if step < 2 {
+            Button(step == 1 ? "开始使用" : "继续") {
+                if step < 1 {
                     withAnimation { step += 1 }
                 } else {
                     onFinish()

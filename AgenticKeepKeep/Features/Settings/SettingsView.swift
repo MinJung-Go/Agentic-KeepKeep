@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftData
 
-/// 设置：BYOK LLM 配置、健康数据、用量、关于
+/// 设置：账号、云端 AI、健康数据、用量、关于
 struct SettingsView: View {
 
     @Environment(\.modelContext) private var context
@@ -19,8 +19,6 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @State private var exportError: String?
     @State private var isSyncingHealth = false
-    /// API Key 默认遮住；要核对自己填了什么时才显出来
-    @State private var isKeyVisible = false
 
     private enum TestResult {
         case success(String)
@@ -51,13 +49,13 @@ struct SettingsView: View {
                     .padding(.vertical, Theme.Spacing.xs)
                 }
                 Section {
+                    NavigationLink { AccountSettingsView() } label: {
+                        SettingsRowLabel(title: "账号与邀请码", symbol: "person.crop.circle")
+                    }
                     NavigationLink { MiloSettingsView() } label: {
                         SettingsRowLabel(title: "\(displayName) · 相处方式", symbol: "person.crop.circle")
                     }
-                    NavigationLink { LocalModelView() } label: {
-                        SettingsRowLabel(title: "离线模式", symbol: "iphone", detail: settings.useLocalModel ? "已选择" : nil)
-                    }
-                    settingsLink(.model, symbol: "cpu", detail: settings.isConfigured ? "已配置" : "待配置")
+                    settingsLink(.model, symbol: "cpu", detail: "云端服务")
                     settingsLink(.health, symbol: "heart", detail: healthSummary)
                 }
                 Section {
@@ -85,13 +83,6 @@ struct SettingsView: View {
                 Form {
                     switch page {
                     case .model:
-                        if settings.useLocalModel {
-                            Section {
-                                Text("当前使用离线模式。下面的云端配置不会自动启用。")
-                                    .font(.footnote).foregroundStyle(.secondary)
-                                Button("切换到云端 AI") { settings.useLocalModel = false }
-                            }
-                        }
                         llmSection
                         searchSection
                     case .health: healthSection
@@ -103,9 +94,6 @@ struct SettingsView: View {
                 }
                 .navigationTitle(page.rawValue)
                 .navigationBarTitleDisplayMode(.inline)
-                .onDisappear {
-                    if page == .model { isKeyVisible = false }
-                }
             }
         }
     }
@@ -132,142 +120,29 @@ struct SettingsView: View {
             Toggle("允许 \(displayName) 联网搜索", isOn: $settings.webSearchEnabled)
                 .disabled(!settings.supportsWebSearch)
         } footer: {
-            Text(settings.supportsWebSearch
-                 ? (settings.useLocalModel ? "通过 App 内置浏览器查询公共资料。搜索词发送给搜索网站，不附带聊天或健康记录。" : "按需查询公共健身资料并显示来源。仅发送公共主题词，不发送个人记录；搜索按智谱 API 单独计费。")
-                 : "联网搜索仅支持智谱官方 API。切换至智谱 GLM 后可开启。")
+            Text(settings.supportsWebSearch ? "公共主题词通过 Moveliq 服务查询，不附带个人记录。" : "管理员尚未开启联网检索。")
         }
-    }
-
-    private var presetBinding: Binding<LLMEndpointPreset> {
-        Binding(
-            get: { settings.preset },
-            set: { settings.selectPreset($0) }
-        )
     }
 
     private var llmSection: some View {
         Section {
-            Picker("服务商", selection: presetBinding) {
-                ForEach(LLMEndpointPreset.allCases) { preset in
-                    Text(preset.displayName).tag(preset)
-                }
-            }
-
-            if settings.preset == .custom {
-                TextField("Base URL", text: $settings.customBaseURL)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .keyboardType(.URL)
-            } else {
-                LabeledContent("端点", value: settings.baseURL)
-                    .font(Theme.Font.footnote)
-            }
-
-            LabeledContent {
-                TextField("模型", text: $settings.modelName)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .multilineTextAlignment(.trailing)
-            } label: {
-                Label("模型", systemImage: "cpu")
-            }
-
-            // Key 的状态直接标在行上 —— 不用点进去猜自己填没填
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: Theme.Spacing.s) {
-                    Label("API Key", systemImage: "key.fill")
-
-                    Spacer(minLength: Theme.Spacing.m)
-
-                    Group {
-                        if isKeyVisible {
-                            TextField("sk-…", text: $settings.apiKey)
-                        } else {
-                            SecureField("sk-…", text: $settings.apiKey)
-                        }
-                    }
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .multilineTextAlignment(.trailing)
-
-                    Button {
-                        isKeyVisible.toggle()
-                        Haptics.tap()
-                    } label: {
-                        Image(systemName: isKeyVisible ? "eye.slash" : "eye")
-                            .font(.system(size: 14))
-                            .foregroundStyle(Theme.secondaryLabel)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(isKeyVisible ? "隐藏 API Key" : "显示 API Key")
-                }
-
-                HStack(spacing: Theme.Spacing.xs) {
-                    Image(systemName: !settings.apiKey.isEmpty ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                        .font(.system(size: 11, weight: .semibold))
-                        .symbolRenderingMode(.hierarchical)
-                    Text(!settings.apiKey.isEmpty ? "已配置 · 存于系统钥匙串" : "尚未配置云端 API Key")
-                        .font(Theme.Font.badge)
-                        .fontWeight(.regular)
-                }
-                .foregroundStyle(settings.isConfigured ? Theme.positive : Theme.warning)
-            }
-
-            LabeledContent {
-                Toggle("", isOn: $settings.thinkingEnabled)
-                    .labelsHidden()
-            } label: {
-                Label("深度思考", systemImage: "brain")
-            }
-
-            if !settings.preset.usesAnthropicProtocol && OpenAICompatibleClient.requiresThinking(model: settings.modelName) {
-                Text("此模型始终需要思考。关闭此开关使用轻量档（low），开启使用均衡档（high），不会使用 max。")
-                    .font(Theme.Font.footnote)
-                    .foregroundStyle(Theme.secondaryLabel)
-            }
-
-            DisclosureGroup("高级：对话上下文容量") {
-                Picker("模型窗口", selection: $settings.coachContextWindow) {
-                    ForEach([8_192, 16_384, 32_768, 65_536, 131_072, 262_144], id: \.self) { value in
-                        Text("\(value / 1_024)K").tag(value)
-                    }
-                }
-                Text("默认窗口为 128K，自动预留回复空间并按需整理历史，不会主动填满上下文。请按服务商说明调整；此设置仅对当前端点和模型生效。")
-                    .font(Theme.Font.footnote)
-                    .foregroundStyle(Theme.secondaryLabel)
-            }
-
+            LabeledContent("AI 服务", value: "Moveliq 云端服务")
+            Toggle("深度思考", isOn: $settings.thinkingEnabled)
             Button {
                 Task { await testConnection() }
             } label: {
                 HStack {
-                    if isTesting {
-                        ProgressView()
-                        Text("测试中…")
-                    } else {
-                        Label("连接测试", systemImage: "bolt.horizontal.circle")
-                    }
-                    Spacer()
-                    switch testResult {
-                    case .success(let message):
-                        Text(message)
-                            .font(Theme.Font.footnote)
-                            .foregroundStyle(Theme.positive)
-                    case .failure(let message):
-                        Text(message)
-                            .font(Theme.Font.footnote)
-                            .foregroundStyle(Theme.danger)
-                            .lineLimit(2)
-                    case nil:
-                        EmptyView()
-                    }
+                    if isTesting { ProgressView() }
+                    Text(isTesting ? "测试中…" : "连接测试")
                 }
+            }.disabled(isTesting || !settings.isConfigured)
+            switch testResult {
+            case .success(let message): Text(message).font(.footnote).foregroundStyle(Theme.positive)
+            case .failure(let message): Text(message).font(.footnote).foregroundStyle(Theme.danger)
+            case nil: EmptyView()
             }
-            .disabled(isTesting || !settings.isConfigured)
-        } header: {
-            Text("模型连接")
         } footer: {
-            Text("API Key 保存在系统钥匙串（Keychain），只在你的设备与所选服务之间传输。发给模型的是聚合摘要，原始记录不会离开设备。")
+            Text("登录凭据保存在系统钥匙串。输入的文本、识别照片和相关摘要经 Moveliq 服务转交模型处理；模型密钥只保存在服务端。")
         }
     }
 
@@ -524,19 +399,20 @@ struct PrivacyInfoView: View {
     private let groups: [PrivacyGroup] = [
         PrivacyGroup(
             title: "留在本机",
-            note: "App 没有自建服务器，也不做云端同步。",
+            note: "账号与邀请关系保存在 Moveliq 服务端；训练与饮食记录不做云同步。",
             items: [
                 PrivacyItem(symbol: "internaldrive.fill", tint: Theme.info, text: "训练、饮食、身体指标、笔记全部存在本机 SwiftData 数据库"),
                 PrivacyItem(symbol: "heart.fill", tint: Theme.danger, text: "HealthKit 数据只读读取：睡眠、HRV、静息心率、步数、运动记录，**不回写**"),
-                PrivacyItem(symbol: "key.fill", tint: Theme.accent, text: "API Key 存在系统钥匙串，不写入任何配置文件或日志"),
+                PrivacyItem(symbol: "key.fill", tint: Theme.accent, text: "登录凭据存在系统钥匙串；模型 API Key 只保存在服务端"),
             ]
         ),
         PrivacyGroup(
             title: "会离开设备",
-            note: "只有下面两样，发给你自己配置的 LLM 服务。",
+            note: "AI 请求经 Moveliq 服务中转到模型供应商。",
             items: [
-                PrivacyItem(symbol: "text.bubble.fill", tint: Theme.accent, text: "你输入的那句话（用来解析成结构化记录）"),
+                PrivacyItem(symbol: "text.bubble.fill", tint: Theme.accent, text: "你输入的文本及对话内容，经 Moveliq 服务转交模型处理"),
                 PrivacyItem(symbol: "chart.bar.doc.horizontal.fill", tint: Theme.positive, text: "聚合后的统计摘要，例如「近 7 天训练 4 次、日均睡眠 6.2 小时、深蹲停滞 3 周」"),
+                PrivacyItem(symbol: "photo.fill", tint: Theme.secondaryLabel, text: "主动选择识别的照片以压缩图发送，原图留在本机"),
             ]
         ),
         PrivacyGroup(
@@ -544,7 +420,6 @@ struct PrivacyInfoView: View {
             note: nil,
             items: [
                 PrivacyItem(symbol: "list.bullet.rectangle", tint: Theme.secondaryLabel, text: "逐条训练与饮食明细 —— 摘要之外的原始记录一律不出设备"),
-                PrivacyItem(symbol: "photo.fill", tint: Theme.secondaryLabel, text: "照片只在识别时以压缩图发送，原图留在本机"),
             ]
         ),
         PrivacyGroup(

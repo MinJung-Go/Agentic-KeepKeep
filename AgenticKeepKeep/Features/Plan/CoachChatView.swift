@@ -196,7 +196,7 @@ struct CoachChatView: View {
                     .font(Theme.Font.footnote)
                     .foregroundStyle(Theme.danger)
             } else if !settings.isConfigured {
-                Text(settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "可在设置中下载离线模型，或配置云端 AI")
+                Text(settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请确认已登录；服务不可用时请联系管理员")
                     .font(Theme.Font.footnote)
                     .foregroundStyle(Theme.secondaryLabel)
             }
@@ -379,7 +379,7 @@ struct CoachChatView: View {
         guard !text.isEmpty else { isSending = false; return }
 
         guard settings.isConfigured else {
-            errorText = settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请先在设置中选择离线模式或配置云端 AI"
+            errorText = settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请先登录并确认云端服务已就绪"
             isSending = false
             return
         }

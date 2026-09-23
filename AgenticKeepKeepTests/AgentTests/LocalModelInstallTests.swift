@@ -129,33 +129,34 @@ final class LocalModelInstallTests: XCTestCase {
             XCTAssertFalse(file.url.path.contains("/main/"))
         }
     }
-    func testLocalWindowDoesNotOverwriteCloudPreference() throws {
+    func testOldLocalPreferenceIsDisabledAndServiceBudgetWins() throws {
         let suite = UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
-        defer { defaults.removePersistentDomain(forName: suite) }
+        let previous = ServiceRuntime.shared.configuration
+        defer { defaults.removePersistentDomain(forName: suite); ServiceRuntime.shared.configuration = previous }
+        defaults.set(true, forKey: "llm.useLocalModel")
         let settings = LLMSettings(defaults: defaults)
-        settings.coachContextWindow = 65_536
+        XCTAssertFalse(settings.useLocalModel)
+        XCTAssertFalse(defaults.bool(forKey: "llm.useLocalModel"))
         settings.useLocalModel = true
-        XCTAssertEqual(settings.coachPolicy.window, 16_384)
-        XCTAssertEqual(settings.coachPolicy.outputReserve, LocalMLXPolicy.maximumOutput)
-        settings.useLocalModel = false
-        XCTAssertEqual(settings.coachPolicy.window, 65_536)
+        XCTAssertFalse(settings.useLocalModel)
+        settings.coachContextWindow = 65_536
+        ServiceRuntime.shared.configuration = ServiceConfiguration(model: "test", contextWindow: 32_768,
+            maxOutput: 4096, searchEnabled: false, supportContact: "admin")
+        XCTAssertEqual(settings.coachPolicy.window, 32_768)
+        XCTAssertEqual(settings.coachPolicy.outputReserve, 4096)
         XCTAssertEqual(settings.coachContextWindow, 65_536)
     }
-    func testLocalModeNeverRequiresAPIKeyOrFallsBackWhenMissing() throws {
-        let defaults = UserDefaults(suiteName: UUID().uuidString)!
+    func testUnconfiguredServiceCannotFallBackToLocalOrLegacyKey() throws {
+        let suite = UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        let previous = ServiceRuntime.shared.configuration
+        defer { defaults.removePersistentDomain(forName: suite); ServiceRuntime.shared.configuration = previous }
+        ServiceRuntime.shared.configuration = nil
         let settings = LLMSettings(defaults: defaults)
         settings.useLocalModel = true
-        XCTAssertTrue(settings.supportsWebSearch)
-        XCTAssertEqual(settings.coachPolicy.window, 16_384)
-        XCTAssertEqual(settings.coachPolicy.window, LocalMLXPolicy.context)
-        XCTAssertEqual(settings.coachPolicy.inputCap, LocalMLXPolicy.context)
-        XCTAssertEqual(try settings.coachPolicy.inputLimit(), 13_824)
-        XCTAssertEqual(settings.coachPolicy.outputReserve, 2048)
-        if !LocalModelManifest.isInstalled() {
-            XCTAssertThrowsError(try settings.makeClient()) { XCTAssertTrue($0 is LocalMiloError) }
-        } else {
-            XCTAssertTrue(try settings.makeClient() is LocalLLMClient)
-        }
+        XCTAssertFalse(settings.isConfigured)
+        XCTAssertFalse(settings.supportsWebSearch)
+        XCTAssertThrowsError(try settings.makeClient()) { XCTAssertTrue($0 is AuthServiceError) }
     }
 }

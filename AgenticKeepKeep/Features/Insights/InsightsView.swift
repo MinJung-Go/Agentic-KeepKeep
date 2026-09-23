@@ -227,7 +227,7 @@ struct InsightsView: View {
             .disabled(isGenerating)
 
             if !settings.isConfigured {
-                Text("需要先在「设置 → AI 模型」里配置 API Key")
+                Text("请先登录并确认云端 AI 服务可用")
                     .font(Theme.Font.footnote)
                     .foregroundStyle(Theme.tertiaryLabel)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -329,7 +329,7 @@ struct InsightsView: View {
 
     private func generate() async {
         guard settings.isConfigured else {
-            errorText = "请先在「设置 → AI 模型」中配置 API Key"
+            errorText = "请先登录并确认云端 AI 服务可用"
             return
         }
 

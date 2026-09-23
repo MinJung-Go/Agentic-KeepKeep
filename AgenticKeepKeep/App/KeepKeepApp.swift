@@ -1,42 +1,41 @@
-import SwiftData
 import SwiftUI
 import UIKit
 
 @main
 struct KeepKeepApp: App {
     @UIApplicationDelegateAdaptor(ModelDownloadAppDelegate.self) private var downloadDelegate
-    @Environment(\.scenePhase) private var scenePhase
     @AppStorage(AppAppearance.storageKey) private var appearance = AppAppearance.system
-
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .preferredColorScheme(appearance.colorScheme)
-                .onChange(of: scenePhase) { _, phase in
-                    if phase == .background {
-                        LocalModelStore.shared.enteredBackground()
-                        Task { await LocalInferenceWorker.shared.unload(reason: .backgrounded) }
-                    } else if phase == .active {
-                        LocalModelStore.shared.becameActive()
-                    }
-                }
-                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
-                    Task { await LocalInferenceWorker.shared.unload(reason: .memoryPressure) }
-                }
+            AuthGateView().preferredColorScheme(appearance.colorScheme)
         }
-        .modelContainer(AppModelContainer.shared)
     }
 }
 
-/// Reconnects OS-owned transfers even when iOS launches us solely to deliver files.
-final class ModelDownloadAppDelegate: NSObject, UIApplicationDelegate {
-    func application(_ application: UIApplication,
-                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        _ = LocalModelStore.shared
+/// Reconnect only to cancel legacy OS-owned downloads; never instantiate the model store.
+final class ModelDownloadAppDelegate: NSObject, UIApplicationDelegate, URLSessionDelegate {
+    private var sessions: [URLSession] = []
+    private var completions: [String: () -> Void] = [:]
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        AppModelContainer.lockWidget()
+        UserDefaults.standard.set(false, forKey: "llm.useLocalModel")
+        for key in UserDefaults.standard.dictionaryRepresentation().keys where key.hasPrefix("localMilo.mlx.backgroundDownloadActive.") {
+            UserDefaults.standard.set(false, forKey: key)
+        }
+        for suffix in ["wifi", "cellular"] {
+            let configuration = URLSessionConfiguration.background(withIdentifier: "com.minjung.keepkeep.local-model.modelscope.v1." + suffix)
+            let session = URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
+            sessions.append(session)
+            session.getAllTasks { tasks in tasks.forEach { $0.cancel() } }
+        }
         return true
     }
-    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String,
-                     completionHandler: @escaping () -> Void) {
-        LocalModelStore.shared.handleBackgroundEvents(identifier: identifier, completion: completionHandler)
+    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
+        guard sessions.contains(where: { $0.configuration.identifier == identifier }) else { completionHandler(); return }
+        completions[identifier] = completionHandler
+    }
+    func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
+        guard let identifier = session.configuration.identifier else { return }
+        completions.removeValue(forKey: identifier)?()
     }
 }

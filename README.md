@@ -15,6 +15,8 @@
 
 ---
 
+> 当前开发：第 29 轮「账号登录与独立服务」。源码已切换为邀请注册＋鉴权云端代理；服务已部署，App 默认连接 `http://47.100.234.212:8080`，尚未发布新 IPA。进度见 [checklist](docs/29-auth-service/checklist.md)，接入见 [服务说明](docs/29-auth-service/integration.md)。
+
 ## 界面示意
 
 [![Milo 本地图文与网页搜索设计演示](docs/19-local-milo/design-preview.gif)](docs/19-local-milo/design-video.mp4)
@@ -44,12 +46,12 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 | 记录方式 | 点选表单 | 自然语言一句话，LLM 结构化解析后由你确认 |
 | 分析 | 静态图表 | AI 跨维度关联（训练 × 睡眠 × 饮食），主动指出平台期 |
 | 课程表 | 固定模板课程 | 对话生成课程表，按完成情况与恢复状态调整 |
-| 数据归属 | 厂商云 | 本地 SwiftData，BYOK 直连 LLM，无自建服务器 |
+| 数据归属 | 厂商云 | 按账号隔离的本地 SwiftData，独立服务鉴权并代理 AI |
 
 ## 能做什么
 
 - **自然语言记录**：「深蹲100kg 5×5」「中午吃了牛肉面」→ 解析成结构化记录；解析结果先过确认卡片，每个字段可改
-- **失败不丢数据**：解析失败时原文存为「待归类」笔记，联网或有 Key 后可重新解析
+- **失败不丢数据**：解析失败时原文存为「待归类」笔记，登录且服务恢复后可重新解析
 - **AI 周报**：基于本地聚合摘要分析渐进超负荷、平台期、训练与睡眠/饮食的关联；报告标注 AI 依据
 - **对话式课程表**：和 Milo 说明目标与器械，通过 function call 生成周期化计划，确认后写入；支持手动增删改，也支持让 Milo 提出减载/换动作建议
 - **饮食分析**：日均热量与宏营养素、蛋白质目标缺口、每日热量图
@@ -62,7 +64,7 @@ HTML 文件可下载后在浏览器打开；GitHub 文件页展示的是源码�
 
 ### 方式一：下载未签名 IPA（不需要 Mac）
 
-当前分支已改用 **Qwen3.5-0.8B MLX 4bit**：从 ModelScope 下载约 **645 MB**，保持原有角色、历史与工具流程。当前开发分支默认上下文已适配 **16K**（[扩容清单](docs/23-local-context/checklist.md)，尚未打包）；下方已发布的 0.5.1（22）仍为 8K。升级后需下载新模型；旧 2B 不会作为新版启用。[本轮修复与验证](docs/22-local-memory/checklist.md)。[下载 IPA · 0.5.1（22）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35483344157/artifacts/10596852788)：397 项 iOS 单测通过，Release 归档成功；L14 与工具／图文质量待同设备复测。下方为上一版本。
+以下为历史本地模型版本；当前分支已停止本地模型下载与加载。历史版本使用 **Qwen3.5-0.8B MLX 4bit**：从 ModelScope 下载约 **645 MB**，保持原有角色、历史与工具流程。历史本地模型分支默认上下文已适配 **16K**（[扩容清单](docs/23-local-context/checklist.md)，尚未打包）；下方已发布的 0.5.1（22）仍为 8K。升级后需下载新模型；旧 2B 不会作为新版启用。[本轮修复与验证](docs/22-local-memory/checklist.md)。[下载 IPA · 0.5.1（22）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35483344157/artifacts/10596852788)：397 项 iOS 单测通过，Release 归档成功；L14 与工具／图文质量待同设备复测。下方为上一版本。
 
 [MLX 正式接入 IPA · 0.5.0（21）](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/35380521646/artifacts/10562367633)：393 项 iOS 单测通过，正式 App 已接入 MLX 文字／单图推理与后台下载。默认从 ModelScope 下载约 1.74 GB 新模型，旧 GGUF 不兼容；图文真机性能与任务质量仍待验收。[需求与 checklist](docs/21-mlx-production/checklist.md) · [安装说明与验证边界](docs/21-mlx-production/validation.md)。
 
@@ -86,17 +88,16 @@ xcodegen generate
 open AgenticKeepKeep.xcodeproj
 ```
 
-正式 App 通过 Swift Package Manager 链接 MLX Swift 0.31.3 / MLX Swift LM 2.31.3，首次构建会下载依赖；模型权重从 ModelScope 在 App 内下载，不打包进 IPA。
+正式 App 通过 Swift Package Manager 链接 MLX Swift 0.31.3 / MLX Swift LM 2.31.3，首次构建会下载依赖；保留推理包依赖以便以后恢复，但本轮不再下载或加载模型权重。
 
 `.xcodeproj` 由 `project.yml` 生成，不进版本库。在 Xcode 中选择自己的开发团队后即可运行到真机。
 
 ## 第一次使用
 
-1. 打开 App，完成三页引导（HealthKit 授权与 API Key 都可以跳过）
-2. 「设置 → AI 模型」选择服务商并填入 API Key，点「连接测试」确认真实可用
-   - 默认预设为智谱 GLM（`glm-5.3-flash`）；也可切换 OpenAI、Claude（Anthropic 原生协议）或任意 OpenAI 兼容端点
-   - 模型名可在设置里直接改，请以服务商文档为准
-3. 回到「Milo」首页（标签随角色称呼变化），在底部输入条输入「深蹲100kg 5×5，有点累」→ 确认卡片 → 保存，记录出现在「记录」页
+1. 当前 App 默认接入已部署的服务；自建服务可覆盖 `MOVELIQ_SERVICE_URL` 并重新构建（[接入说明](docs/29-auth-service/integration.md)）。
+2. 打开 App，用用户名与密码登录；首次注册填写一次性邀请码，成功后获得 3 个子邀请码。
+3. 若检测到旧记录，确认其账号归属后继续。完成欢迎与 HealthKit 可选授权引导；无需模型 API Key。
+4. 在首页输入「深蹲100kg 5×5，有点累」→ 确认卡片 → 保存。邀请码在「设置 → 账号与邀请码」查看。
 
 ## 权限与数据
 
@@ -106,9 +107,10 @@ open AgenticKeepKeep.xcodeproj
 | 相机 / 相册 | 食物照片估算热量 | 照片随记录存本机 |
 | 麦克风 / 语音识别 | 语音转写为记录文本 | 使用系统 Speech 框架 |
 
-- API Key 保存在系统钥匙串（Keychain），不写入任何配置文件或日志
-- 没有自建服务器，不做云端同步
-- 发给 LLM 的只有两样：你输入的那句话，以及聚合后的统计摘要（例如「近 7 天训练 4 次、日均睡眠 6.2 小时、深蹲停滞 3 周」）。逐条原始记录不会离开设备
+- App 会话保存在 Keychain，供应商 API Key 只在独立服务端；旧版本保存的个人 Key 不再用于请求
+- 账号、会话与邀请码在服务端；训练与饮食记录按账号保存在本地，不做记录云同步
+- AI 请求（用户输入、主动附加的照片、对话与所需聚合摘要）经过自有服务中转到模型供应商；不会上传整个本地数据库
+- 更换账号使用独立数据库，退出取消云端请求并请求刷新锁定小组件；HealthKit 授权属于当前设备，其他账号仍可主动授权导入该设备健康数据
 - 可随时在「设置 → 数据」导出全部数据为 JSON
 
 ## 支持的平台
@@ -138,7 +140,7 @@ xcodebuild test -scmProvider system -project AgenticKeepKeep.xcodeproj -scheme A
   -destination 'platform=iOS Simulator,name=iPhone 15 Pro'
 ```
 
-架构：`Features/`（SwiftUI UI）→ `Core/Agents/`（ParserAgent / CoachAgent / AnalystAgent / VisionAgent，纯逻辑可单测）→ `Core/LLM/`（BYOK 协议抽象，OpenAI 兼容 + Anthropic 原生）→ `Core/Data/`（SwiftData，唯一数据源）。测试结果以对应提交的 GitHub Actions 为准；主分支推送、PR 与手动触发可运行构建和测试。
+架构：`Features/`（SwiftUI UI）→ `Core/Agents/`（ParserAgent / CoachAgent / AnalystAgent / VisionAgent，纯逻辑可单测）→ `Core/LLM/`（通过独立服务调用 OpenAI 兼容模型；旧协议代码保留）→ `Core/Data/`（SwiftData，唯一数据源）。测试结果以对应提交的 GitHub Actions 为准；主分支推送、PR 与手动触发可运行构建和测试。
 
 文档按轮次组织（索引与约定见 [docs/README.md](docs/README.md)）：
 
@@ -158,4 +160,4 @@ CI 产出的 IPA 带 ad-hoc 签名，用于携带 HealthKit / App Group 能力�
 
 ### 本地推理引擎
 
-正式 App 使用独立的 [MiloInference 私有 Swift Package](https://github.com/MinJung-Go/MiloInference)，集中维护 MLX、内存保护、模型校验和性能诊断。业务提示词、工具执行与下载交互保留在 App。App 已改为固定提交的远端依赖，本仓库不再保存引擎源码副本。CI 使用专属只读部署密钥；本地构建需具有私有仓库读取权限。[接入说明](docs/24-inference-package/integration.md)。Apple CI／真机回归仍待完成。[拆分清单](docs/24-inference-package/checklist.md)。
+App 保留独立的 [MiloInference 私有 Swift Package](https://github.com/MinJung-Go/MiloInference)，集中维护 MLX、内存保护、模型校验和性能诊断。业务提示词、工具执行与下载交互保留在 App。App 已改为固定提交的远端依赖，本仓库不再保存引擎源码副本。CI 使用专属只读部署密钥；本地构建需具有私有仓库读取权限。[接入说明](docs/24-inference-package/integration.md)。Apple CI／真机回归仍待完成。[拆分清单](docs/24-inference-package/checklist.md)。

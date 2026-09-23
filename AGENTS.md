@@ -1,10 +1,16 @@
 # AGENTS.md
 
-本文件为在本仓库中工作的编码 Agent 提供指导，参考 `CLAUDE.md` 整理。用户在当前会话中的明确指令优先于本文件中的工作流约定。
+本文件是本仓库编码 Agent 公共开发规则的唯一维护来源，供 Codex 与 Claude Code 共用。用户在当前会话中的明确指令优先于本文件中的工作流约定。
+
+## 规则维护
+
+- 公共开发规则统一修改根目录 `AGENTS.md`；`CLAUDE.md` 通过 `@AGENTS.md` 引入，只保留入口说明和必要的 Claude Code 专属规则。
+- 修改任一文件时，必须同时检查两个文件的引用和规则是否一致；公共规则只维护一份，无需为同步而重复写入另一文件。
+- 工具专属规则不得与公共规则冲突。新增公共约定不得只写入 `CLAUDE.md`。
 
 ## 项目状态
 
-项目已实现并可装机运行，后续迭代按轮次持续推进。当前进度以对应轮次的需求文档、清单、实际代码与 CI 结果为准；`CLAUDE.md` 中的 186 个单元测试和 `feat/ui-polish` 分支描述属于历史快照，不作为当前状态依据。
+项目已实现并可装机运行，后续迭代按轮次持续推进。当前进度以对应轮次的需求文档、清单、实际代码与 CI 结果为准，不要将历史测试数量或分支描述作为当前状态依据。
 最新可安装版本由 `v*` tag 触发 GitHub Actions 产出，见 Actions Artifacts。
 
 需求基线按轮次放在 [docs/](docs/)，索引与约定见 [docs/README.md](docs/README.md)。**改需求或砍范围前，先读对应轮次的需求文档。**
@@ -13,7 +19,7 @@
 
 按「轮次」组织：一轮一个文件夹，文件夹内自带该轮的需求、清单与设计稿。
 
-以下为 `CLAUDE.md` 列出的早期轮次；完整轮次索引见 [docs/README.md](docs/README.md)。
+以下为早期轮次；完整轮次索引见 [docs/README.md](docs/README.md)。
 
 | 轮次 | 主题 | 文档 |
 |------|------|------|
@@ -51,16 +57,26 @@ Xcode 工程不进库，由 **XcodeGen** 从 `project.yml` 生成；**GitHub Act
 分层单向依赖，Agent 层为纯逻辑层（输入数据摘要 + prompt → Codable JSON），不碰 UI/数据库，可独立单测：
 
 ```
-Features/ (SwiftUI UI)  →  Core/Agents/  →  Core/LLM/ (BYOK 协议抽象)  →  Core/Data/
+Features/ (SwiftUI UI)  →  Core/Agents/  →  Core/LLM/ (鉴权代理协议抽象)  →  Core/Data/
 ```
 
 - **SwiftData 是唯一数据源**；HealthKit 只读（睡眠/HRV/心率/步数/运动记录），**不回写**
 - 四个 Agent：`ParserAgent`（自然语言→结构化记录）、`CoachAgent`（对话式创建/调整课程表，function call）、`AnalystAgent`（周月报）、`VisionAgent`（食物照片→热量）
-- **BYOK**：主模型为 OpenAI 兼容端点（用户自填 API Key，Keychain 存储），另支持 Anthropic 原生协议；无自建服务器
+- **账号与云端代理**：用户名＋密码登录，注册需要一次性邀请码；每次成功注册获得 3 个子码。独立 `Moveliq-Service` 仓库负责鉴权与 OpenAI 兼容模型代理，供应商 Key 只在服务端，App Keychain 只保存会话。旧 BYOK／Anthropic 代码保留但不作为当前入口。
+- **账号隔离**：SwiftData 按服务地址与用户 ID 分库；首次关联旧数据须在 App 内确认，退出清除会话、取消请求并锁定小组件，不删除记录。
 - LLM 层同时支持**一次性**（`complete`）与**流式**（`stream`，含 `reasoning_content` / `thinking_delta` 思考内容）；两种协议的流式拼接共用 `LLMStreamAccumulator`
 - 发给 LLM 的只能是**聚合摘要**（`AnalysisDigest` / `CoachContextBuilder` 产出），原始记录不出设备
 - 解析失败必须降级为 `RawNote` 留存原文，不丢用户数据
 - 记录弹窗是**对话流**：`LoggingViewModel` 用 turns 承载「用户输入 / 解析卡片 / 失败说明」；照片是附件，与文字一起发送
+
+## MiloInference 接入
+
+- 第 29 轮起 `LocalModelAvailability.enabled = false`：隐藏入口、停止下载和加载，保留代码、包依赖与已下载文件。恢复前应重新确认产品范围并完成验证。
+
+- 本地推理通过私有 Swift Package `MinJung-Go/MiloInference` 接入，`project.yml` 是 URL 与固定 revision 的唯一配置来源，使用 `MiloInference` 和 `MiloInferenceCore` 产品。
+- 接入、开发机权限、CI 与验证说明见 [docs/24-inference-package/integration.md](docs/24-inference-package/integration.md)；修改本地推理前先读该文档。
+- App 适配入口为 `AgenticKeepKeep/Core/LocalMilo/LocalLLMClient.swift`：通过 `InferenceEngine.shared.generate` 执行推理。下载、安装状态、业务提示词、工具解析及 UI 留在 App。
+- 引擎实现应在独立包仓库修改，再更新本仓库的 revision 并验证；不复制包源码回 App，不恢复已退役的 llama.cpp 链路。
 
 ## 目录约定（Xcode 标准布局）
 

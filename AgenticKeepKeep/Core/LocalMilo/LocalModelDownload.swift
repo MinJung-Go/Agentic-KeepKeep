@@ -54,6 +54,8 @@ final class LocalModelStore: ObservableObject {
     init() {
         generation = UserDefaults.standard.string(forKey: Self.generationKey) ?? UUID().uuidString
         UserDefaults.standard.set(generation, forKey: Self.generationKey)
+        phase = .paused
+        guard LocalModelAvailability.enabled else { restoring = false; return }
         phase = LocalModelManifest.isInstalled() ? .ready : .paused
         sessions = [false, true].map { cellular in
             URLSession(configuration: Self.configuration(cellular: cellular), delegate: delegate, delegateQueue: nil)
@@ -110,6 +112,7 @@ final class LocalModelStore: ObservableObject {
         }
     }
     func download(cellular: Bool) {
+        guard LocalModelAvailability.enabled else { return }
         guard !busy, phase != .ready else { return }
         do {
             var directory = LocalModelManifest.directory
@@ -151,6 +154,7 @@ final class LocalModelStore: ObservableObject {
         counts[file.name] = bytes; updateProgress()
     }
     fileprivate func received(_ task: URLSessionDownloadTask, at location: URL) {
+        guard LocalModelAvailability.enabled else { task.cancel(); return }
         guard let file = file(task), !isRemoving else { return }
         do {
             guard let http = task.response as? HTTPURLResponse, [200, 206].contains(http.statusCode),

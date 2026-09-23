@@ -95,6 +95,7 @@ struct OpenAICompatibleClient: LLMClient {
                     }
 
                     guard (200...299).contains(http.statusCode) else {
+                        if http.statusCode == 401, ServiceEndpoint.isProxy(config.baseURL) { ServiceTransport.unauthorized(token: config.apiKey) }
                         // 错误响应是普通 JSON 而不是事件流，读一段用于提示
                         var data = Data()
                         for try await byte in bytes {

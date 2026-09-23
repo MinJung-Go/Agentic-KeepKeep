@@ -41,7 +41,7 @@ enum LLMEndpointPreset: String, CaseIterable, Identifiable {
     var usesAnthropicProtocol: Bool { self == .anthropic }
 }
 
-/// LLM 配置与用量（BYOK）。API Key 存 Keychain，其余存 UserDefaults。
+/// 当前请求使用鉴权云端代理；旧 BYOK 配置仅为恢复兼容而保留。
 final class LLMSettings: ObservableObject {
 
     static let shared = LLMSettings()
@@ -61,7 +61,10 @@ final class LLMSettings: ObservableObject {
     private let defaults: UserDefaults
 
     @Published var useLocalModel: Bool {
-        didSet { defaults.set(useLocalModel, forKey: "llm.useLocalModel") }
+        didSet {
+            if !LocalModelAvailability.enabled && useLocalModel { useLocalModel = false }
+            defaults.set(useLocalModel, forKey: "llm.useLocalModel")
+        }
     }
 
     @Published var preset: LLMEndpointPreset {
@@ -86,7 +89,7 @@ final class LLMSettings: ObservableObject {
     }
 
     var supportsWebSearch: Bool {
-        useLocalModel || (preset == .zhipuGLM && GLMWebSearch.isOfficialEndpoint(baseURL))
+        ServiceRuntime.shared.configuration?.searchEnabled == true
     }
 
     /// 仅在内存中保留；变更即写入 Keychain
@@ -105,7 +108,8 @@ final class LLMSettings: ObservableObject {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.useLocalModel = defaults.bool(forKey: "llm.useLocalModel")
+        self.useLocalModel = LocalModelAvailability.enabled && defaults.bool(forKey: "llm.useLocalModel")
+        if !LocalModelAvailability.enabled { defaults.set(false, forKey: "llm.useLocalModel") }
 
         let storedPreset = defaults.string(forKey: Key.preset).flatMap(LLMEndpointPreset.init(rawValue:)) ?? .zhipuGLM
         self.preset = storedPreset
@@ -136,7 +140,8 @@ final class LLMSettings: ObservableObject {
     }
 
     private var coachWindowKey: String {
-        let identifier = baseURL + "\n" + modelName
+        let legacyEndpoint = preset == .custom ? customBaseURL : preset.defaultBaseURL
+        let identifier = legacyEndpoint + "\n" + modelName
         return "coach.window." + SHA256.hash(data: Data(identifier.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
@@ -147,19 +152,15 @@ final class LLMSettings: ObservableObject {
                                       safetyMargin: 512, memoryLimit: 700, recentRounds: 2, queryResultReserve: 768,
                                       estimator: LocalTokenEstimator())
         }
-        return CoachContextPolicy(window: coachContextWindow, inputCap: coachContextWindow)
+        let config = ServiceRuntime.shared.configuration
+        let window = config?.contextWindow ?? 32_768
+        return CoachContextPolicy(window: window, inputCap: window, outputReserve: config?.maxOutput ?? 4096)
     }
 
-    /// 生效的端点地址
-    var baseURL: String {
-        preset == .custom ? customBaseURL : preset.defaultBaseURL
-    }
+    var baseURL: String { ServiceEndpoint.baseURL + "/v1" }
 
     var isConfigured: Bool {
-        if useLocalModel { return LocalModelManifest.isInstalled() }
-        return !apiKey.isEmpty
-            && !baseURL.trimmingCharacters(in: .whitespaces).isEmpty
-            && !modelName.trimmingCharacters(in: .whitespaces).isEmpty
+        ServiceCredentials.session != nil && ServiceRuntime.shared.configuration?.model.isEmpty == false
     }
 
     /// 切换预设时，若模型名仍是旧预设默认值，则跟随切换
@@ -173,33 +174,20 @@ final class LLMSettings: ObservableObject {
 
     /// 构造客户端（Agent 层唯一入口）
     func makeClient() throws -> LLMClient {
-        if useLocalModel {
-            guard LocalModelManifest.isInstalled() else { throw LocalMiloError.notReady }
-            return LocalLLMClient()
-        }
-        guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
-
-        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard llmEndpointURL(base: base, path: "") != nil else {
-            throw LLMError.invalidEndpoint(base)
-        }
-
-        let config = LLMClientConfig(
-            baseURL: base,
-            apiKey: apiKey,
-            model: modelName,
-            // stream_options.include_usage 目前确认 OpenAI 支持；其他端点带上可能被拒
-            supportsStreamUsage: preset == .openAI
-        )
-        return preset.usesAnthropicProtocol
-            ? AnthropicClient(config: config)
-            : OpenAICompatibleClient(config: config)
+        guard let session = ServiceCredentials.session, let service = ServiceRuntime.shared.configuration,
+              !service.model.isEmpty else { throw AuthServiceError(status: 401, message: "请先登录；如服务未就绪，请联系管理员。") }
+        _ = try ServiceEndpoint.url("/chat/completions")
+        let config = LLMClientConfig(baseURL: baseURL, apiKey: session.token, model: service.model,
+                                     supportsStreamUsage: true)
+        return OpenAICompatibleClient(config: config, session: ServiceTransport.shared.session)
     }
 
     /// 构造带用量记录的客户端（Agent 调用一律走这个）
     func makeRecordingClient() throws -> LLMClient {
-        UsageRecordingClient(base: try makeClient()) { [weak self] usage in
+        let token = ServiceCredentials.session?.token
+        return UsageRecordingClient(base: try makeClient()) { [weak self] usage in
             Task { @MainActor in
+                guard token == ServiceCredentials.session?.token else { return }
                 self?.recordUsage(usage)
             }
         }
@@ -214,6 +202,13 @@ final class LLMSettings: ObservableObject {
         defaults.set(callCount, forKey: Key.callCount)
     }
 
+    func reloadAccountUsage() {
+        usage = LLMUsage(promptTokens: defaults.integer(forKey: Key.usagePrompt),
+                         completionTokens: defaults.integer(forKey: Key.usageCompletion), totalTokens: 0)
+        usage.totalTokens = usage.promptTokens + usage.completionTokens
+        callCount = defaults.integer(forKey: Key.callCount)
+    }
+
     func resetUsage() {
         usage = LLMUsage()
         callCount = 0
@@ -225,13 +220,14 @@ final class LLMSettings: ObservableObject {
     /// 连接测试：发一条最小请求验证 Key 与端点可用
     func testConnection() async -> Result<String, Error> {
         do {
+            let token = ServiceCredentials.session?.token
             let client = try makeClient()
             let response = try await client.complete(LLMRequest(
                 messages: [.user("回复「ok」两个字符，不要有其他内容。")],
                 temperature: 0,
                 maxTokens: 32
             ))
-            recordUsage(response.usage)
+            if token == ServiceCredentials.session?.token { recordUsage(response.usage) }
             let preview = (response.content ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
             return .success(preview.isEmpty ? "连接正常" : "连接正常：\(preview.prefix(20))")
         } catch {

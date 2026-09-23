@@ -125,7 +125,10 @@ final class CoachMemoryStoreTests: XCTestCase {
         let settings = LLMSettings(defaults: defaults)
         settings.preset = .custom; settings.customBaseURL = "https://a.invalid/v1"; settings.modelName = "a"
         XCTAssertEqual(settings.coachContextWindow, 131_072)
-        XCTAssertGreaterThan(try settings.coachPolicy.inputLimit(), 120_000)
+        let previous = ServiceRuntime.shared.configuration
+        defer { ServiceRuntime.shared.configuration = previous }
+        ServiceRuntime.shared.configuration = ServiceConfiguration(model: "service", contextWindow: 32_768, maxOutput: 4096, searchEnabled: false, supportContact: "admin")
+        XCTAssertEqual(try settings.coachPolicy.inputLimit(), 27_648)
         settings.coachContextWindow = 32_768
         settings.modelName = "b"
         XCTAssertEqual(settings.coachContextWindow, 131_072)

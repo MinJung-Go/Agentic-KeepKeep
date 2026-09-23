@@ -2,6 +2,19 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>47.100.234.212</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>MoveliqServiceURL</key>
+	<string>$(MOVELIQ_SERVICE_URL)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
@@ -40,7 +53,7 @@
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
 	<key>NSHealthShareUsageDescription</key>
-	<string>Moveliq 读取你的健康数据（睡眠、心率、步数、运动记录），用于生成个性化的训练分析。所有数据仅保存在本机，不会上传到任何服务器。</string>
+	<string>Moveliq 读取你的健康数据（睡眠、心率、步数、运动记录），用于生成个性化的训练分析。原始健康记录保存在本机；使用 AI 功能时，相关汇总摘要经 Moveliq 服务转交模型处理。</string>
 	<key>NSCameraUsageDescription</key>
 	<string>用于拍摄食物照片以估算热量。</string>
 	<key>NSPhotoLibraryUsageDescription</key>

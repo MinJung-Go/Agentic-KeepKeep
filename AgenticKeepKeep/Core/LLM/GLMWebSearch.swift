@@ -34,18 +34,21 @@ struct GLMWebSearch {
 
     /// Shared bounded transport; callers construct public queries from a finite vocabulary.
     func fetch(body: Data) async throws -> Data {
-        guard Self.isOfficialEndpoint(config.baseURL), !config.apiKey.isEmpty else {
+        guard (ServiceEndpoint.isProxy(config.baseURL) || Self.isOfficialEndpoint(config.baseURL)), !config.apiKey.isEmpty else {
             throw LLMError.invalidEndpoint("联网搜索仅支持智谱官方 API")
         }
-        let session = URLSession(configuration: .ephemeral, delegate: GLMToolNoRedirects(), delegateQueue: nil)
-        defer { session.invalidateAndCancel() }
-        var request = URLRequest(url: URL(string: "https://open.bigmodel.cn/api/paas/v4/web_search")!)
+        let proxy = ServiceEndpoint.isProxy(config.baseURL)
+        let session = proxy ? ServiceTransport.shared.session : URLSession(configuration: .ephemeral, delegate: GLMToolNoRedirects(), delegateQueue: nil)
+        defer { if !proxy { session.invalidateAndCancel() } }
+        let url = proxy ? try ServiceEndpoint.url("/web_search") : URL(string: "https://open.bigmodel.cn/api/paas/v4/web_search")!
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 20
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = body
         let (bytes, response) = try await session.bytes(for: request)
+        if (response as? HTTPURLResponse)?.statusCode == 401, proxy { ServiceTransport.unauthorized(token: config.apiKey) }
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             throw LLMError.decoding("联网搜索失败，请检查网络、API 权限或余额")
         }
