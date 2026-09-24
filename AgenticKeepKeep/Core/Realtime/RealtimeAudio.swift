@@ -3,6 +3,7 @@ import Foundation
 
 @MainActor
 final class RealtimeAudio {
+    private var captureProgress = RealtimeCaptureProgress()
     private var tapInstalled = false
     private var engine: AVAudioEngine?
     private var player: AVAudioPlayerNode?
@@ -35,13 +36,41 @@ final class RealtimeAudio {
         engine.connect(captureMixer, to: engine.mainMixerNode, format: input)
         engine.connect(player, to: engine.mainMixerNode, format: output)
         let converter = RealtimeInputConverter()
+        let progress = RealtimeCaptureProgress()
+        captureProgress = progress
         engine.inputNode.installTap(onBus: 0, bufferSize: 2048, format: nil) { buffer, _ in
+            progress.received(frames: Int(buffer.frameLength), at: ProcessInfo.processInfo.systemUptime)
             do {
-                if let pcm = try converter.convert(buffer) { onInput(RealtimeWire.wav(pcm)) }
+                if let pcm = try converter.convert(buffer) {
+                    progress.produced(at: ProcessInfo.processInfo.systemUptime)
+                    onInput(RealtimeWire.wav(pcm))
+                }
             } catch { onFailure() }
         }
         tapInstalled = true
         engine.prepare(); try engine.start(); player.play()
+    }
+
+    var isRunning: Bool { engine?.isRunning == true }
+
+    func restartStoppedEngine() throws {
+        guard let engine else { throw AudioError.unavailable }
+        guard !engine.isRunning else { return }
+        try AVAudioSession.sharedInstance().setActive(true)
+        // Keep the existing voice-processing graph; never fall back to unprocessed speaker audio.
+        engine.prepare()
+        try engine.start()
+        player?.play()
+    }
+
+    func captureFailureMessage(at now: TimeInterval) -> String {
+        switch captureProgress.stage(engineRunning: isRunning, at: now) {
+        case .engineStopped: return "通话音频引擎已停止，请重新连接。（MIC-ENGINE）"
+        case .noCallback: return "麦克风采集没有回调，请重新连接。（MIC-TAP）"
+        case .emptyBuffer: return "麦克风返回空音频，请重新连接。（MIC-EMPTY）"
+        case .noConversion: return "麦克风音频转换没有输出，请重新连接。（MIC-CONVERT）"
+        case .deliveryStopped: return "已采集音频，但未进入发送队列，请重新连接。（MIC-DELIVERY）"
+        }
     }
 
     func play(_ pcm: Data) throws {

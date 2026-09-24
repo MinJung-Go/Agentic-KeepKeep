@@ -26,6 +26,7 @@ final class RealtimeCall: ObservableObject {
     private var deadline: Task<Void, Never>?
     private var inputWatchdog: Task<Void, Never>?
     private var inputHealth = RealtimeInputHealth()
+    private var engineRecovery = RealtimeEngineRecovery()
     private var generation = UUID()
     private var cameraGeneration = UUID()
     private var queue: [(type: String, text: String)] = []
@@ -111,6 +112,7 @@ final class RealtimeCall: ObservableObject {
             if !audioStarted {
                 let token = generation
                 do {
+                    engineRecovery = RealtimeEngineRecovery()
                     inputHealth.reset(at: ProcessInfo.processInfo.systemUptime)
                     try audio.start(onInput: { [weak self] data in
                         Task { @MainActor in
@@ -206,9 +208,19 @@ final class RealtimeCall: ObservableObject {
                 do { try await Task.sleep(for: .seconds(1)) } catch { return }
                 guard let self, self.generation == token else { return }
                 let expected = self.active && !self.muted && !self.switching && (!self.cameraOn || self.preview != nil)
-                if let failure = self.inputHealth.failure(at: ProcessInfo.processInfo.systemUptime, shouldSend: expected) {
+                let now = ProcessInfo.processInfo.systemUptime
+                if self.engineRecovery.shouldRestart(engineRunning: self.audio.isRunning, expectingInput: expected) {
+                    do {
+                        try self.audio.restartStoppedEngine()
+                        self.inputHealth.reset(at: now)
+                    } catch {
+                        self.fail("通话音频引擎恢复失败，请重新连接。（MIC-RESTART）")
+                        return
+                    }
+                }
+                if let failure = self.inputHealth.failure(at: now, shouldSend: expected) {
                     self.fail(failure == .captureStopped
-                        ? "没有收到麦克风音频，请重新连接；若使用耳机，请断开后再试。"
+                        ? self.audio.captureFailureMessage(at: now)
                         : "语音上传没有完成，请检查网络后重新连接。")
                     return
                 }
