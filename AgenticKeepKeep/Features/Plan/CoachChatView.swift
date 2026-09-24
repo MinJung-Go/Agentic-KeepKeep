@@ -12,6 +12,8 @@ struct CoachChatView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var voice = VoiceConversation()
     @State private var showsVoice = false
+    @StateObject private var realtime = RealtimeCall()
+    @State private var showsRealtime = false
 
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -115,17 +117,17 @@ struct CoachChatView: View {
                 return .handled
             })
             .sheet(isPresented: $browser.isPresented) { LocalBrowserView(browser: browser) }
-            .onDisappear { voice.end(); stopStreaming(); _ = memoryStore.begin(); browser.cancel() }
+            .onDisappear { realtime.end(); voice.end(); stopStreaming(); _ = memoryStore.begin(); browser.cancel() }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .background { voice.pause() }
+                if phase == .background { voice.pause(); realtime.pause() }
             }
             .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { note in
                 if let type = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-                   type == AVAudioSession.InterruptionType.began.rawValue { voice.pause() }
+                   type == AVAudioSession.InterruptionType.began.rawValue { voice.pause(); realtime.pause() }
             }
             .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)) { note in
                 if let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-                   reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue { voice.pause() }
+                   reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue { voice.pause(); realtime.pause() }
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -159,15 +161,36 @@ struct CoachChatView: View {
                 }
             }
         }
-        .accessibilityHidden(showsVoice)
+        .accessibilityHidden(showsVoice || showsRealtime)
         .overlay {
-            if showsVoice {
+            if showsRealtime {
+                RealtimeCallView(call: realtime, name: displayName, onEnd: {
+                    realtime.end(); showsRealtime = false
+                }, onReview: { request in
+                    realtime.end(); showsRealtime = false
+                    guard !isSending else { return }
+                    isSending = true
+                    streamTask = Task { await send(voiceText: request) }
+                })
+            } else if showsVoice {
                 VoiceCallView(voice: voice, name: displayName, onEnd: {
                     voice.end()
                     showsVoice = false
                 }, onReview: { showsVoice = false })
             }
         }
+    }
+
+    private func openRealtime() {
+        isInputFocused = false
+        voice.end()
+        realtime.open(history: messages.suffix(12).map { (role: $0.role.rawValue, text: $0.content) })
+        realtime.onText = { role, text in
+            context.insert(ChatMessage(role: role == "user" ? .user : .assistant, content: text))
+            do { try context.save() }
+            catch { appState.showToast("通话文字保存失败，请检查存储空间") }
+        }
+        showsRealtime = true
     }
 
     private func openVoice() {
@@ -388,11 +411,14 @@ struct CoachChatView: View {
                 .accessibilityIdentifier("coach.dismissKeyboard")
             }
 
-            Button(action: openVoice) {
+            Menu {
+                Button("实时通话", systemImage: "phone.fill", action: openRealtime)
+                Button("原语音对话", systemImage: "waveform", action: openVoice)
+            } label: {
                 Image(systemName: "waveform").font(.title3).frame(width: 44, height: 44)
             }
             .disabled(isSending)
-            .accessibilityLabel(voice.phase == .review ? "继续语音对话" : "开始语音对话")
+            .accessibilityLabel("选择实时通话或原语音对话")
             .accessibilityIdentifier("coach.voiceCall")
 
             ChatSendButton(
@@ -651,6 +677,7 @@ struct CoachChatView: View {
     }
 
     private func clearHistory() {
+        realtime.end(); showsRealtime = false
         voice.end()
         showsVoice = false
         stopStreaming()
