@@ -1,6 +1,20 @@
 import Foundation
 
 enum RealtimeWire {
+    static func connectionMessage(status: Int?, reason: String?) -> String {
+        switch reason {
+        case "minute_limit": return "连接尝试过于频繁，请等待一分钟再试。"
+        case "daily_limit": return "今天的实时通话次数已用完，请稍后再试或联系管理员调整限额。"
+        case "active_call": return "上一通电话仍在结束，请稍等片刻再连接。"
+        case "disabled": return "实时通话已被管理员关闭。"
+        case "capacity": return "实时服务繁忙，请稍后再试。"
+        default:
+            if status == 401 { return "登录已失效，请重新登录。" }
+            if status == 429 { return "实时通话连接次数受限，请稍后再试。" }
+            return "实时连接已中断，请检查网络后重试。"
+        }
+    }
+
     static func wav(_ pcm: Data, sampleRate: UInt32 = 16000) -> Data {
         var data = Data()
         func text(_ value: String) { data.append(contentsOf: value.utf8) }

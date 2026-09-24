@@ -53,6 +53,7 @@ struct RealtimeCallView: View {
                         Text("摄像头未开启").font(.caption).foregroundStyle(.secondary)
                     }
                     Text(title).font(.title2.bold())
+                    if call.active && !call.muted { Text("直接开口即可打断回复").font(.caption).foregroundStyle(.secondary) }
                     if call.switching { ProgressView("正在切换，暂时停止发送音频…") }
                     if call.phase == .consent {
                         Text("音频将发送给云端模型处理，首次需要麦克风权限。摄像头默认关闭，只有你主动开启后才共享画面。App 不保存原始音视频，转写和回复保留在聊天中。")
@@ -81,7 +82,6 @@ struct RealtimeCallView: View {
                 control(call.cameraOn ? "关摄像头" : "开摄像头", icon: call.cameraOn ? "video.fill" : "video.slash", disabled: !call.active || call.switching) {
                     if call.cameraOn { call.disableCamera() } else { confirmsCamera = true }
                 }
-                control("打断", icon: "stop.fill", disabled: !call.active || call.switching) { call.interrupt() }
                 control("挂断", icon: "xmark", tint: .red, disabled: false, action: onEnd)
             }.padding(.horizontal, 14).padding(.vertical, 24)
         }

@@ -28,6 +28,12 @@ final class RealtimeWireTests: XCTestCase {
             XCTAssertLessThanOrEqual(content[0]["text"]!.utf16.count, 3001)
         }
     }
+    func testConnectionFailuresHaveActionableMessages() {
+        XCTAssertTrue(RealtimeWire.connectionMessage(status: 429, reason: "minute_limit").contains("一分钟"))
+        XCTAssertTrue(RealtimeWire.connectionMessage(status: 429, reason: "daily_limit").contains("次数已用完"))
+        XCTAssertTrue(RealtimeWire.connectionMessage(status: 409, reason: "active_call").contains("上一通"))
+        XCTAssertTrue(RealtimeWire.connectionMessage(status: 401, reason: nil).contains("重新登录"))
+    }
     func testCameraModesUseDocumentedValues() {
         for (video, mode) in [(false, "audio"), (true, "video_passive")] {
             let session = RealtimeWire.mode(video)["session"] as! [String: Any]

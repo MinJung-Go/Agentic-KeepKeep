@@ -10,8 +10,7 @@ struct CoachChatView: View {
     @State private var consumedInitialMessage = false
 
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var voice = VoiceConversation()
-    @State private var showsVoice = false
+    @StateObject private var dictation = VoiceInput()
     @StateObject private var realtime = RealtimeCall()
     @State private var showsRealtime = false
 
@@ -117,17 +116,18 @@ struct CoachChatView: View {
                 return .handled
             })
             .sheet(isPresented: $browser.isPresented) { LocalBrowserView(browser: browser) }
-            .onDisappear { realtime.end(); voice.end(); stopStreaming(); _ = memoryStore.begin(); browser.cancel() }
+            .onDisappear { dictation.finish(); realtime.end(); stopStreaming(); _ = memoryStore.begin(); browser.cancel() }
+            .onChange(of: dictation.text) { _, text in inputText = text }
             .onChange(of: scenePhase) { _, phase in
-                if phase == .background { voice.pause(); realtime.pause() }
+                if phase == .background { dictation.finish(); realtime.pause() }
             }
             .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { note in
                 if let type = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-                   type == AVAudioSession.InterruptionType.began.rawValue { voice.pause(); realtime.pause() }
+                   type == AVAudioSession.InterruptionType.began.rawValue { dictation.finish(); realtime.pause() }
             }
             .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.routeChangeNotification)) { note in
                 if let reason = note.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
-                   reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue { voice.pause(); realtime.pause() }
+                   reason == AVAudioSession.RouteChangeReason.oldDeviceUnavailable.rawValue { dictation.finish(); realtime.pause() }
             }
             .toolbar {
                 ToolbarItem(placement: .principal) {
@@ -161,7 +161,7 @@ struct CoachChatView: View {
                 }
             }
         }
-        .accessibilityHidden(showsVoice || showsRealtime)
+        .accessibilityHidden(showsRealtime)
         .overlay {
             if showsRealtime {
                 RealtimeCallView(call: realtime, name: displayName, onEnd: {
@@ -170,20 +170,16 @@ struct CoachChatView: View {
                     realtime.end(); showsRealtime = false
                     guard !isSending else { return }
                     isSending = true
-                    streamTask = Task { await send(voiceText: request) }
+                    streamTask = Task { await send(suppliedText: request) }
                 })
-            } else if showsVoice {
-                VoiceCallView(voice: voice, name: displayName, onEnd: {
-                    voice.end()
-                    showsVoice = false
-                }, onReview: { showsVoice = false })
+
             }
         }
     }
 
     private func openRealtime() {
+        dictation.finish()
         isInputFocused = false
-        voice.end()
         realtime.open(history: messages.suffix(12).map { (role: $0.role.rawValue, text: $0.content) })
         realtime.onText = { role, text in
             context.insert(ChatMessage(role: role == "user" ? .user : .assistant, content: text))
@@ -191,27 +187,6 @@ struct CoachChatView: View {
             catch { appState.showToast("通话文字保存失败，请检查存储空间") }
         }
         showsRealtime = true
-    }
-
-    private func openVoice() {
-        isInputFocused = false
-        voice.onSubmit = { text, id in
-            guard !isSending else {
-                voice.complete(id: id, text: "", needsReview: false, error: "上一条回复尚未结束，请稍后继续。")
-                return
-            }
-            isSending = true
-            streamTask = Task { await send(voiceText: text, voiceTurn: id) }
-        }
-        voice.onCancel = {
-            let task = streamTask
-            task?.cancel()
-            return task
-        }
-        showsVoice = true
-        if voice.phase == .review {
-            if !messages.contains(where: { $0.hasPendingPlan || $0.hasPendingAdjustment }) { voice.begin() }
-        } else { voice.open() }
     }
 
     private var pendingPlan: ChatMessage? {
@@ -386,9 +361,20 @@ struct CoachChatView: View {
     // MARK: - 输入
 
     private var inputBar: some View {
+        VStack(spacing: 6) {
+            if dictation.active {
+                HStack {
+                    Text(dictation.notice).font(.caption).foregroundStyle(.secondary)
+                    Spacer()
+                    Button("取消") { dictation.finish(cancel: true) }
+                }.padding(.horizontal, Theme.Spacing.l)
+            } else if !dictation.notice.isEmpty {
+                Text(dictation.notice).font(.caption).foregroundStyle(.secondary).padding(.horizontal, Theme.Spacing.l)
+            }
         HStack(spacing: Theme.Spacing.s) {
             TextField("聊聊训练、饮食或恢复…", text: $inputText, axis: .vertical)
                 .focused($isInputFocused)
+                .disabled(dictation.active)
                 .lineLimit(1...4)
                 .font(Theme.Font.body)
                 .padding(.leading, Theme.Spacing.m)
@@ -411,15 +397,23 @@ struct CoachChatView: View {
                 .accessibilityIdentifier("coach.dismissKeyboard")
             }
 
-            Menu {
-                Button("实时通话", systemImage: "phone.fill", action: openRealtime)
-                Button("原语音对话", systemImage: "waveform", action: openVoice)
+            Button {
+                isInputFocused = false
+                if dictation.active { dictation.finish() } else { dictation.begin(draft: inputText) }
             } label: {
-                Image(systemName: "waveform").font(.title3).frame(width: 44, height: 44)
+                Image(systemName: dictation.active ? "stop.circle.fill" : "mic.fill").font(.title3).frame(width: 44, height: 44)
             }
             .disabled(isSending)
-            .accessibilityLabel("选择实时通话或原语音对话")
-            .accessibilityIdentifier("coach.voiceCall")
+            .foregroundStyle(dictation.active ? Color.red : Theme.secondaryLabel)
+            .accessibilityLabel(dictation.active ? "停止语音输入" : "开始语音输入")
+            .accessibilityHint("只转成文字，确认后手动发送")
+            .accessibilityIdentifier("coach.voiceInput")
+            Button(action: openRealtime) {
+                Image(systemName: "phone.fill").font(.title3).frame(width: 44, height: 44)
+            }
+            .disabled(isSending || dictation.active)
+            .accessibilityLabel("实时通话")
+            .accessibilityIdentifier("coach.realtimeCall")
 
             ChatSendButton(
                 isBusy: isSending,
@@ -433,16 +427,17 @@ struct CoachChatView: View {
         .padding(.horizontal, Theme.Spacing.l)
         .padding(.vertical, Theme.Spacing.s)
         .background(Theme.conversationCanvas)
+        }
     }
 
     private var canSend: Bool {
-        !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !isSending && !dictation.active && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     // MARK: - 动作
 
     private func startSend() {
-        guard !isSending else { return }
+        guard !isSending, !dictation.active else { return }
         isInputFocused = false
         isSending = true
         streamTask = Task { await send() }
@@ -453,31 +448,22 @@ struct CoachChatView: View {
         streamTask = nil
     }
 
-    private func send(voiceText: String? = nil, voiceTurn: UUID? = nil) async {
-        var spokenReply = ""
-        var needsReview = false
-        var voiceError: String? = "这次没有收到回复。"
-        defer {
-            if let id = voiceTurn, !Task.isCancelled {
-                voice.complete(id: id, text: spokenReply, needsReview: needsReview, error: voiceError)
-            }
-        }
-        let text = (voiceText ?? inputText).trimmingCharacters(in: .whitespacesAndNewlines)
+    private func send(suppliedText: String? = nil) async {
+        let text = (suppliedText ?? inputText).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { isSending = false; return }
 
         guard settings.isConfigured else {
             errorText = settings.useLocalModel ? "请先在「设置 → 离线模式」完成模型下载" : "请先登录并确认云端服务已就绪"
-            voiceError = errorText
             isSending = false
             return
         }
 
-        if voiceText == nil { onMessageSubmitted?() }
+        if suppliedText == nil { onMessageSubmitted?() }
         let generation = memoryStore.begin()
         let history = CoachHistoryBuilder.turns(messages)
         let memory = memoryStore.load(messages)
 
-        if voiceText == nil { inputText = "" }
+        if suppliedText == nil { inputText = "" }
         errorText = nil
         isSending = true
         streamingText = ""
@@ -489,8 +475,7 @@ struct CoachChatView: View {
         do { try context.save() }
         catch {
             context.delete(userMessage)
-            if voiceText == nil { inputText = text }
-            voiceError = "保存消息失败，请重新说。"
+            if suppliedText == nil { inputText = text }
             isSending = false
             errorText = "保存消息失败，请重试"
             return
@@ -587,7 +572,7 @@ struct CoachChatView: View {
             }
         } catch {
             guard memoryStore.generation == generation else { return }
-            if voiceText == nil && !Task.isCancelled && accumulatedText.isEmpty && accumulatedReasoning.isEmpty && inputText.isEmpty {
+            if suppliedText == nil && !Task.isCancelled && accumulatedText.isEmpty && accumulatedReasoning.isEmpty && inputText.isEmpty {
                 inputText = text
             }
             // 中断或失败：已收到的内容照样保留
@@ -616,7 +601,7 @@ struct CoachChatView: View {
             || reply?.adjustmentArgumentsJSON != nil
             || !toolActivities.isEmpty
 
-        guard hasContent else { voiceError = errorText ?? "这次没有收到回复。"; return }
+        guard hasContent else { return }
 
         // 优先用流式过程中收到的思考内容；没收到时退回 reply 里带出来的
         let finalReasoning = accumulatedReasoning.isEmpty ? (reply?.reasoning ?? "") : accumulatedReasoning
@@ -635,10 +620,7 @@ struct CoachChatView: View {
         context.insert(assistant)
         do {
             try context.save()
-            spokenReply = finalText ?? ""
-            needsReview = reply?.planArgumentsJSON != nil || reply?.adjustmentArgumentsJSON != nil
-            voiceError = errorText
-        } catch { voiceError = "回复未能保存，请返回聊天查看。" }
+        } catch { errorText = "回复未能保存，请重试。" }
     }
 
     private func loadProfile() {
@@ -677,9 +659,8 @@ struct CoachChatView: View {
     }
 
     private func clearHistory() {
+        dictation.finish()
         realtime.end(); showsRealtime = false
-        voice.end()
-        showsVoice = false
         stopStreaming()
         toolActivities = []
         isSending = false

@@ -79,7 +79,8 @@ final class RealtimeCall: ObservableObject {
                         }
                     } catch {
                         guard let self, self.generation == token, !Task.isCancelled else { return }
-                        self.fail("实时连接已中断。请确认服务已启用实时通话、账号有效，再重新连接。")
+                        let response = socket.response as? HTTPURLResponse
+                        self.fail(RealtimeWire.connectionMessage(status: response?.statusCode, reason: response?.value(forHTTPHeaderField: "X-Realtime-Error")))
                     }
                 }
             } catch { self.fail("实时通话暂时无法连接，请稍后重试。") }
@@ -141,7 +142,8 @@ final class RealtimeCall: ObservableObject {
         switch type {
         case "response.audio.delta":
             guard active, let raw = event["delta"] as? String, let pcm = Data(base64Encoded: raw) else { return }
-            try audio.play(pcm); phase = .speaking
+            do { try audio.play(pcm); phase = .speaking }
+            catch { fail("通话音频播放失败，请检查音频设备后重试。") }
         case "response.audio_transcript.delta":
             if let text = event["delta"] as? String { reply += text }
         case "response.audio_transcript.done":
