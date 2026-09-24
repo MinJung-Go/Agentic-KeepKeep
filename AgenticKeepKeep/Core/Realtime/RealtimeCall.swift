@@ -24,6 +24,8 @@ final class RealtimeCall: ObservableObject {
     private var sender: Task<Void, Never>?
     private var connecting: Task<Void, Never>?
     private var deadline: Task<Void, Never>?
+    private var inputWatchdog: Task<Void, Never>?
+    private var inputHealth = RealtimeInputHealth()
     private var generation = UUID()
     private var cameraGeneration = UUID()
     private var queue: [(type: String, text: String)] = []
@@ -109,14 +111,22 @@ final class RealtimeCall: ObservableObject {
             if !audioStarted {
                 let token = generation
                 do {
-                    try audio.start { [weak self] data in
+                    inputHealth.reset(at: ProcessInfo.processInfo.systemUptime)
+                    try audio.start(onInput: { [weak self] data in
                         Task { @MainActor in
                             guard let self, self.generation == token, self.active, !self.muted, !self.switching,
                                   !self.cameraOn || self.preview != nil else { return }
+                            self.inputHealth.capture(at: ProcessInfo.processInfo.systemUptime)
                             self.enqueue(["type": "input_audio_buffer.append", "audio": data.base64EncodedString()])
                         }
-                    }
+                    }, onFailure: { [weak self] in
+                        Task { @MainActor in
+                            guard let self, self.generation == token else { return }
+                            self.fail("麦克风音频转换失败，请重新连接；若使用耳机，请断开后再试。")
+                        }
+                    })
                     audioStarted = true
+                    watchInput(token: token)
                 } catch { fail("无法启动通话音频，请检查麦克风或蓝牙设备。"); return }
             }
             if cameraOn { startCamera() }
@@ -178,9 +188,30 @@ final class RealtimeCall: ObservableObject {
             guard let self else { return }
             defer { if self.generation == token { self.sender = nil } }
             while !self.queue.isEmpty, self.generation == token, !Task.isCancelled {
-                let text = self.queue.removeFirst().text
-                do { try await self.socket?.send(.string(text)) }
+                let item = self.queue.removeFirst()
+                do {
+                    try await self.socket?.send(.string(item.text))
+                    if self.generation == token, item.type == "input_audio_buffer.append" {
+                        self.inputHealth.upload(at: ProcessInfo.processInfo.systemUptime)
+                    }
+                }
                 catch { if self.generation == token { self.fail("发送中断，请重新连接。"); }; return }
+            }
+        }
+    }
+    private func watchInput(token: UUID) {
+        inputWatchdog?.cancel()
+        inputWatchdog = Task { [weak self] in
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard let self, self.generation == token else { return }
+                let expected = self.active && !self.muted && !self.switching && (!self.cameraOn || self.preview != nil)
+                if let failure = self.inputHealth.failure(at: ProcessInfo.processInfo.systemUptime, shouldSend: expected) {
+                    self.fail(failure == .captureStopped
+                        ? "没有收到麦克风音频，请重新连接；若使用耳机，请断开后再试。"
+                        : "语音上传没有完成，请检查网络后重新连接。")
+                    return
+                }
             }
         }
     }
@@ -246,8 +277,8 @@ final class RealtimeCall: ObservableObject {
     private func fail(_ message: String) { disconnect(); phase = .failed; notice = message }
     private func disconnect() {
         generation = UUID(); cameraGeneration = UUID()
-        receiver?.cancel(); sender?.cancel(); connecting?.cancel(); deadline?.cancel()
-        receiver = nil; sender = nil; connecting = nil; deadline = nil
+        receiver?.cancel(); sender?.cancel(); connecting?.cancel(); deadline?.cancel(); inputWatchdog?.cancel()
+        receiver = nil; sender = nil; connecting = nil; deadline = nil; inputWatchdog = nil
         socket?.cancel(with: .normalClosure, reason: nil); socket = nil; queue.removeAll()
         audio.stop(); camera.stop(); audioStarted = false; cameraOn = false; preview = nil; switching = false; requestingCamera = false
         cancelledResponses.removeAll(); responseID = nil
