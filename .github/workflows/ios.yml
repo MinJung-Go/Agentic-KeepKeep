@@ -27,8 +27,8 @@ jobs:
         run: |
           audio_test_dir="$RUNNER_TEMP/realtime-audio"
           mkdir -p "$audio_test_dir/Sources/AgenticKeepKeep" "$audio_test_dir/Tests/AgenticKeepKeepTests"
-          cp AgenticKeepKeep/Core/Realtime/RealtimeInputConverter.swift AgenticKeepKeep/Core/Realtime/RealtimeInputHealth.swift AgenticKeepKeep/Core/Realtime/RealtimeCaptureProgress.swift "$audio_test_dir/Sources/AgenticKeepKeep/"
-          cp AgenticKeepKeepTests/AgentTests/RealtimeInputTests.swift AgenticKeepKeepTests/AgentTests/RealtimeInputHealthTests.swift AgenticKeepKeepTests/AgentTests/RealtimeCaptureProgressTests.swift "$audio_test_dir/Tests/AgenticKeepKeepTests/"
+          cp AgenticKeepKeep/Core/Realtime/RealtimeInputConverter.swift AgenticKeepKeep/Core/Realtime/RealtimeInputHealth.swift AgenticKeepKeep/Core/Realtime/RealtimeCaptureProgress.swift AgenticKeepKeep/Core/Realtime/RealtimeIdleTimer.swift "$audio_test_dir/Sources/AgenticKeepKeep/"
+          cp AgenticKeepKeepTests/AgentTests/RealtimeInputTests.swift AgenticKeepKeepTests/AgentTests/RealtimeInputHealthTests.swift AgenticKeepKeepTests/AgentTests/RealtimeCaptureProgressTests.swift AgenticKeepKeepTests/AgentTests/RealtimeIdleTimerTests.swift "$audio_test_dir/Tests/AgenticKeepKeepTests/"
           cat > "$audio_test_dir/Package.swift" <<'SWIFT'
           // swift-tools-version: 5.9
           import PackageDescription

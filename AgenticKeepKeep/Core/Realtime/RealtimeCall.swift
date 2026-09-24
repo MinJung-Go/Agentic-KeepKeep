@@ -17,6 +17,11 @@ final class RealtimeCall: ObservableObject {
     @Published private(set) var planRequest = ""
     @Published var subtitles = true
     var onText: ((String, String) -> Void)?
+    private static let idleTimer = RealtimeIdleTimer(
+        read: { UIApplication.shared.isIdleTimerDisabled },
+        write: { UIApplication.shared.isIdleTimerDisabled = $0 }
+    )
+    private let idleTimerOwner = UUID()
     private let audio = RealtimeAudio()
     private let camera = RealtimeCamera()
     private var socket: URLSessionWebSocketTask?
@@ -59,6 +64,7 @@ final class RealtimeCall: ObservableObject {
             guard self.generation == token, !Task.isCancelled else { return }
             guard allowed else { self.fail("请在系统设置中允许麦克风，再继续通话。"); return }
             guard let session = ServiceCredentials.session else { self.fail("请先登录。"); return }
+            Self.idleTimer.acquire(self.idleTimerOwner)
             do {
                 var components = URLComponents(url: try ServiceEndpoint.url("/realtime"), resolvingAgainstBaseURL: false)!
                 components.scheme = components.scheme == "https" ? "wss" : "ws"
@@ -288,6 +294,7 @@ final class RealtimeCall: ObservableObject {
     func end() { disconnect(); phase = .ended; onText = nil }
     private func fail(_ message: String) { disconnect(); phase = .failed; notice = message }
     private func disconnect() {
+        Self.idleTimer.release(idleTimerOwner)
         generation = UUID(); cameraGeneration = UUID()
         receiver?.cancel(); sender?.cancel(); connecting?.cancel(); deadline?.cancel(); inputWatchdog?.cancel()
         receiver = nil; sender = nil; connecting = nil; deadline = nil; inputWatchdog = nil
