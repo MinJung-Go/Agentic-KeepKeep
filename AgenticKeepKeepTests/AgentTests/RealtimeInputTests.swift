@@ -24,9 +24,12 @@ final class RealtimeInputTests: XCTestCase {
         for rate in [16000.0, 44100.0, 48000.0] {
             let converter = RealtimeInputConverter()
             var output = Data()
-            for _ in 0..<10 { output.append(try XCTUnwrap(converter.convert(buffer(rate: rate)))) }
+            for _ in 0..<100 { output.append(try XCTUnwrap(converter.convert(buffer(rate: rate)))) }
             let values = samples(output)
-            XCTAssertEqual(Double(values.count), 16000, accuracy: 100, "sample rate \(rate)")
+            // A live resampler retains a partial internal block; no end-of-stream flush occurs.
+            // Over ten seconds, allow one input period of pending data, but no duplicated audio.
+            XCTAssertGreaterThanOrEqual(values.count, 158400, "sample rate \(rate)")
+            XCTAssertLessThanOrEqual(values.count, 160002, "sample rate \(rate)")
             XCTAssertGreaterThan(values.filter { abs(Int($0)) > 4000 }.count, values.count * 9 / 10)
         }
     }
@@ -38,8 +41,10 @@ final class RealtimeInputTests: XCTestCase {
     func testInputFormatChangesRebuildConverter() throws {
         let converter = RealtimeInputConverter()
         for rate in [48000.0, 44100.0, 16000.0] {
-            let pcm = try XCTUnwrap(converter.convert(buffer(rate: rate)))
-            XCTAssertEqual(Double(pcm.count / 2), 1600, accuracy: 64)
+            var pcm = Data()
+            for _ in 0..<100 { pcm.append(try XCTUnwrap(converter.convert(buffer(rate: rate)))) }
+            XCTAssertGreaterThanOrEqual(pcm.count / 2, 158400)
+            XCTAssertLessThanOrEqual(pcm.count / 2, 160002)
             XCTAssertTrue(samples(pcm).contains { $0 > 4000 })
         }
     }
