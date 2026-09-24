@@ -37,6 +37,13 @@ final class VoiceInput: ObservableObject {
             self.notice = "正在听…完成后可编辑，再手动发送。"
         }
     }
+    /// 发送时取走当前转写并结束这次收音：不必先手动停一次，也不会丢掉已识别的文字
+    func finishForSend() -> String {
+        let value = text
+        finish()
+        notice = ""
+        return value
+    }
     func finish(cancel: Bool = false) {
         guard active else { return }
         generation = UUID(); startTask?.cancel(); startTask = nil

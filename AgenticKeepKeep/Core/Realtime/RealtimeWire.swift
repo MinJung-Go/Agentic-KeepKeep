@@ -15,6 +15,13 @@ enum RealtimeWire {
         }
     }
 
+    /// 传输层断开时补一个可对照的码，便于区分「对端主动关闭」和「连接自己断了」：
+    /// 对端给了关闭帧就报关闭码，否则报本地错误码（-999 任务被取消、-1005 连接丢失、-1001 超时、57 套接字未连接）。
+    static func transportNote(closeCode: Int, errorCode: Int) -> String {
+        if closeCode > 0, closeCode != 1005 { return "（对端关闭 \(closeCode)）" }
+        return "（连接错误 \(errorCode)）"
+    }
+
     static func wav(_ pcm: Data, sampleRate: UInt32 = 16000) -> Data {
         var data = Data()
         func text(_ value: String) { data.append(contentsOf: value.utf8) }

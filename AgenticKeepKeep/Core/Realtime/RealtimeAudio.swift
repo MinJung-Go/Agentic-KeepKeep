@@ -9,7 +9,7 @@ final class RealtimeAudio {
     private var player: AVAudioPlayerNode?
     private var captureMixer: AVAudioMixerNode?
     private var outputFormat: AVAudioFormat?
-    private var queuedFrames = 0
+    private var playback = RealtimePlaybackQueue()
     private var playbackGeneration = UUID()
 
     func start(onInput: @escaping @Sendable (Data) -> Void, onFailure: @escaping @Sendable () -> Void) throws {
@@ -73,29 +73,39 @@ final class RealtimeAudio {
         }
     }
 
-    func play(_ pcm: Data) throws {
-        guard !pcm.isEmpty, pcm.count % 2 == 0, pcm.count <= 300000,
+    /// 排队播放一段 24kHz PCM16。
+    /// 返回 true 表示这一批里有音频因为积压被跳过（调用方可以提示一次），通话本身不受影响。
+    @discardableResult
+    func play(_ pcm: Data) throws -> Bool {
+        guard !pcm.isEmpty, pcm.count % 2 == 0,
               let format = outputFormat, let player else { throw AudioError.unavailable }
-        let count = pcm.count / 2
-        guard queuedFrames + count <= 240000,
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(count)),
-              let samples = buffer.floatChannelData?[0] else { throw AudioError.backpressure }
-        buffer.frameLength = AVAudioFrameCount(count)
-        pcm.withUnsafeBytes { raw in
-            let bytes = raw.bindMemory(to: UInt8.self)
-            for i in 0..<count { samples[i] = Float(Int16(bitPattern: UInt16(bytes[i*2]) | UInt16(bytes[i*2+1]) << 8)) / 32768 }
-        }
-        queuedFrames += count
-        let token = playbackGeneration
-        player.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { [weak self] _ in
-            Task { @MainActor in
-                guard let self, self.playbackGeneration == token else { return }
-                self.queuedFrames = max(0, self.queuedFrames - count)
+        let dropped = playback.droppedFrames
+        var offset = 0
+        for frames in playback.admit(frames: pcm.count / 2) {
+            let start = offset
+            offset += frames * 2
+            guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frames)),
+                  let samples = buffer.floatChannelData?[0] else { playback.played(frames: frames); continue }
+            buffer.frameLength = AVAudioFrameCount(frames)
+            pcm.withUnsafeBytes { raw in
+                let bytes = raw.bindMemory(to: UInt8.self)
+                for i in 0..<frames {
+                    let at = start + i * 2
+                    samples[i] = Float(Int16(bitPattern: UInt16(bytes[at]) | UInt16(bytes[at+1]) << 8)) / 32768
+                }
+            }
+            let token = playbackGeneration
+            player.scheduleBuffer(buffer, completionCallbackType: .dataPlayedBack) { [weak self] _ in
+                Task { @MainActor in
+                    guard let self, self.playbackGeneration == token else { return }
+                    self.playback.played(frames: frames)
+                }
             }
         }
         if !player.isPlaying { player.play() }
+        return playback.droppedFrames > dropped
     }
-    func interrupt() { playbackGeneration = UUID(); player?.stop(); queuedFrames = 0; if engine?.isRunning == true { player?.play() } }
+    func interrupt() { playbackGeneration = UUID(); player?.stop(); playback.reset(); if engine?.isRunning == true { player?.play() } }
     func stop() {
         interrupt()
         if let engine { engine.stop(); if tapInstalled { engine.inputNode.removeTap(onBus: 0) } }
@@ -103,5 +113,5 @@ final class RealtimeAudio {
         engine = nil; player = nil; captureMixer = nil; outputFormat = nil
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
     }
-    enum AudioError: Error { case unavailable, backpressure }
+    enum AudioError: Error { case unavailable }
 }

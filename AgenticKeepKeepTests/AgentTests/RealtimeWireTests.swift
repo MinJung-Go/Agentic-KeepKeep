@@ -34,6 +34,13 @@ final class RealtimeWireTests: XCTestCase {
         XCTAssertTrue(RealtimeWire.connectionMessage(status: 409, reason: "active_call").contains("上一通"))
         XCTAssertTrue(RealtimeWire.connectionMessage(status: 401, reason: nil).contains("重新登录"))
     }
+    /// 断连原因要能区分「对端关闭」和「连接自己断了」，没有关闭帧时给本地错误码
+    func testTransportNoteDistinguishesPeerCloseFromLocalFailure() {
+        XCTAssertEqual(RealtimeWire.transportNote(closeCode: 1000, errorCode: 0), "（对端关闭 1000）")
+        XCTAssertEqual(RealtimeWire.transportNote(closeCode: 1006, errorCode: -1005), "（对端关闭 1006）")
+        XCTAssertEqual(RealtimeWire.transportNote(closeCode: 0, errorCode: -999), "（连接错误 -999）")
+        XCTAssertEqual(RealtimeWire.transportNote(closeCode: 1005, errorCode: -1005), "（连接错误 -1005）")
+    }
     func testCameraModesUseDocumentedValues() {
         for (video, mode) in [(false, "audio"), (true, "video_passive")] {
             let session = RealtimeWire.mode(video)["session"] as! [String: Any]

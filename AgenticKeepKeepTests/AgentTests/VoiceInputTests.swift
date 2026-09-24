@@ -43,6 +43,26 @@ final class VoiceInputTests: XCTestCase {
         await Task.yield()
         XCTAssertEqual(driver.starts, 0); XCTAssertFalse(value.active)
     }
+    /// 录音中直接发送：取走已识别的文字并结束收音，不需要先点一次「停」
+    func testSendTakesDictatedTextAndStopsWithoutNotice() async {
+        let driver = DictationStub()
+        let value = VoiceInput(recognizer: driver)
+        value.begin(draft: "原草稿"); driver.onUpdate?("今天想休息", false)
+        XCTAssertEqual(value.finishForSend(), "原草稿\n今天想休息")
+        XCTAssertFalse(value.active)
+        XCTAssertEqual(driver.stops, 1)
+        XCTAssertEqual(value.notice, "")
+    }
+    func testSendRejectsCallbacksFromTheStoppedRecording() async {
+        let driver = DictationStub(), value: VoiceInput
+        value = VoiceInput(recognizer: driver)
+        value.begin(draft: "草稿")
+        let late = driver.onUpdate
+        XCTAssertEqual(value.finishForSend(), "草稿")
+        late?("过期结果", false)
+        XCTAssertEqual(value.text, "草稿")
+        XCTAssertFalse(value.active)
+    }
     func testFailureRetainsPartialTextAndStops() async {
         let driver = DictationStub(), value: VoiceInput
         value = VoiceInput(recognizer: driver); value.begin(draft: "草稿")

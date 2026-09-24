@@ -35,6 +35,7 @@ final class RealtimeCall: ObservableObject {
     private var generation = UUID()
     private var cameraGeneration = UUID()
     private var queue: [(type: String, text: String)] = []
+    private var queueBytes = 0
     private var history: [(role: String, text: String)] = []
     private var restoreHistory = false
     private var audioStarted = false
@@ -43,6 +44,14 @@ final class RealtimeCall: ObservableObject {
     private var responseID: String?
     private var cancelledResponses = Set<String>()
     private var savedItems = Set<String>()
+    /// 长回复逐块到达：字幕合并到 60ms 窗口刷新，避免每个 chunk 都重排整屏（设计系统 §10）
+    private var replyBuffer = ""
+    private var replyThrottle = StreamThrottle()
+    private var droppedAudio = false
+
+    private static let audioMessage = "input_audio_buffer.append"
+    private static let maxQueuedMessages = 60
+    private static let maxQueuedBytes = 1_500_000
 
     var active: Bool { [.listening, .speaking].contains(phase) }
     func open(history: [(role: String, text: String)] = []) {
@@ -89,7 +98,8 @@ final class RealtimeCall: ObservableObject {
                     } catch {
                         guard let self, self.generation == token, !Task.isCancelled else { return }
                         let response = socket.response as? HTTPURLResponse
-                        self.fail(RealtimeWire.connectionMessage(status: response?.statusCode, reason: response?.value(forHTTPHeaderField: "X-Realtime-Error")))
+                        let message = RealtimeWire.connectionMessage(status: response?.statusCode, reason: response?.value(forHTTPHeaderField: "X-Realtime-Error"))
+                        self.fail(message + RealtimeWire.transportNote(closeCode: socket.closeCode.rawValue, errorCode: (error as NSError).code))
                     }
                 }
             } catch { self.fail("实时通话暂时无法连接，请稍后重试。") }
@@ -141,7 +151,7 @@ final class RealtimeCall: ObservableObject {
             return
         }
         if type == "input_audio_buffer.speech_started" {
-            cancelPlayback(sendCancel: false); phase = .listening; reply = ""; return
+            cancelPlayback(sendCancel: false); phase = .listening; clearReply(); return
         }
         if type == "conversation.item.input_audio_transcription.completed", let text = event["transcript"] as? String {
             transcript = text
@@ -152,7 +162,7 @@ final class RealtimeCall: ObservableObject {
             let id = (event["response"] as? [String: Any])?["id"] as? String
             responseID = id
             if switching, let id { cancelledResponses.insert(id) }
-            else { reply = "" }
+            else { clearReply() }
             return
         }
         let id = event["response_id"] as? String ?? responseID ?? ""
@@ -160,13 +170,22 @@ final class RealtimeCall: ObservableObject {
         switch type {
         case "response.audio.delta":
             guard active, let raw = event["delta"] as? String, let pcm = Data(base64Encoded: raw) else { return }
-            do { try audio.play(pcm); phase = .speaking }
+            do {
+                if try audio.play(pcm), !droppedAudio {
+                    droppedAudio = true; notice = "播放跟不上，已跳过一段语音。"
+                }
+                phase = .speaking
+            }
             catch { fail("通话音频播放失败，请检查音频设备后重试。") }
         case "response.audio_transcript.delta":
-            if let text = event["delta"] as? String { reply += text }
+            if let text = event["delta"] as? String {
+                replyBuffer += text
+                if replyThrottle.shouldEmit() { reply = replyBuffer }
+            }
         case "response.audio_transcript.done":
             if let text = event["transcript"] as? String {
-                reply = text; save(role: "assistant", text: text, id: event["item_id"] as? String ?? id)
+                clearReply(); reply = text
+                save(role: "assistant", text: text, id: event["item_id"] as? String ?? id)
             }
         case "response.done":
             if active { phase = .listening }
@@ -186,10 +205,23 @@ final class RealtimeCall: ObservableObject {
         history.append((role, text)); history = Array(history.suffix(12))
         onText?(role, text)
     }
+    /// 字幕重置：清空当前回复及未刷新的缓冲
+    private func clearReply() {
+        reply = ""; replyBuffer = ""
+        _ = replyThrottle.flush()
+    }
     private func enqueue(_ value: [String: Any]) {
         guard socket != nil, let data = try? JSONSerialization.data(withJSONObject: value), let text = String(data: data, encoding: .utf8) else { return }
-        guard queue.count < 60, queue.reduce(0, { $0 + $1.text.utf8.count }) + text.utf8.count < 1500000 else { fail("网络过慢，已暂停通话。"); return }
+        // 麦克风音频可以丢：发送队列满时先丢最早的音频帧，而不是结束整通电话
+        while queue.count >= Self.maxQueuedMessages || queueBytes + text.utf8.count > Self.maxQueuedBytes {
+            guard let index = queue.firstIndex(where: { $0.type == Self.audioMessage }) else {
+                fail("网络过慢，已暂停通话。"); return
+            }
+            queueBytes -= queue[index].text.utf8.count
+            queue.remove(at: index)
+        }
         queue.append((value["type"] as? String ?? "", text))
+        queueBytes += text.utf8.count
         guard sender == nil else { return }
         let token = generation
         sender = Task { [weak self] in
@@ -197,13 +229,19 @@ final class RealtimeCall: ObservableObject {
             defer { if self.generation == token { self.sender = nil } }
             while !self.queue.isEmpty, self.generation == token, !Task.isCancelled {
                 let item = self.queue.removeFirst()
+                self.queueBytes = max(0, self.queueBytes - item.text.utf8.count)
                 do {
                     try await self.socket?.send(.string(item.text))
-                    if self.generation == token, item.type == "input_audio_buffer.append" {
+                    if self.generation == token, item.type == Self.audioMessage {
                         self.inputHealth.upload(at: ProcessInfo.processInfo.systemUptime)
                     }
                 }
-                catch { if self.generation == token { self.fail("发送中断，请重新连接。"); }; return }
+                catch {
+                    guard self.generation == token else { return }
+                    self.fail("发送中断，请重新连接。" + RealtimeWire.transportNote(
+                        closeCode: self.socket?.closeCode.rawValue ?? 0, errorCode: (error as NSError).code))
+                    return
+                }
             }
         }
     }
@@ -233,11 +271,16 @@ final class RealtimeCall: ObservableObject {
             }
         }
     }
+    /// 丢掉还没发出去的音频帧（静音、模式切换、断开时用）
+    private func dropQueuedAudio() {
+        queue.removeAll { $0.type.hasPrefix(Self.audioMessage) }
+        queueBytes = queue.reduce(0) { $0 + $1.text.utf8.count }
+    }
     func toggleMute() {
         guard active, !switching else { return }
         muted.toggle()
         if muted {
-            queue.removeAll { $0.type == "input_audio_buffer.append" }
+            dropQueuedAudio()
             enqueue(["type": "input_audio_buffer.clear"])
         }
     }
@@ -257,7 +300,7 @@ final class RealtimeCall: ObservableObject {
         guard allowed else { notice = "摄像头未获授权，可以继续语音；如需画面请在系统设置开启。"; return }
         cameraOn = true; front = false; switching = true
         cancelPlayback(sendCancel: true)
-        queue.removeAll { $0.type.hasPrefix("input_audio_buffer.append") }
+        dropQueuedAudio()
         enqueue(["type": "input_audio_buffer.clear"])
         enqueue(RealtimeWire.mode(true)); waitForConfiguration(token: token)
     }
@@ -266,7 +309,7 @@ final class RealtimeCall: ObservableObject {
         cameraGeneration = UUID(); camera.stop(); cameraOn = false; preview = nil
         switching = true; restoreHistory = true
         cancelPlayback(sendCancel: true)
-        queue.removeAll { $0.type.hasPrefix("input_audio_buffer.append") }
+        dropQueuedAudio()
         enqueue(["type": "input_audio_buffer.clear"])
         enqueue(RealtimeWire.mode(false)); waitForConfiguration(token: generation)
     }
@@ -298,7 +341,10 @@ final class RealtimeCall: ObservableObject {
         generation = UUID(); cameraGeneration = UUID()
         receiver?.cancel(); sender?.cancel(); connecting?.cancel(); deadline?.cancel(); inputWatchdog?.cancel()
         receiver = nil; sender = nil; connecting = nil; deadline = nil; inputWatchdog = nil
-        socket?.cancel(with: .normalClosure, reason: nil); socket = nil; queue.removeAll()
+        socket?.cancel(with: .normalClosure, reason: nil); socket = nil
+        queue.removeAll(); queueBytes = 0; droppedAudio = false
+        // 断在这里也要把窗口里最后一段字幕补上，别让用户丢掉最后几个字
+        if replyThrottle.flush() { reply = replyBuffer }
         audio.stop(); camera.stop(); audioStarted = false; cameraOn = false; preview = nil; switching = false; requestingCamera = false
         cancelledResponses.removeAll(); responseID = nil
     }

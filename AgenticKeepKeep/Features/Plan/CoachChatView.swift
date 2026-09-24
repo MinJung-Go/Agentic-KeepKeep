@@ -431,13 +431,16 @@ struct CoachChatView: View {
     }
 
     private var canSend: Bool {
-        !isSending && !dictation.active && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !isSending && !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     // MARK: - 动作
 
     private func startSend() {
-        guard !isSending, !dictation.active else { return }
+        guard !isSending else { return }
+        // 录音中也能直接发：取走已识别的文字并结束这次收音，不用先点一次停下
+        if dictation.active { inputText = dictation.finishForSend() }
+        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isInputFocused = false
         isSending = true
         streamTask = Task { await send() }
