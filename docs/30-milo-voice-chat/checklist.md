@@ -172,7 +172,7 @@
 - [x] 新增 6 项 `RealtimePlaybackQueueTests`、1 项 `RealtimeWireTests`；播放积压测试纳入 macOS 音频检查 job。
 - [x] 设计稿与需求同步：design.input.html 改为录音中可直接发送，requirements.md 增补本轮纠正。
 - [x] Apple CI 构建与完整单测通过：提交 `65a7260`，[CI 36037223725](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/36037223725) 全部成功。macOS 音频检查 28 项（含新增 7 项播放积压测试）、iOS 单测 485 项，0 失败。上一版为 21 项音频检查／475 项 iOS 单测。
-- [x] [0.5.12（33）IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/36037223725/artifacts) 已下载校验：`verify_ipa.py` 全部断言通过；App 与 Widget 版本 0.5.12（33）；服务地址 `http://47.100.234.212:8080`；麦克风、相机、语音识别权限声明存在。需侧载重签名。
+- [x] [0.5.12（33）IPA](https://github.com/MinJung-Go/Agentic-KeepKeep/actions/runs/36037223725/artifacts/10825737994) 已下载校验：`verify_ipa.py` 全部断言通过；App 与 Widget 版本 0.5.12（33）；服务地址 `http://47.100.234.212:8080`；麦克风、相机、语音识别权限声明存在。需侧载重签名。
 - IPA 大小 8828600 字节；SHA-256 `6b9aebc9520148ff08a498fc9af581b493c2c2a895eb172819bed64124a70b0f`。
 - [ ] 真机验证：录音中发送、长回复通话是否仍会断、断连时出现的传输码（`（对端关闭 N）`／`（连接错误 N）`）。
 - 未在本次改动：通话看门狗仍以主线程时间戳判断采集／上传是否停滞，主线程被长时间占住时理论上仍可能误判；本次未见该路径的提示，未改。
